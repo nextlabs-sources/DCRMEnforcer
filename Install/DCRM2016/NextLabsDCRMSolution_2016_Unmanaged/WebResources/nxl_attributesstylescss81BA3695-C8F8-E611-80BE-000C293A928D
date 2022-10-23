@@ -1,0 +1,346 @@
+/*---------  layouts  ---------*/
+body{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background-color: #fff;
+}
+.container{
+    width: 100%;
+    position: relative;
+    z-index: 0;
+}
+
+/* main list */
+.main-container{
+    display: block;/* defalut block */
+    margin-top: 10px;
+}
+.main-header{
+    position: relative;
+    display: block;
+    width: 1200px;
+    height: 120px;
+}
+.main-header-img{
+    display: inline-block;
+    vertical-align: top;
+    width: 64px;
+    height: 64px;
+    background-image: url('./nxl_u74.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin-top: 28px;
+    margin-left: 20px;
+}
+.main-header-title-wrapper{
+    display: inline-block;
+    vertical-align: top;
+    width: auto;
+    height: 100px;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+.main-header-desc-wrapper{
+    height: 20px;
+    line-height: 20px;
+    display: block;
+    font-size: 11px;
+}
+.main-toolbar{
+    position: relative;
+    display: block;
+    height: 100px;
+}
+.main-toolbar-area-wrapper{
+    display: inline-block;
+    height: 80px;
+    line-height: 80px;
+    margin-top: 10px;
+    margin-left: 104px;
+}
+.main-toolbar-show-wrapper{
+    display: inline-block;
+    height: 80px;
+    line-height: 80px;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+.main-toolbar-search-wrapper{
+    display: inline-block;
+    height: 80px;
+    line-height: 30px;
+    margin-top: 10px;
+    margin-left: 20px;
+    position: relative;
+}
+.main-body{
+    display: block;
+    position: relative;
+}
+.main-entities-container{
+    display: inline-block;
+    width: 850px;
+    margin-left: 104px;
+}
+.main-entity-title-wrapper{
+    display: block;
+    position: relative;
+    padding: 20px 0 0 20px;
+    height: 24px;
+    line-height: 24px;
+}
+.main-entity-title{
+    vertical-align: top;
+    margin-left: 10px;
+}
+.main-entity-area-wrapper{
+    vertical-align: top;
+}
+.main-entity-detail-wrapper{
+    display: block;
+    position: relative;
+    padding: 0 50px;
+}
+.main-entity-field-toggle-wrapper{
+    display: block;
+    position: relative;
+}
+.main-entity-field-table-wrapper{
+    overflow: hidden;
+}
+.main-entity-field-table-desc{
+    height: 24px;
+    line-height: 24px;
+    margin-top: 10px;
+}
+.main-entity-field-table{
+    display: block;
+    border: 1px solid #ddd;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 10px 0 20px 0;
+    table-layout: fixed;
+    max-height: 400px;
+    overflow-y: auto;     
+}
+.main-entity-field-table th,
+.main-entity-field-table td{
+    border: 1px solid #ddd;
+    text-align: center;
+    max-width: 173px;
+    overflow: hidden;
+    word-wrap: break-word;
+    position: relative;
+}
+
+/*---------  modules ---------*/
+.entity-field-checkbox:checked + label::before{
+    content: 'Hide Fields ...';
+}
+
+.td-sm{
+    width: 48px;
+    height: 48px;
+}
+.td-md{
+    width: 143px;
+    height: 48px;
+}
+.td-lg{
+    width: 173px;
+    height: 48px;
+}
+.entity-display-name{
+    display: inline-block;
+    width: 100px;
+    text-align: left;
+    position: absolute;
+    /* top: 50%; conflict with IE if parent element is td*/
+    left: 14px;
+    transform: translateY(-50%);
+}
+.entity-display-name-info{
+    display: inline-block;
+    vertical-align: top;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    margin-left: 10px;
+    background-image: url('./nxl_icon_info_square_sm.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    /* top: 50%; conflict with IE if parent element is td*/
+    right: 14px;
+    transform: translateY(-50%);
+}
+.main-entity-field-toggle{
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    height: 20px;
+    line-height: 20px;    
+}
+.main-entity-desc{
+    display: block;
+}
+.main-entity-select-all-row{
+    display: block;
+    min-width: 800px;
+    height: 100px;
+    position: relative;
+    margin: 24px 0 0 0;
+}
+.main-entity-row{
+    display: block;
+    min-width: 800px;
+    min-height: 120px;
+    position: relative;
+    margin: 0;
+}
+.submit-overlay{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 99999px;
+    background-color: rgba(47, 79, 79, .5);
+}
+
+/*---------  status  ---------*/
+
+
+
+/*---------  themes  ---------*/
+.main-entity-field-table > thead{
+    background-color: #efefef;
+}
+.main-header-title-wrapper > h2{
+    margin: 14px 0;
+    position: relative;
+}
+.main-header-title-wrapper > h4{
+    margin: 10px 0;
+    position: relative;
+}
+.main-header-title-wrapper > h4::after{
+    content: '';
+    position: absolute;
+    display: inline-block;
+    width: 100%;
+    height: 1px;
+    bottom: -5px;
+    left: 0;
+    background-color: #ddd;
+}
+.main-header-desc-wrapper::before{
+    content: '';
+    display: inline-block;
+    vertical-align: top;
+    width: 18px;
+    height: 18px;
+    background-image: url('./nxl_icon_info_circle_sm.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin-top: 1px;
+}
+.main-entity-row::after{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 50px;
+    top: 100%;
+    left: 0;
+    background-image: url('./nxl_entity_sep.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    z-index: -1;
+}
+.main-toolbar-search-wrapper > input[type='text']:first-child{
+    height: 26px;
+}
+.main-entity-select-all-row > .main-entity-title-wrapper{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0 0 0 20px;
+}
+.main-toolbar::after{
+    content: '';
+    background-color: #ddd;
+    position: absolute;
+    width: 800px;
+    height: 2px;
+    left: 104px;
+    bottom: 0;
+}
+.main-entity-field-table-desc::before{
+    content: '';
+    width: 24px;
+    height: 24px;
+    background-image: url('./nxl_icon_info_circle_sm.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.main-entity-select-all-row::after{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 50px;
+    top: 100%;
+    left: 0;
+    background-image: url('./nxl_entity_sep.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    z-index: -1;    
+}
+.toobar-bottom-btnbar > button{
+    border: 1px solid #999;
+}
+.main-toolbar-search-wrapper > button{
+    border: 0;
+    height: 32px;
+    margin: -1px 0 0 -4px;
+}
+.main-toolbar-search-wrapper > input{
+    border-width: 1px 0 1px 1px;
+    border-style: solid;
+    border-color: #999;
+    height: 32px !important;
+}
+.main-toolbar-search-wrapper > span{
+    position: absolute;
+    left: 170px;
+    /* top: 50%; */
+    display: inline-block;
+    height: 30px;
+    width: 30px;
+    /* transform: translateY(-50%); */
+    text-align: center;
+    vertical-align: top;
+    line-height: 30px;
+}
+.main-toolbar-search-wrapper > span:hover{
+    cursor: pointer;
+}
+.block-show{
+    display: block;
+}
+.inline-block-show{
+    display: inline-block;
+}
+.hide{
+    display: none;
+}
+.main-entity-area-wrapper::before{
+    content: '(';
+    vertical-align: top;
+}
+.main-entity-area-wrapper::after{
+    content: ')';
+    vertical-align: top;
+}

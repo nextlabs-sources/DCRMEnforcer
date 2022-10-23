@@ -1,0 +1,359 @@
+﻿
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Secure Entities</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <link href="nxl_jqueryuithemes.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_axurerppage.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_datastyles.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_entitlemententitiesstyles.css" type="text/css" rel="stylesheet"/>
+    
+    <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>    
+    <script src="nxl_sdk.metadata.js" type="text/javascript"></script>
+    <script src="nxl_sdk.rest.js" type="text/javascript"></script>    
+    <script src="nxl_es6promise.js" type="text/javascript"></script>    
+    <script src="nxl_common.js" type="text/javascript"></script>
+    <script src="nxl_EntitiesClassifyConfig.js" type="text/javascript"></script>
+    <script src="nxl_entitlemententities.js" type="text/javascript"></script>   
+    
+  </head>
+  <body onload="HiddenCrmRibbonManager();AdjustCrmContentPanelLocation();LoadEntities();">
+    <div id="base" class="">
+	
+	
+		<div id="saveExportImportDiv" class="ax_default" >
+			<div id="divTopIconAndText" onclick="RedirectHomePage()">
+				<div id="divIcon">
+					<img id="nxl_u69" class="img " src="nxl_u69.png"/>
+				</div>
+				<div id="divText" class="text">
+					<p><span><b>Entitlement Management</b></span></p>
+				</div>
+			</div>
+		    <div id="saveDiv" onclick="SubmitEntitlementEntities(RefleshPage)" style="float:left; cursor:pointer; width:200px">
+				<div style="float:left;width:27px;height:27px;">
+					<img id="saveImg" src="nxl_saveimg.png" style="width:27px;height:27px;"/>
+				</div>
+				<div class="text" style="float:left;margin-top:8px;margin-left:10px;">
+					<span>Secure Selected Entities</span>
+				</div>
+			</div>
+		   <div id="divSpliteIcon" style="float:left;">
+				<img id="divider1" src="nxl_divider.png" style=""/>
+			</div>
+			<div id="exportDiv" onclick="ExportAndSavePolicyModel();" style="float:left;width: 250px; cursor:pointer;margin-left:20px">
+				<div style="float:left;width:27px;height:27px;">
+					<img id="exportImg" src="nxl_exportimg.png" style="width:27px;height:27px;"/>
+				</div>
+				<div style="float:left;margin-top:8px;margin-left:10px;">
+					<span style="">Export & Secure Selected Entities</span>
+				</div>
+			</div>
+
+        </div>
+		
+		<div id="underline1" class="ax_default line" style="position:relative;left:0px;height:2px;">
+          <img id="underline1_img" src="nxl_u105.png" style="width: 1220px; height: 2px;"/>
+        </div>
+    
+        <div id="u327" class="ax_default image">
+			<img id="u327_img" class="img " src="nxl_u21.png"/>
+			<div id="u328" class="text" style="display:none; visibility: hidden">
+			  <p><span></span></p>
+			</div>
+        </div>
+        <div id="u380" class="ax_default heading_2">
+            <div id="u380_div" class=""></div>
+			<div id="u381" class="text">
+			  <p><span>Secure Entities</span></p>
+			</div>
+		</div>
+		
+      <div id="u382" class="ax_default heading_2">
+        <div id="u382_div" class=""></div>
+        <div id="u383" class="text">
+          <p><span>Configure Entities secured by NextLabs Entitlement Management and the attributes available for policy authoring and evaluation</span></p>
+        </div>
+      </div>     
+
+
+      <div id="u349" class="ax_default line">
+        <img id="u349_img" class="img " src="nxl_u105.png"/>
+        <div id="u350" class="text" style="display:none; visibility: hidden">
+          <p><span></span></p>
+        </div>
+      </div>
+
+
+	  <div id="u564" class="ax_default image1">
+          <img id="u564_img" class="img" src="nxl_u134.png">
+        </div>
+	  
+     <div id="u565" class="ax_default paragraph">
+		  <p><span>Users will only be able to access selected entities and records that they are authorized for based on the policies defined in the NextLabs CloudAz or Control Center console.</span></p>
+    </div>
+
+
+	  
+	  
+	        <!-- Unnamed (Horizontal Line) -->
+      <div id="u578" class="ax_default line">
+        <img id="u578_img" class="img " src="nxl_u578.png"/>
+      </div>
+	  
+	        <!-- Unnamed (Paragraph) -->
+      <div id="u587" class="ax_default paragraph">
+       <!-- <img id="u587_img" class="img " src="nxl_u587.png"/> -->
+        <!-- Unnamed () -->
+        <div id="u588" class="text">
+          <p><span>SELECT ALL</span></p>
+        </div>
+      </div>
+	  
+	  <div id="resultOutline" class ="ax_default paragraph">
+	      <span id="resultNum"></span>
+		  <span id="resultNote"> Search results found for keyword</span>
+		  <span id="keyword"></span>
+		  <a id="clearSearch" class="clearSearchLink" onclick="clearSearchContent();" href="javascript:void(0);">
+		  Clear search results
+		  </a>
+	  </div>
+	  
+	        <!-- Checkbox (Dynamic Panel) -->
+      <div id="u589" class="ax_default" data-label="Checkbox" onclick="SelectAllEntities(this);">
+        <div id="u589_state0" class="panel_state" data-label="Unchecked" style="">
+          <div id="u589_state0_content" class="panel_state_content">
+
+            <!-- Unnamed (Image) -->
+            <div id="u590" class="ax_default image2">
+              <img id="u590_img" class="img " src="nxl_u169.png"/>
+              <!-- Unnamed () -->
+              <div id="u591" class="text" style="display:none; visibility: hidden">
+                <p><span></span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="u589_state1" class="panel_state" data-label="Checked" style="visibility: hidden;">
+          <div id="u589_state1_content" class="panel_state_content">
+
+            <!-- Unnamed (Image) -->
+            <div id="u592" class="ax_default image2">
+              <img id="u592_img" class="img " src="nxl_u171.png"/>
+              <!-- Unnamed () -->
+              <div id="u593" class="text" style="display:none; visibility: hidden">
+                <p><span></span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="u589_state2" class="panel_state" data-label="Disabled" style="visibility: hidden;">
+          <div id="u589_state2_content" class="panel_state_content">
+
+            <!-- Checkbox (Dynamic Panel) -->
+            <div id="u594" class="ax_default" data-label="Checkbox">
+              <div id="u594_state0" class="panel_state" data-label="Checked" style="">
+                <div id="u594_state0_content" class="panel_state_content">
+
+                  <!-- Unnamed (Image) -->
+                  <div id="u595" class="ax_default image2">
+                    <img id="u595_img" class="img " src="nxl_u171.png"/>
+                    <!-- Unnamed () -->
+                    <div id="u596" class="text" style="display:none; visibility: hidden">
+                      <p><span></span></p>
+                    </div>
+                  </div>
+
+                  <!-- Unnamed (Rectangle) -->
+                  <div id="u597" class="ax_default box_2">
+                    <div id="u597_div" class=""></div>
+                    <!-- Unnamed () -->
+                    <div id="u598" class="text" style="display:none; visibility: hidden">
+                      <p><span></span></p>
+                    </div>
+                  </div>
+
+                  <!-- Unnamed (Shape) -->
+                  <div id="u599" class="ax_default icon">
+                    
+                    <!-- Unnamed () -->
+                    <div id="u600" class="text" style="display:none; visibility: hidden">
+                      <p><span></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="u594_state1" class="panel_state" data-label="Unchecked" style="visibility: hidden;">
+                <div id="u594_state1_content" class="panel_state_content">
+
+                  <!-- Unnamed (Image) -->
+                  <div id="u601" class="ax_default image2">
+                    <img id="u601_img" class="img " src="nxl_u169.png"/>
+                    <!-- Unnamed () -->
+                    <div id="u602" class="text" style="display:none; visibility: hidden">
+                      <p><span></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+	
+		  
+		 <div id="u548" class="ax_default heading_2 text">
+			  <p><span>Areas</span></p>
+		</div> 
+	
+			  <!-- Unnamed (Droplist) -->
+		<div id="u547" class="ax_default droplist">
+		  <select id="u547_input" onchange="ChangeEntitiesArea();">
+			  <option selected value="Any">All Areas</option>
+		  </select>
+		</div>
+	    
+		  
+		<div id="u549" class="ax_default heading_2 text">
+			<p><span>Show</span></p>
+		 </div>
+		 
+		 
+		<div id="u550" class="ax_default droplist">
+			<select id="u550_input" onchange="ChangeEntitiesFilter();">
+			  <option selected="" value="All Entities">&nbsp; All Entities</option>
+			  <option value="Secure Entities">&nbsp; Secure Entities</option>
+			  <option value="Not Secure Entities">&nbsp; Not Secure Entities</option>
+			</select>
+		 </div>
+	  
+		<!-- Unnamed (Rectangle) -->
+		<div id="u608" class="ax_default box_1">
+		  <div id="u608_div" class=""></div>
+		  <!-- Unnamed () -->
+		  <div id="u609" class="text">
+			<input type="text" id="SearchContent" onkeydown="keyDownEvent();" class="textarea" style="width:294px; height:30px;">
+		  </div>
+	  </div>
+
+	  <!-- Unnamed (Group) -->
+	  <div id="u610" class="ax_default" data-width="113" data-height="28">
+		<!-- Unnamed (Rectangle) -->
+		<div id="u611" class="ax_default box_1"  onclick="onSearchEntities();">
+		  <div id="u611_div" class=""></div>
+		  <!-- Unnamed () -->
+		  <div id="u612" class="text">
+			<p><span>&nbsp; Search</span></p>
+		  </div>
+		</div>
+	  </div>
+
+
+        <!-- Unnamed (Rectangle) -->
+        <div id="u613" class="ax_default heading_2" onclick="DeleteSearchInput();">
+          <div id="u614" class="text">
+            <p><span>X</span></p>
+          </div>
+        </div>
+	 
+
+		<div id="barContainer" class="container">
+			<div id="bar" style= "width:0%"> 
+			</div>	
+			
+		</div>
+		
+	
+        <div id="enityblock" style="border-width:0px;position:relative;width:800px; left:102px;margin-top:320px;text-align:left;z-index:0;overflow:auto;overflow-y:auto;"> </div>  
+		<div id="divSearchNoResult" style="visibility: hidden; border-width: 0px;top:-60px; position: relative; width: 800px; left: 102px; text-align: left; z-index: 0; overflow: auto; font-family: Arial; font-weight: 400; font-style: normal; font-size: 21px;">
+			<p>No matching results found</p>
+		</div>  
+	</div>
+	
+	<div id="summaryDiv">
+			<div id="summaryHeaderDiv" class="ax_default box_2">
+				<div id="summaryHeader" class="text">
+					<p style="font-size:18px; font-family:'Arial Bold', 'Arial';font-weight:700;color:#666666;">
+					<span>Secure Entities (</span>
+					<span id="selectedEntitiesCount">0</span>
+					<span>)</span>
+					</p>
+				</div>
+			</div>
+			
+			
+			<div id="summaryButtonDiv" class="ax_default box_2">
+				<div id="outline_save" title="Secure Selected Entities" onclick="SubmitEntitlementEntities(RefleshPage);" style="position:absolute;left:15px;top:9px;cursor:pointer;">
+				   <img src="nxl_saveimg.png" style="width:24px;height:24px;"/>
+				</div>
+				<div id="outline_export" title="Export & Secure Selected Entities" onclick="ExportAndSavePolicyModel();" style="position:absolute;left:57px;top:9px;cursor:pointer;">
+					<img src="nxl_exportimg.png" style="width:24px;height:24px;"/>
+				</div>
+				<div id="outline_ButtonHide" style="position: absolute;width:399px;height:43px;visibility:hidden;display:none; background: inherit; background-color:rgba(255, 255, 255, 0.709803921568627); z-index:2;">
+				</div>
+			</div>
+			
+			<div id="u346" class="ax_default horizontal_line">
+					<img id="u346_img" class="img " src="nxl_u578.png">    
+			</div>
+			<div class="text" style="position: absolute; color: #FF0000;left: 310px; top:95px; font-size: 11px;">
+			   <span style="font-family: 'Arial Italic', 'Arial'; font-style: italic;">* New items</span>
+			</div>
+			
+			<div id="noentity" class="text">
+					<p><span style="font-family: 'Arial';">No selected entities</span></p>
+			</div>
+				  
+			<div id="summaryentis" class="ax_default paragraph">
+			 </div>
+			<div id="summaryRemoveAll" class="text" onclick="RemoveAllSummaryEntity()">
+				<span><p>Remove All</p></span>
+			</div>
+		</div>
+		
+		<div>
+			<div id="lightbox" 
+			style="position: fixed; left: 0px; top: 0px; width: 10000px; height: 10000px; background-color: rgb(47, 79, 79); opacity: 0.607843; z-index: 1010; visibility:hidden;display:none;">
+			   <div id="alertPanel" style="position:fixed; left:360px; top: 200px; z-index:1012; visibility:hidden; display:none;">
+			   </div>
+			   
+			</div>
+			
+			<div id="workingon" class="ax_default" style="border:1px solid #dddddd; position:fixed; top:300px; left:360px; background: white;z-index:1013; visibility:hidden;display:none;width:400px; height:200px;background:white;">
+				<div id="alerttitle" >
+				   <span class="alertTitleText">Save Alert</span>
+				</div>
+				<img style="position:absolute; left:50px; top:100px;" src="../../_imgs/AdvFind/progress.gif"/>
+				<span style="position:absolute; left:100px; top:100px; font-size: 30px; color: #666666;"> Working on it...</span>
+			</div>
+			
+			<div id="saveAlert" class="ax_default">
+				<div id="alerttitle" >
+				   <span class="alertTitleText">Save Alert</span>
+				</div>
+				<div id="alertsuccessContent" style="position:absolute;top:60px; visibility:hidden; display:none">
+					<span  class="alertContent">Selected entities saved and secured successfully. Export selected entities and import into NextLabs CloudAz or Control Center to author policies.</span>
+				</div>
+				<div id="alertErrorContent" style="position:absolute;top:60px; visibility:hidden; display:none">
+					<span class="errorAlert"> Error in saving selected entitie(s).</span>
+					<span id="errorMessage"></span>
+				</div>
+				<div id="closebuttonDiv">
+					<input class="alertButton" type="submit" value="close" onclick="closeAlert(RefleshPage);"/>
+				</div>
+			</div>
+		
+		</div>
+	
+	<div id="footer_div">
+		<div id="beginFlag">
+			<img src="nxl_u354.png" style="position: absolute; left: 0px; width: 1500px; height: 50px;"/>
+		</div>
+		<input id="save_input" type="submit" value="Secure Selected Entities" onclick="SubmitEntitlementEntities(RefleshPage);"/>
+		<input id="export_input" type="submit" value="Export & Secure Selected Entities" onclick="ExportAndSavePolicyModel();"/>
+	</div>
+  </body>
+</html>

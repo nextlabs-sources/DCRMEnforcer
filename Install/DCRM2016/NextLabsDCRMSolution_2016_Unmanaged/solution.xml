@@ -1,0 +1,384 @@
+<ImportExportXml version="9.0.2.3034" SolutionPackageVersion="9.0" languagecode="1033" generatedBy="OnPremise" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SolutionManifest>
+    <UniqueName>NextLabs_Entitlement_Manager</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="NextLabs Entitlement Manager" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Microsoft Dynamics CRM (DCRM) is a multifaceted platform where everything crucial to developing,improving, and retaining your customer relationships is stored. It has centralized customer information, business intelligence, ability to track sales opportunities, and more. Unfortunately, the ease with which DCRM enables collaborators to share data and manage their own fine-tuned access controls results in serious risks in terms of inappropriate data access, distribution, and loss.To address this challenge, the NextLabs Entitlement Manager for Microsoft DCRM is designed to enhance compliance and security for the Microsoft Dynamics CRM application. It enforces policies on the application across different DCRM entities such as business unit, contact, account, etc. Based on policies, the Enforcer filters entity records based on the user attributes and the entity attributes. For example, the application can enforce policies to allow account executives to view only those accounts for which the industry matches their Business Unit. The Enforcer resides on the Microsoft DCRM Server and works on On-Premise and Online DCRM applications." languagecode="1033" />
+    </Descriptions>
+    <Version>1.2.295.0</Version>
+    <Managed>1</Managed>
+    <Publisher>
+      <UniqueName>NextLabs</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="NextLabs, Inc." languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions>
+        <Description description="NextLabs provides data-centric security software to protect business-critical data and applications. Our patented dynamic authorization technology and industry-leading attribute-based policy platform helps enterprises identify and protect data, monitor, and control access to sensitive data and prevent regulatory violations—whether in the cloud or on premise." languagecode="1033" />
+      </Descriptions>
+      <EMailAddress>support@nextlabs.com</EMailAddress>
+      <SupportingWebsiteUrl>http://www.nextlabs.com</SupportingWebsiteUrl>
+      <CustomizationPrefix>nxl</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>28024</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City>San Mateo</City>
+          <County xsi:nil="true"></County>
+          <Country>USA</Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1>2121 S. El Camino Real</Line1>
+          <Line2>Tower Plaza, Suite 600</Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode>94403</PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince>CA</StateOrProvince>
+          <Telephone1>650-356-4800</Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="account" behavior="1" />
+      <RootComponent type="1" schemaName="contact" behavior="1" />
+      <RootComponent type="1" schemaName="nxl_nxlnotices" behavior="0" />
+      <RootComponent type="1" schemaName="nxl_setting" behavior="0" />
+      <RootComponent type="1" schemaName="nxl_storage" behavior="0" />
+      <RootComponent type="60" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" behavior="0" />
+      <RootComponent type="60" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_active_policy.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_attributeshelp.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_attributesstyles.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_autologonAz.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_axurerppage.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_calendar.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_collapseall.JPG" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_common.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_common.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_controlcenter.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_controlcenter.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_controlcenterstyles.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_datastyles.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_discardchange.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_divider.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_EntitiesClassifyConfig.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_entitieshelp.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_entitlemententities.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_entitlemententities.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_entitlemententitiesstyles.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_entitlementmanagement.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_entitlementmanagement.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_entity_sep.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_errorimg.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_es6promise.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_expandallimg.jpg" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_exportimg.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_export_import_page.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_export_import_page.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_export_import_page.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_generalsetting.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_generalsetting.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_gsuserhelp.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_checked.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_delete.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_export.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_info_circle_sm.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_info_square_sm.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_nextlabs_sm.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_save.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_secure_entities.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_icon_unchecked.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_img1000.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_img1001.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_img1002.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_img1003.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_img1004.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_img1005.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_img1006.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_img1007.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_importexporthelp.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_importimg.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_infoimg.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_jqueryuithemes.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_logs.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_logs.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_logshelp.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_logstyles.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_managehelp.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_manage_active.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_manage_active_page.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_manage_active_page.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_manage_active_page.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_manage_policy.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_models.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_saveimg.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_sdk.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_sdk.metadata.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_sdk.rest.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_settingstyles.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_styles.css" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_successimg.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_testconnectionfail.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_testconnectionsuccess.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_triangle.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u105.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u11.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u134.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u143.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u15.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u156.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u169.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u171.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u1871.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u21.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u3.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u323.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u354.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u356.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u361.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u47.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u578.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u5894.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u602.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u61.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u6146.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u6151.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u69.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u72.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u74.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u76.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u78.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u9.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u911.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_u912.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_userhelp.png" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_userproperties.html" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_userproperties.js" behavior="0" />
+      <RootComponent type="61" schemaName="nxl_warningonload.js" behavior="0" />
+      <RootComponent type="62" behavior="0" />
+      <RootComponent type="91" id="{eaa8eb3f-0b82-411b-88c3-7c6d2ac69358}" schemaName="NextLabs.CRMEnforcer2016, Version=1.2.295.0, Culture=neutral, PublicKeyToken=a87a3da2a099b875" behavior="0" />
+      <RootComponent type="92" id="{6773c4b8-36f9-e811-80c8-000c299cd1f5}" behavior="0" />
+      <RootComponent type="92" id="{ce60facd-36f9-e811-80c8-000c299cd1f5}" behavior="0" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required key="0" type="1" schemaName="msdyn_postconfig" displayName="Post Configuration" solution="ActivityFeedsCore (9.0.0.0)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="2" type="1" schemaName="salesliterature" displayName="Sales Literature" solution="msdynce_Sales (9.0.4.0076)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="3" type="1" schemaName="bulkoperation" displayName="Quick Campaign" solution="msdynce_Marketing (9.0.4.37)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="4" type="1" schemaName="product" displayName="Product" solution="msdynce_ProductManagement (9.0.4.0066)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="5" type="1" schemaName="lead" displayName="Lead" solution="msdynce_LeadManagement (9.0.4.0066)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="6" type="1" schemaName="contract" displayName="Contract" solution="msdynce_Service (9.0.5.56)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="7" type="1" schemaName="opportunity" displayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="8" type="1" schemaName="salesorder" displayName="Order" solution="msdynce_Sales (9.0.4.0076)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="9" type="1" schemaName="list" displayName="Marketing List" solution="msdynce_Marketing (9.0.4.37)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="10" type="1" schemaName="competitor" displayName="Competitor" solution="msdynce_Sales (9.0.4.0076)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="11" type="1" schemaName="quote" displayName="Quote" solution="msdynce_Sales (9.0.4.0076)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="12" type="1" schemaName="campaign" displayName="Campaign" solution="msdynce_Marketing (9.0.4.37)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="13" type="1" schemaName="msdyn_postruleconfig" displayName="Post Rule Configuration" solution="ActivityFeedsCore (9.0.0.0)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="14" type="1" schemaName="service" displayName="Service" solution="msdynce_Service (9.0.5.56)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="15" type="1" schemaName="incident" displayName="Case" solution="msdynce_Service (9.0.5.56)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="16" type="1" schemaName="invoice" displayName="Invoice" solution="msdynce_Sales (9.0.4.0076)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="7" type="1" schemaName="opportunity" displayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="15" type="1" schemaName="incident" displayName="Case" solution="msdynce_Service (9.0.5.56)" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="18" type="1" schemaName="entitlement" displayName="Entitlement" solution="msdynce_Service (9.0.5.56)" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="7" type="1" schemaName="opportunity" displayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="15" type="1" schemaName="incident" displayName="Case" solution="msdynce_Service (9.0.5.56)" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="18" type="1" schemaName="entitlement" displayName="Entitlement" solution="msdynce_Service (9.0.5.56)" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="20" type="2" schemaName="originatingleadid" displayName="Originating Lead" parentSchemaName="account" parentDisplayName="Account" solution="msdynce_LeadManagement (9.0.4.0066)" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="21" type="2" schemaName="originatingleadid" displayName="Originating Lead" parentSchemaName="contact" parentDisplayName="Contact" solution="msdynce_LeadManagement (9.0.4.0066)" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="22" type="26" schemaName="Contact Entitlements" displayName="Contact Entitlements" parentSchemaName="entitlement" parentDisplayName="Entitlement" solution="msdynce_Service (9.0.5.56)" id="{d227ed1d-362f-4ab5-8125-684d5f52caeb}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="23" type="26" schemaName="My Active Cases" displayName="My Active Cases" parentSchemaName="incident" parentDisplayName="Case" solution="msdynce_Service (9.0.5.56)" id="{00000000-0000-0000-00aa-000010001028}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="24" type="26" schemaName="Recent Opportunities" displayName="Recent Opportunities" parentSchemaName="opportunity" parentDisplayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" id="{9c3f7ee8-eca7-e211-9fb6-00155dd0ea05}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="25" type="26" schemaName="Recent Cases" displayName="Recent Cases" parentSchemaName="incident" parentDisplayName="Case" solution="msdynce_Service (9.0.5.56)" id="{ebd1d24a-eea7-e211-9fb6-00155dd0ea05}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="23" type="26" schemaName="My Active Cases" displayName="My Active Cases" parentSchemaName="incident" parentDisplayName="Case" solution="msdynce_Service (9.0.5.56)" id="{00000000-0000-0000-00aa-000010001028}" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="26" type="26" schemaName="My Open Opportunities" displayName="My Open Opportunities" parentSchemaName="opportunity" parentDisplayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" id="{00000000-0000-0000-00aa-000010003000}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="27" type="26" schemaName="Account Entitlements" displayName="Account Entitlements" parentSchemaName="entitlement" parentDisplayName="Entitlement" solution="msdynce_Service (9.0.5.56)" id="{961bf8aa-042f-4f4d-bcca-935bfc9a6994}" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="24" type="26" schemaName="Recent Opportunities" displayName="Recent Opportunities" parentSchemaName="opportunity" parentDisplayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" id="{9c3f7ee8-eca7-e211-9fb6-00155dd0ea05}" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="26" type="26" schemaName="My Open Opportunities" displayName="My Open Opportunities" parentSchemaName="opportunity" parentDisplayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" id="{00000000-0000-0000-00aa-000010003000}" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="28" type="59" schemaName="Active Cases by Agent" displayName="Active Cases by Agent" parentSchemaName="incident" parentDisplayName="Case" solution="msdynce_Service (9.0.5.56)" id="{4143b74e-4a07-4d01-9ffe-2cdcaa4208fd}" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="29" type="59" schemaName="Top Customers" displayName="Top Customers" parentSchemaName="opportunity" parentDisplayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" id="{8bc5fb18-48f2-4782-9e16-3d452fa4ddce}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="29" type="59" schemaName="Top Customers" displayName="Top Customers" parentSchemaName="opportunity" parentDisplayName="Opportunity" solution="msdynce_Sales (9.0.4.0076)" id="{8bc5fb18-48f2-4782-9e16-3d452fa4ddce}" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="30" type="59" schemaName="Case Mix (By Business Unit)" displayName="Case Mix (By Business Unit)" parentSchemaName="incident" parentDisplayName="Case" solution="msdynce_Service (9.0.5.56)" id="{f10375a6-4893-de11-97d4-00155da3b01e}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="17" type="60" displayName="Contact" parentDisplayName="Contact" solution="msdynce_AppCommon (9.0.4.0066)" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="19" type="60" displayName="Account" parentDisplayName="Account" solution="msdynce_AppCommon (9.0.4.0066)" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="31" type="60" displayName="account contact card" parentDisplayName="Contact" solution="msdynce_AppCommon (9.0.4.0066)" id="{29de27bc-a257-4f29-99cf-bab4a84e688f}" />
+        <Dependent key="17" type="60" displayName="Contact" parentDisplayName="Contact" id="{1fed44d1-ae68-4a41-bd2b-f13acac4acfa}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="31" type="60" displayName="account contact card" parentDisplayName="Contact" solution="msdynce_AppCommon (9.0.4.0066)" id="{29de27bc-a257-4f29-99cf-bab4a84e688f}" />
+        <Dependent key="19" type="60" displayName="Account" parentDisplayName="Account" id="{8448b78f-8f42-454e-8e2a-f8196b0419af}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="32" type="65" schemaName="Account Hierarchy" displayName="Account Hierarchy" parentSchemaName="account" parentDisplayName="Account" solution="msdynce_AppCommon (9.0.4.0066)" id="{4ef9fbbf-dcca-e311-b3e2-0024e84720c0}" />
+        <Dependent key="32" type="65" schemaName="Account Hierarchy" displayName="Account Hierarchy" parentSchemaName="account" parentDisplayName="Account" id="{4ef9fbbf-dcca-e311-b3e2-0024e84720c0}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="33" type="61" schemaName="msdyn_/Images/Wall_16.png" displayName="msdyn_/Images/Wall_16.png" solution="ActivityFeedsCore (9.0.0.0)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="34" type="61" schemaName="msdyn_/PersonalWall.htm" displayName="msdyn_/PersonalWall.htm" solution="ActivityFeedsCore (9.0.0.0)" />
+        <Dependent key="1" type="62" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>

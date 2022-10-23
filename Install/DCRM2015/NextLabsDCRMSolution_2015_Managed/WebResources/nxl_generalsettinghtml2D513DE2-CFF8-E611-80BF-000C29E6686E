@@ -1,0 +1,355 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>General Settings</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    
+    <link href="nxl_jqueryuithemes.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_axurerppage.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_datastyles.css" type="text/css" rel="stylesheet"/>    
+    <link href="nxl_settingstyles.css" type="text/css" rel="stylesheet"/>
+    
+    <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>    
+    <script src="nxl_sdk.metadata.js" type="text/javascript"></script>
+    <script src="nxl_sdk.rest.js" type="text/javascript"></script>    
+    <script src="nxl_es6promise.js" type="text/javascript"></script>    
+    <script src="nxl_common.js" type="text/javascript"></script>
+    <script src="nxl_generalsetting.js" type="text/javascript"></script>    
+    <style type="text/css">
+    input.textarea {
+      border-width:0px;
+      position:absolute;
+      left:0px;
+      top:0px;
+      width:473px;
+      height:28px;
+      background:inherit;
+      background-color:rgba(255, 255, 255, 1);
+      box-sizing:border-box;
+      border-width:1px;
+      border-style:solid;
+      border-color:rgba(228, 228, 228, 1);
+      border-radius:0px;
+      -moz-box-shadow:none;
+      -webkit-box-shadow:none;
+      box-shadow:none;  
+      text-align:left;  
+    }    
+    </style>    
+  </head>
+  <body onload="HiddenCrmRibbonManager();AdjustCrmContentPanelLocation();LoadGeneralSetting();LoadPolicyControlAddr();">
+    <div id="base" class="">
+	    <div style="padding:0 0 150px;zoom:1; height: 870px;">
+	    <div id="saveDiscardDiv" class="ax_default" >
+			<div id="divTopIconAndText" onclick="RedirectHomePage()";>
+				<div id="divIcon">
+					<img id="nxl_u69" class="img " src="nxl_u69.png"/>
+				</div>
+				<div id="divText" class="text">
+					<p><span><b>Entitlement Management</b></span></p>
+				</div>
+			</div>
+		    <div id="saveDiv" onclick="SubmitGeneralSetting()" style="float:left; cursor:pointer; width:200px">
+				<div style="float:left;width:27px;height:27px;">
+					<img id="saveImg" src="nxl_saveimg.png" style="width:27px;height:27px;"/>
+				</div>
+				<div class="text" style="float:left;margin-top:8px;margin-left:10px;">
+					<span style="">Save Settings</span>
+				</div>
+			</div>
+			<div id="divSpliteIcon" style="float:left;">
+				<img id="divider1" src="nxl_divider.png" style=""/>
+			</div>
+			
+			<div id="exportDiv" onclick="DiscardChange();" style="float:left;width: 250px; cursor:pointer;margin-left:20px">
+				<div style="float:left;width:27px;height:27px;">
+					<img id="exportImg" src="nxl_discardchange.png" style="width:27px;height:27px;"/>
+				</div>
+				<div style="float:left;margin-top:8px;margin-left:10px;">
+					<span style="">Discard Changes</span>
+				</div>
+			</div>
+        </div>
+		
+		<div id="underline1" class="ax_default line" style="position:relative;left:0px;height:2px;">
+          <img id="underline1_img" src="nxl_u105.png" style="width: 1220px; height: 2px;"/>
+        </div>
+	  
+	  
+      <div id="u809" class="ax_default image">
+        <img id="u809_img" class="img " src="nxl_u76.png"/>
+        <div id="u810" class="text" style="display:none; visibility: hidden">
+          <p><span></span></p>
+        </div>
+      </div>
+      <div id="u811" class="ax_default heading_2">
+        <div id="u811_div" class=""></div>
+        <div id="u812" class="text">
+          <p><span>General Settings</span></p>
+        </div>
+      </div>
+	  
+	  
+	  
+	  <div id="u4842" class="ax_default heading_2">
+          <p><span>Policy controller and other Entitlement Management settings</span></p>
+      </div>	  	  
+	  
+      <div id="u833" class="ax_default line">
+        <img id="u833_img" class="img " src="nxl_u105.png"/>
+      </div>
+	  
+	  	 
+      
+      <div id="u424" class="ax_default heading_2">
+        <div id="u424_div" class=""></div>
+        <div id="u425" class="text">
+          <p><span>NextLabs Platform Configuration</span></p>
+        </div>
+      </div>
+      <div id="u450" class="ax_default heading_2">
+        <div id="u450_div" class=""></div>
+        <div id="u451" class="text">
+          <p><span>Configure the host and port for the CloudAz or Control Center Policy Controller REST API</span></p>
+        </div>
+      </div>
+      <div id="u448" class="ax_default line">
+        <img id="u448_img" class="img " src="nxl_u105.png"/>
+        <div id="u449" class="text" style="display:none; visibility: hidden">
+          <p><span></span></p>
+        </div>
+      </div>
+      
+
+
+      <div id="u459" class="ax_default heading_2">
+        <div id="u459_div" class=""></div>
+        <div id="u460" class="text">
+          <p><span><b>Policy Controller (PDP) Host</b></span></p>
+        </div>
+      </div>
+      <div id="u456" class="ax_default" data-width="473" data-height="28">
+        <div id="u457" class="ax_default box_1">
+          <input type="text" id="PolicyControlAddrHost" placeholder="&nbsp;Example: your-jpc.cloudaz.com" class="textarea"/>
+        </div>
+      </div>      
+      <div id="u464" class="ax_default heading_2">
+        <div id="u464_div" class=""></div>
+        <div id="u465" class="text">
+          <p><span><b>Policy Controller Port</b></span></p>
+        </div>
+      </div>
+      <div id="u461" class="ax_default" data-width="473" data-height="28">
+        <div id="u462" class="ax_default box_1">
+          <input type="text" id="PolicyControlAddrPort" placeholder="&nbsp;Example: 443" class="" style="width:310px" />
+        </div>
+      </div>      
+      
+	  <div id="u471" class="ax_default heading_2">
+        <div id="u471_div" class=""></div>       
+        <div id="u472" class="text">
+          <p><span><b>OAuth Server Host</b></span></p>
+        </div>
+      </div>      
+      <div id="u468" class="ax_default" data-width="473" data-height="28">
+        <div id="u469" class="ax_default box_1">
+        <input type="text" id="txtOAuthServerHost" placeholder="&nbsp;Example: your-cc.cloudaz.com" class="textarea">
+        </div>
+      </div>      
+      
+      <div id="u476" class="ax_default heading_2">
+        <div id="u476_div" class=""></div>
+        <div id="u477" class="text">
+          <p><span><b>OAuth Port</b></span></p>
+        </div>
+      </div>
+      <div id="u473" class="ax_default" data-width="473" data-height="28">
+        <div id="u474" class="ax_default box_1">
+        <input type="text" id="txtOAuthPort" placeholder="&nbsp;Example: 443" class="textarea" />
+        </div>
+      </div>
+	  
+      <div id="div_ClientId_Title" class="ax_default heading_2">
+        <div id="div_ClientId_Title_Empty" class=""></div>       
+        <div id="div_ClientId_Title_Label" class="text">
+          <p><span><b>Client ID</b></span></p>
+        </div>
+      </div>      
+      <div id="div_ClientId_Value" class="ax_default" data-width="473" data-height="28">
+        <div id="div_ClientId_Value_Input" class="ax_default box_1">
+        <input type="text" id="JPCUsername" class="textarea" placeholder="&nbsp;" style="width:310px">
+        </div>
+      </div>      
+      
+      <div id="div_ClientKey_Title" class="ax_default heading_2">
+        <div id="div_ClientKey_Title_Empty" class=""></div>
+        <div id="div_ClientKey_Title_Label" class="text">
+          <p><span><b>Client Secret Key</b></span></p>
+        </div>
+      </div>
+      <div id="div_ClientKey_Value" class="ax_default" data-width="473" data-height="28">
+        <div id="div_ClientKey_Value_Input" class="ax_default box_1">
+        <input type="password" id="JPCPassword" placeholder="&nbsp;" class="textarea">
+        </div>
+      </div>
+      
+      <div id="u466" class="ax_default checkbox">
+        <label for="UsingHttps">
+          <div id="u467" class="text">
+            <p><span>&nbsp;HTTPS</span></p>
+          </div>
+        </label>
+        <input id="UsingHttps" type="checkbox" value="checkbox" style="width:25px;height:25px;"/>        
+      </div>
+
+	<div id="u5016" class="ax_default html_button">
+        <input id="u5016_input" type="submit" value="Test Connection" onclick="testPCConnection();">
+      </div>
+	  
+	  
+	  <div id="u5031" class="ax_default" data-label="testConnection">
+        <div id="u5031_state0" class="panel_state" data-label="State1" style="visibility: hidden; display: none;">
+            <div id="u5032" class="ax_default paragraph1">
+                <p><span>√&nbsp;Connection established successfully.</span></p>
+            </div>
+        </div>
+        <div id="u5031_state1" class="panel_state" data-label="State2" style="visibility: hidden; display: none;">
+            <div id="u5037" class="ax_default paragraph1">
+                <p><span id="errorMessageSpan">×&nbsp;Connection could not be established.</span></p>
+				<p><span id="errorDetail"></span></p>
+            </div>
+          </div>
+      </div>
+	  
+	  
+	  
+	  <div id="u5008" class="ax_default image1">
+        <img id="u5008_img" class="img " src="nxl_u354.png">
+      </div>
+	    
+	  
+	  <div id="u5010" class="ax_default heading_2">
+          <p><span>Default Policy Enforcement Settings</span></p>  
+      </div>
+	  
+	  
+	  	  
+      <div id="u835" class="ax_default heading_2">
+        <div id="u835_div" class=""></div>
+        <div id="u836" class="text">
+          <p><span>Default behavior in case of system or configuration issues</span></p>
+        </div>
+      </div>      
+	  
+	  
+	  <div id="u5011" class="ax_default line">
+        <img id="u5011_img" class="img " src="nxl_u105.png">
+      </div>
+	  
+	  
+	  
+	  
+	  <!--
+	 <div id="u5012" class="ax_default image1">
+        <img id="u5012_img" class="img " src="nxl_u354.png">
+     </div>
+	   
+	  -->
+	  
+
+      <div id="u837" class="ax_default heading_2">
+        <div id="u837_div" class=""></div>
+        <div id="u838" class="text">
+          <p><span>Policy Decision</span></p>
+        </div>
+      </div>
+      <div id="u847" class="ax_default droplist">
+        <select id="u847_input" onchange="ChangeDefaultActionForInternalException()">
+          <option selected value="deny">&nbsp; Deny</option>
+          <option value="allow">&nbsp; Allow</option>
+        </select>
+      </div>
+
+      <div id="u842" class="ax_default heading_2">
+        <div id="u842_div" class=""></div>
+        <div id="u843" class="text">
+          <p><span>Message</span></p>
+        </div>
+      </div>      
+      <div id="u840" class="ax_default box_1">
+        <textarea class="textarea" id="HintForInternalException" placeholder="Access denied due to system error. Try again and contact the system administrator if the problem persists." type="text"></textarea>
+      </div>
+      
+	  <div style="position:absolute;left:112px;top:1041px;font-family: 'Arial';font-weight: 400;font-style: normal;font-size: 13px;text-align: left;color: #999999;">
+          <p>Default message if the user is not authorized or no applicable policies</p>
+	  </div>
+	  
+	  <div style="position:absolute;left:112px;top:986px;">
+	    <div class="text">
+          <p><span class="settingTitleText"></span></p>
+        </div>     
+	
+		<div class="ax_default line" style="position: absolute; left: 0px; top:74px;">
+		<img class="img" src="nxl_u105.png" style="position: absolute;left: 0px; top: 0px; width: 671px; height: 2px;">
+		</div>
+	</div>
+	  
+	  
+	  <div class="ax_default heading_2" id="divDefaultMessage">
+        <div></div>
+        <div class="text" id="divDefaultMessageTitle">
+          <p><span>Message</span></p>
+        </div>
+      </div>      
+      <div class="ax_default box_1" id="divDefaultMessageTextarea">
+        <textarea class="textarea" id="txtHintForDefaultMessage" placeholder="Access denied, you are not authorized to perform this operation." type="text"></textarea>
+      </div>
+	 
+       </div>
+	</div>
+	
+	 <div id="div_SplitImg" class="ax_default image1">
+       <img id="div_SplitImg_img" class="img " src="nxl_u354.png">
+     </div>
+	    
+	  
+	 <div id="div_RefreshTime_MainTitle" class="ax_default heading_2">
+         <p><span>Cache Settings</span></p>  
+     </div>
+	 <div id="div_RefreshTime_SecondTitle" class="ax_default heading_2">
+        <div id="div_RefreshTime_SecondTitle_Empty" class=""></div>
+        <div id="div_RefreshTime_SecondTitle_Content" class="text">
+          <p><span>Refresh cached configuration settings</span></p>
+        </div>
+      </div>
+	
+	<div id="div_SplitImg_Small" class="ax_default line">
+        <img id="div_SplitImg_Small_img" class="img " src="nxl_u105.png">
+    </div>
+	
+	<div id="div_RefreshTime_Content_Title" class="ax_default heading_2">
+        <div id="u837_div" class=""></div>
+        <div id="u838" class="text">
+          <p><span></span></p>
+        </div>
+    </div>
+	  
+	<div id="div_RefreshTime_Content_Value" class="ax_default droplist">
+      <span>Every</span>
+	  <span>&nbsp;&nbsp;<input type="text" id="div_RefreshTime_Content_Value_input" placeholder="5" /></span>
+	  <span>&nbsp;&nbsp;&nbsp;&nbsp;Minute(s)</span>
+    </div>
+	
+	<div id="footer_div">
+		<div id="beginFlag">
+			<img src="nxl_u354.png" style="left: 0px; width: 100%; height: 50px;"/>
+		</div>
+		<input id="save_input" type="button" value="Save Settings" onclick="SubmitGeneralSetting();"/>
+		<input id="discard_input" type="button" value="Discard Changes" onclick="DiscardChange();"/>
+	</div>
+		
+  </body>
+</html>

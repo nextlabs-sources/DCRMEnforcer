@@ -1,0 +1,1773 @@
+
+"use strict";
+var Sdk = window.Sdk || {};
+var strArryNotEnforcedAttrType = new Array("Virtual");
+var AttributeDataType = {
+	"Picklist": "Option Set", "String": "Single Line of Text", "Memo": "Multiple Lines of Text",
+	"Double": "Floating Point Number", "Integer": "Whole Number", "Money": "Currency", "Boolean": "Two Options", "Lookup": "Lookup", "DateTime": "Date and Time",
+	"EntityName": "EntityName", "Status": "Status Reason", "State": "Status", "BigInt": "Time Stamp", "Owner": "Owner", "Decimal": "Decimal Number", "PartyList": "Party List",
+	"ManagedProperty": "Managed Property"
+};
+Sdk.getClientUrl = function () {
+	var context;
+	// GetGlobalContext defined by including reference to 
+	// ClientGlobalContext.js.aspx in the HTML page.
+	if (typeof GetGlobalContext != "undefined") {
+		context = GetGlobalContext();
+	} else {
+		if (typeof Xrm != "undefined") {
+			// Xrm.Page.context defined within the Xrm.Page object model for form scripts.
+			context = Xrm.Page.context;
+		} else {
+			throw new Error("Context is not available.");
+		}
+	}
+
+	return context.getClientUrl();
+}
+
+/**
+ * @function request
+ * @description Generic helper function to handle basic XMLHttpRequest calls.
+ * @param {string} action - The request action. String is case-sensitive.
+ * @param {string} uri - An absolute or relative URI. Relative URI starts with a "/".
+ * @param {object} data - An object representing an entity. Required for create and update actions.
+ * @param {object} addHeader - An object with header and value properties to add to the request
+ * @returns {Promise} - A Promise that returns either the request object or an error object.
+ */
+Sdk.request = function (action, uri, data, addHeader) {
+	if (!RegExp(action, "g").test("POST PATCH PUT GET DELETE")) { // Expected action verbs.
+		throw new Error("Sdk.request: action parameter must be one of the following: " +
+			"POST, PATCH, PUT, GET, or DELETE.");
+	}
+	if (!typeof uri === "string") {
+		throw new Error("Sdk.request: uri parameter must be a string.");
+	}
+	if ((RegExp(action, "g").test("POST PATCH PUT")) && (!data)) {
+		throw new Error("Sdk.request: data parameter must not be null for operations that create or modify data.");
+	}
+	if (addHeader) {
+		if (typeof addHeader.header != "string" || typeof addHeader.value != "string") {
+			throw new Error("Sdk.request: addHeader parameter must have header and value properties that are strings.");
+		}
+	}
+
+	// Construct a fully qualified URI if a relative URI is passed in.
+	if (uri.charAt(0) === "/") {
+		uri = clientUrl + webAPIPath + uri;
+	}
+
+	return new Promise(function (resolve, reject) {
+		var request = new XMLHttpRequest();
+		request.open(action, encodeURI(uri), true);
+		request.setRequestHeader("OData-MaxVersion", "4.0");
+		request.setRequestHeader("OData-Version", "4.0");
+		request.setRequestHeader("Accept", "application/json");
+		request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+		if (addHeader) {
+			request.setRequestHeader(addHeader.header, addHeader.value);
+		}
+		request.onreadystatechange = function () {
+			if (this.readyState === 4) {
+				request.onreadystatechange = null;
+				switch (this.status) {
+					case 200: // Success with content returned in response body.
+					case 204: // Success with no content returned in response body.
+					case 304: // Success with Not Modified.
+						resolve(this);
+						break;
+					default: // All other statuses are error cases.
+						var error;
+						try {
+							error = JSON.parse(request.response).error;
+						} catch (e) {
+							error = new Error("Unexpected Error");
+						}
+						reject(error);
+						break;
+				}
+			}
+		};
+		request.send(JSON.stringify(data));
+	});
+};
+
+// Global variables.
+var clientUrl = Sdk.getClientUrl();     // e.g.: https://org.crm.dynamics.com
+var webAPIPath = "/api/data/v8.0";      // Path to the web API.
+var nxlStorageEntity = "nxl_setting";
+var SiteMapEntity = "SiteMap";
+
+function errorNextLabsStorage(error) {
+	//console.log(error);
+}
+
+// setText and getText mitigate differences in how browsers set or get text content.
+function setText(node, text) {
+	if (typeof (node.innerText) != "undefined") {
+		node.innerText = text;
+	} else {
+		node.textContent = text;
+	}
+}
+
+function getText(node) {
+	if (typeof (node.innerText) != "undefined") {
+		return node.innerText;
+	} else {
+		return node.textContent;
+	}
+}
+
+function RefleshPage() {
+	location.reload(true);
+}
+
+function NxlArraySort(a, b) {
+	if (a < b) {
+		return -1
+	}
+	if (a > b) {
+		return 1
+	}
+	return 0;
+}
+/*
+function HiddenCrmRibbonManager() {
+	var crmRibbon = window.parent.document.getElementById("crmRibbonManager");
+	//crmRibbon.style["visibility"] = "hidden";
+	crmRibbon.style["display"] = "none";
+}
+
+function IsMessageBarHidden() {
+	var messageBar = window.parent.document.getElementById("crmAppMessageBar");
+	var bResult = true;
+	if (messageBar != undefined && messageBar != null) {
+		if (messageBar.style["display"] == "none") {
+			bResult = true;
+		} else {
+			bResult = false;
+		}
+	}
+	return bResult;
+}
+
+function AdjustCrmContentPanelLocation() {
+	var CrmContentPanel = window.parent.document.getElementById("crmContentPanel");
+	if (IsMessageBarHidden()) {
+		//console.log("have no message bar");
+		CrmContentPanel.style["top"] = "50px";
+	} else {
+		//console.log("have message bar");
+		CrmContentPanel.style["top"] = "85px";
+	}
+}
+*/
+function showDetail(strTitle, strMsg) {
+	//show detail
+	//msgDiv
+	var strContent = "<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">"
+		+ "<head>"
+		+ "<meta charset=\"utf-8\" />"
+		+ "<title>" + strTitle + "</title>"
+		+ "</head>"
+		+ "<body>"
+		+ "<div id=\"divMain\" style=\"font-family:'Arial Bold', 'Arial';font-weight:700;height:600px;width:800px;\">"
+		+ "<div id=\"divTitle\" style=\"width:600px;height:100px;border:1px solid #dddddd; background-color:rgba(228, 228, 228, 1);\">"
+		+ "<p style=\"color:#666666;font-size:18px;text-align:center\">Exported Data</p>"
+		+ "<p>Due to Internet Explorer security setting, you can not download exported file. Please copye and save as following contents to \"*.bin\" file</p>"
+		+ "</div>"
+		+ "<div id=\"divContent\" style=\"width:600px;height:400px;padding-top:25px;border:1px solid #dddddd\">"
+		+ " <textarea style=\"height:350px;width:550px;margin-left:20px\">" + strMsg + "</textarea>"
+		+ "</div>"
+		+ "</div>"
+		+ "</body>"
+		+ "</html>";
+	var iPageHeight = 600;
+	var iPageWidth = 630;
+	var iPageTop = (window.screen.availHeight - 30 - iPageHeight) / 2;
+	var iPageLeft = (window.screen.availWidth - 10 - iPageWidth) / 2;
+
+	var docPage = window.open('about:blank', '', 'height=' + iPageHeight + ', width=' + iPageWidth + ', top=' + iPageTop + ', left=' + iPageLeft + ',toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, status=no')
+	docPage.document.write(strContent);
+}
+function IsNullOrNaNOrUndefined(obj) {
+	var bResult = true;
+	if (obj != undefined && obj != null && obj != NaN) {
+		bResult = false;
+	}
+	return bResult;
+}
+
+var SiteMap =
+	{
+		CreateNew: function () {
+			var SiteMap = {};
+			SiteMap.Area = new Array();
+			return SiteMap;
+		}
+
+	};
+var Area =
+	{
+		CreateNew: function () {
+			var Area = {};
+			Area.Name = "";
+			Area.Entites = new Array();
+			return Area;
+		}
+
+	};
+function loadXMLDoc(xml) {
+	var xmlDoc;
+	try //Internet Explorer
+	{
+		xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+		xmlDoc.async = "false";
+		xmlDoc.loadXML(xml);
+	}
+	catch (e) {
+		try //Firefox, Mozilla, Opera, etc.
+		{
+			var parser = new DOMParser();
+			xmlDoc = parser.parseFromString(xml, "text/xml");
+		}
+		catch (e) {
+			alert(e.message);
+		}
+	}
+	return xmlDoc;
+}
+function LoadSiteMap(siteMapXML) {
+	var xmlObject = loadXMLDoc(siteMapXML);
+	//Create SiteMap
+	var SiteMapNode = SiteMap.CreateNew();
+
+	var elementsArea = xmlObject.getElementsByTagName("Area");
+	if (!IsNullOrNaNOrUndefined(elementsArea)) {
+		for (var iAreaIndex = 0; iAreaIndex < elementsArea.length; iAreaIndex++) {
+			var attrAreaResourceId = elementsArea[iAreaIndex].attributes.getNamedItem("ResourceId");
+			if (IsNullOrNaNOrUndefined(attrAreaResourceId)) {
+				var id = elementsArea[iAreaIndex].attributes.getNamedItem("Id");
+				if (!IsNullOrNaNOrUndefined(id)) {
+					if (id.value == "SI") {
+						var attrAreaResourceId = new Object();
+						attrAreaResourceId.value = "Area_Project Service";
+					}
+				}
+			}
+			if (!IsNullOrNaNOrUndefined(attrAreaResourceId)) {
+				var AreaNode = Area.CreateNew();
+				AreaNode.Name = attrAreaResourceId.value.replace("Area_", "");
+
+				var elementsGroups = elementsArea[iAreaIndex].getElementsByTagName("Group");
+				if (!IsNullOrNaNOrUndefined(elementsGroups)) {
+					for (var iGropsIndex = 0; iGropsIndex < elementsGroups.length; iGropsIndex++) {
+						var elementsSubArea = elementsGroups[iGropsIndex].getElementsByTagName("SubArea");
+						if (!IsNullOrNaNOrUndefined(elementsSubArea)) {
+							for (var iSubAreaIndex = 0; iSubAreaIndex < elementsSubArea.length; iSubAreaIndex++) {
+								var attrEntity = elementsSubArea[iSubAreaIndex].attributes.getNamedItem("Entity");
+								if (!IsNullOrNaNOrUndefined(attrEntity)) {
+									AreaNode.Entites.push(attrEntity.value);
+								}
+							}
+						}
+					}
+				}
+				SiteMapNode.Area.push(AreaNode);
+				//alert(attrAreaResourceId.value);
+			}
+			else {
+
+			}
+		}
+	}
+	return SiteMapNode;
+}
+
+function GetPluralDisplayName(obj) {
+	var pluralDisplayName = "";
+	if (obj.DisplayCollectionName.UserLocalizedLabel != null && obj.DisplayCollectionName.UserLocalizedLabel.Label != null) {
+		pluralDisplayName = obj.DisplayCollectionName.UserLocalizedLabel.Label;
+	} else {
+		pluralDisplayName = obj.SchemaName;
+	}
+	return pluralDisplayName;
+}
+
+function GetDisplayName(obj) {
+	var displayName = "";
+	if (obj.DisplayName.UserLocalizedLabel != null && obj.DisplayName.UserLocalizedLabel.Label != null) {
+		displayName = obj.DisplayName.UserLocalizedLabel.Label;
+	} else {
+		displayName = obj.SchemaName;
+	}
+	return displayName;
+}
+
+function GetAttributrType(obj) {
+	var attrType = "";
+	if (obj.AttributeType == "Uniqueidentifier" && obj.IsPrimaryId == true) {
+		attrType = "Primary Key";
+	} else if (obj.AttributeType == "Uniqueidentifier" && obj.IsPrimaryId == false) {
+		attrType = "Unique Identifier";
+	} else {
+		attrType = AttributeDataType[obj.AttributeType];
+	}
+	if (attrType == undefined || attrType == null || attrType == "") {
+		attrType = obj.AttributeType;
+	}
+	return attrType;
+}
+
+function GetEntityDesc(obj) {
+
+	var entityDesc = '';
+
+	if (obj.Description.UserLocalizedLabel && obj.Description.UserLocalizedLabel.Label) {
+		entityDesc = obj.Description.UserLocalizedLabel.Label;
+	}
+
+	return entityDesc;
+}
+
+function GetRequiredLevel(obj) {
+	if (-1 != obj.RequiredLevel.Value.toLowerCase().indexOf("required")) {
+		return "Required";
+	} else {
+		return "Optional";
+	}
+}
+function RedirectHomePage() {
+	window.open("nxl_entitlementmanagement.html", "_self");
+}
+
+//Export Policy Model    -- begin
+function AddTagToPolicyModel(tags, tagKey, tagLabel) {
+	var tag = new Object();
+	tag.id = 9999;
+	tag.key = tagKey;
+	tag.label = tagLabel;
+	tag.type = "POLICY_MODEL_TAG";
+	tag.status = "ACTIVE";
+	tag.hidden = false;
+	tags.push(tag);
+}
+
+function AddComponentToPM(components, name, descrip, type, category, policyModelId, actions) {
+
+    var action = new Object();
+    action.name = name;
+    action.description = descrip;
+    action.type = type;
+    action.category = category;
+    action.policyModel = new Object();
+    action.policyModel.id = policyModelId;
+    action.actions = actions;
+    action.status = "DRAFT";
+    action.parentId = null;
+    action.deployed = false;
+    action.skipValidate = false;
+    action.reIndexAllNow = true;
+    action.preCreated = true;
+    components.push(action);
+}
+
+function AddparametersToSecuFilterOb(index, fields, parameters) {
+
+	var param0 = new Object();
+	fields = getAscendingSortedList(fields);
+    var fieldsString = fields.join(",");
+    param0.name = "Field (" + index + ")";
+    param0.shortName = "col" + index;
+    param0.type = "LIST";
+    param0.defaultValue = null;
+    param0.listValues = fieldsString;
+    param0.hidden = false;
+    param0.editable = true;
+    param0.mandatory = false;
+    param0.sortOrder = (index - 1) * 3;
+    parameters[(index - 1) * 3] = param0;
+
+    var param1 = new Object();
+    param1.name = "Operator";
+    param1.shortName = "op" + index;
+    param1.type = "LIST";
+    param1.defaultValue = "Equals To";
+    param1.listValues = "Equals To,Not Equal To,Greater Than,Greater Than or Equals To,Less Than,Less Than or Equals To,Is NULL,Is Not NULL,Old Than X Days";
+    param1.hidden = false;
+    param1.editable = true;
+    param1.mandatory = false;
+    param1.sortOrder = (index - 1) * 3 + 1;
+    parameters[(index - 1) * 3 + 1] = param1;
+
+    var param2 = new Object();
+    param2.name = "Value";
+    param2.shortName = "val" + index;
+    param2.type = "TEXT_SINGLE_ROW";
+    param2.defaultValue = null;
+    param2.listValues = null;
+    param2.hidden = false;
+    param2.editable = true;
+    param2.mandatory = false;
+    param2.sortOrder = (index - 1) * 3 + 2;
+    parameters[(index - 1) * 3 + 2] = param2;
+}
+
+function AddParamsToDisplayViolationOb(parameters){
+
+	var displayViolationParam = {};
+
+	displayViolationParam.name = "Message";
+	displayViolationParam.shortName = "message";
+	displayViolationParam.type = "TEXT_SINGLE_ROW";
+	displayViolationParam.defaultValue = null;
+	displayViolationParam.hidden = false;
+	displayViolationParam.editable = true;
+	displayViolationParam.mandatory = false;
+	displayViolationParam.sortOrder = 0;
+	
+	parameters.push(displayViolationParam);
+}
+
+function AddParamsToInheritOb(parameters, entitySet, submitEntityCollection, entityLogicalName){
+
+	var entityCount = submitEntityCollection.length;
+	var listValueArray = [];
+	var listValueString = '';
+
+	for(var i = 0; i < entityCount; i++){
+
+		if(submitEntityCollection[i].nxl_enabled === true){
+
+			var curEntityLogicalName = submitEntityCollection[i].nxl_name;
+			var curEntity = entitySet[curEntityLogicalName];
+			var m2mRelation = curEntity.m2mRelation;
+			var m2oRelation = curEntity.m2oRelation;			
+			var curEntityListValue = '';
+
+			if(m2mRelation){
+
+				for(var j = 0; j < m2mRelation.relations.length; j++){
+
+					var curRelation = m2mRelation.relations[j];
+
+					if(curRelation){
+						if(curRelation.lookupEntityLogicalName === entityLogicalName){
+							curEntityListValue = curRelation.primaryEntityLogicalName + ':' + curRelation.relationshipName;
+							listValueArray.push(curEntityListValue);
+						}
+					}
+				}				
+			}
+
+			if(m2oRelation){
+
+				for(var k = 0; k < m2oRelation.relations.length; k++){
+
+					var curRelation = m2oRelation.relations[k];
+					if(curRelation){
+
+						if(curRelation.lookupEntityLogicalName === entityLogicalName){
+							curEntityListValue = curRelation.primaryEntityLogicalName + ':' + curRelation.relationshipName;
+							listValueArray.push(curEntityListValue);							
+						}
+					}				
+				}		
+			}			
+		}
+	}
+
+	listValueArray = getAscendingSortedList(listValueArray);
+	listValueString = listValueArray.join(',');
+
+	var relationship1 = {};
+	var relationship2 = {};
+	var relationship3 = {};
+
+	var orphanedChild1 = {};
+	var orphanedChild2 = {};
+	var orphanedChild3 = {};
+
+	orphanedChild1.name = 'Orphaned Child Records';
+	orphanedChild2.name = 'Orphaned Child Records';
+	orphanedChild3.name = 'Orphaned Child Records';
+
+	orphanedChild1.shortName = 'orphanedchildrecords1';
+	orphanedChild2.shortName = 'orphanedchildrecords2';
+	orphanedChild3.shortName = 'orphanedchildrecords3';
+
+	orphanedChild1.type = 'LIST';
+	orphanedChild2.type = 'LIST';
+	orphanedChild3.type = 'LIST';
+
+	orphanedChild1.listValues = 'Allow,Deny';
+	orphanedChild2.listValues = 'Allow,Deny';
+	orphanedChild3.listValues = 'Allow,Deny';
+
+	orphanedChild1.defaultValue = null;
+	orphanedChild2.defaultValue = null;
+	orphanedChild3.defaultValue = null;	
+
+	orphanedChild1.hidden = false;
+	orphanedChild2.hidden = false;
+	orphanedChild3.hidden = false;
+	
+	orphanedChild1.editable = true;
+	orphanedChild2.editable = true;
+	orphanedChild3.editable = true;	
+
+	orphanedChild1.mandatory = false;
+	orphanedChild2.mandatory = false;
+	orphanedChild3.mandatory = false;
+	
+	orphanedChild1.sortOrder = 1;
+	orphanedChild2.sortOrder = 3;
+	orphanedChild3.sortOrder = 5;	
+
+	relationship1.name = 'Parent Entity Relationship (1)';
+	relationship2.name = 'Parent Entity Relationship (2)';
+	relationship3.name = 'Parent Entity Relationship (3)';
+
+	relationship1.shortName = 'parentrelationship1';
+	relationship2.shortName = 'parentrelationship2';
+	relationship3.shortName = 'parentrelationship3';
+
+	relationship1.type = 'LIST';
+	relationship2.type = 'LIST';
+	relationship3.type = 'LIST';
+
+	relationship1.listValues = listValueString;
+	relationship2.listValues = listValueString;
+	relationship3.listValues = listValueString;
+
+	relationship1.defaultValue = null;
+	relationship2.defaultValue = null;
+	relationship3.defaultValue = null;
+
+	relationship1.hidden = false;
+	relationship2.hidden = false;
+	relationship3.hidden = false;
+
+	relationship1.editable = true;
+	relationship2.editable = true;
+	relationship3.editable = true;	
+
+	relationship1.mandatory = false;
+	relationship2.mandatory = false;
+	relationship3.mandatory = false;
+	
+	relationship1.sortOrder = 0;
+	relationship2.sortOrder = 2;
+	relationship3.sortOrder = 4;
+
+	parameters.push(relationship1);
+	parameters.push(orphanedChild1);
+	parameters.push(relationship2);
+	parameters.push(orphanedChild2);
+	parameters.push(relationship3);
+	parameters.push(orphanedChild3);
+}
+
+function AddParamsToApplySecureOnParentOb(parameters, entitySet, submitEntityCollection, entityLogicalName){
+
+	var entityCount = submitEntityCollection.length;
+	var listValueArray = [];
+	var listValueString = '';
+
+	var parentAttributeListValueArray = [];
+	var parentAttributeListValueString = '';		
+	var entitiesWithRelationship = [];
+
+	for(var i = 0; i < entityCount; i++){
+
+		if(submitEntityCollection[i].nxl_enabled === true){
+
+			var curEntityLogicalName = submitEntityCollection[i].nxl_name;
+			var curEntity = entitySet[curEntityLogicalName];
+			var m2mRelation = curEntity.m2mRelation;
+			var m2oRelation = curEntity.m2oRelation;
+			var curEntityListValue = '';
+
+			if(m2mRelation){
+
+				for(var j = 0; j < m2mRelation.relations.length; j++){
+
+					var curRelation = m2mRelation.relations[j];
+					if(curRelation){
+
+						if(curRelation.lookupEntityLogicalName === entityLogicalName){
+							curEntityListValue = curRelation.primaryEntityLogicalName + ':' + curRelation.relationshipName;
+							listValueArray.push(curEntityListValue);
+							
+							var found = false;
+							var count = entitiesWithRelationship.length;
+							for(var m = 0; m < count; m++){
+								if(entitiesWithRelationship[m] === curRelation.primaryEntityLogicalName){
+									found = true;
+									break;
+								}
+							}
+							if (!found) entitiesWithRelationship.push(curRelation.primaryEntityLogicalName);
+						}
+					}
+				}				
+			}
+
+			if(m2oRelation){
+
+				for(var k = 0; k < m2oRelation.relations.length; k++){
+
+					var curRelation = m2oRelation.relations[k];
+					if(curRelation){
+						
+						if(curRelation.lookupEntityLogicalName === entityLogicalName){
+							curEntityListValue = curRelation.primaryEntityLogicalName + ':' + curRelation.relationshipName;
+							listValueArray.push(curEntityListValue);
+							
+							var found = false;
+							var count = entitiesWithRelationship.length;
+							for(var m = 0; m < count; m++){
+								if(entitiesWithRelationship[m] === curRelation.primaryEntityLogicalName){
+									found = true;
+									break;
+								}
+							}
+							if (!found) entitiesWithRelationship.push(curRelation.primaryEntityLogicalName);
+						}
+					}				
+				}		
+			}			
+		}
+	}
+	
+	//console.log('AddParamsToApplySecureOnParentOb for : '  + entityLogicalName);
+	var itemCount = entitiesWithRelationship.length;
+	for (var r = 0; r < itemCount; r++){
+		//console.log('entitiesWithRelationship: ' + r + ' ' + entitiesWithRelationship[r]);
+        for(var i = 0; i < entityCount; i++){
+    
+    		if(submitEntityCollection[i].nxl_name === entitiesWithRelationship[r] && submitEntityCollection[i].nxl_enabled === true){
+                //console.log('entitiesWithRelationship, try to collect all attributes from: ' + entitiesWithRelationship[r]);
+    			var curEntityLogicalName = submitEntityCollection[i].nxl_name;
+    			var curEntity = entitySet[curEntityLogicalName];
+    
+    			var curAttributes = curEntity.attributes;
+    
+    			if(curAttributes){
+    
+    				for(var attrLogicalName in curAttributes){
+    					if(curAttributes.hasOwnProperty(attrLogicalName)){
+    						var curAttr = curAttributes[attrLogicalName];
+							
+    						if(!attrNeedBeHandled(curEntity, curAttr)) continue;
+							if(curAttr && curAttr.secured){
+    							parentAttributeListValueArray.push(curEntityLogicalName + ':' + attrLogicalName);
+    						}
+    					}
+    				}
+    			}			
+    		}
+        }		
+	}
+
+	listValueArray = getAscendingSortedList(listValueArray);
+	listValueString = listValueArray.join(',');
+
+	parentAttributeListValueArray = getAscendingSortedList(parentAttributeListValueArray);
+	parentAttributeListValueString = parentAttributeListValueArray.join(',');		
+
+	var relationship1 = {};
+	var relationship2 = {};
+	var relationship3 = {};
+
+	var parentAttribute1 = {};
+	var parentAttribute2 = {};
+	var parentAttribute3 = {};
+
+	var operator1 = {};
+	var operator2 = {};
+	var operator3 = {};
+
+	var value1 = {};
+	var value2 = {};
+	var value3 = {};		
+
+	var orphanedChild1 = {};
+	var orphanedChild2 = {};
+	var orphanedChild3 = {};
+
+	orphanedChild1.name = 'Orphaned Child Records';
+	orphanedChild2.name = 'Orphaned Child Records';
+	orphanedChild3.name = 'Orphaned Child Records';
+
+	orphanedChild1.shortName = 'orphanedchildrecords1';
+	orphanedChild2.shortName = 'orphanedchildrecords2';
+	orphanedChild3.shortName = 'orphanedchildrecords3';
+
+	orphanedChild1.type = 'LIST';
+	orphanedChild2.type = 'LIST';
+	orphanedChild3.type = 'LIST';
+
+	orphanedChild1.listValues = 'Allow,Deny';
+	orphanedChild2.listValues = 'Allow,Deny';
+	orphanedChild3.listValues = 'Allow,Deny';
+
+	orphanedChild1.defaultValue = null;
+	orphanedChild2.defaultValue = null;
+	orphanedChild3.defaultValue = null;	
+
+	orphanedChild1.hidden = false;
+	orphanedChild2.hidden = false;
+	orphanedChild3.hidden = false;
+	
+	orphanedChild1.editable = true;
+	orphanedChild2.editable = true;
+	orphanedChild3.editable = true;	
+
+	orphanedChild1.mandatory = false;
+	orphanedChild2.mandatory = false;
+	orphanedChild3.mandatory = false;
+	
+	orphanedChild1.sortOrder = 4;
+	orphanedChild2.sortOrder = 9;
+	orphanedChild3.sortOrder = 14;
+	
+	value1.name = 'Value';
+	value2.name = 'Value';
+	value3.name = 'Value';
+
+	value1.shortName = 'value1';
+	value2.shortName = 'value2';
+	value3.shortName = 'value3';
+
+	value1.type = 'TEXT_SINGLE_ROW';
+	value2.type = 'TEXT_SINGLE_ROW';
+	value3.type = 'TEXT_SINGLE_ROW';
+
+	value1.defaultValue = null;
+	value2.defaultValue = null;
+	value3.defaultValue = null;
+
+	value1.hidden = false;
+	value2.hidden = false;
+	value3.hidden = false;
+	
+	value1.editable = true;
+	value2.editable = true;
+	value3.editable = true;
+
+	value1.mandatory = false;
+	value2.mandatory = false;
+	value3.mandatory = false;
+
+	value1.sortOrder = 3;
+	value2.sortOrder = 8;
+	value3.sortOrder = 13;	
+
+	operator1.name = 'Operator';
+	operator2.name = 'Operator';
+	operator3.name = 'Operator';
+
+	operator1.shortName = 'operator1';
+	operator2.shortName = 'operator2';
+	operator3.shortName = 'operator3';
+
+	operator1.type = 'LIST';
+	operator2.type = 'LIST';
+	operator3.type = 'LIST';
+
+	operator1.listValues = 'Equals To,Not Equal To,Greater Than,Greater Than or Equals To,Less Than,Less Than or Equals To,Is NULL,Is Not NULL,Old Than X Days';
+	operator2.listValues = 'Equals To,Not Equal To,Greater Than,Greater Than or Equals To,Less Than,Less Than or Equals To,Is NULL,Is Not NULL,Old Than X Days';
+	operator3.listValues = 'Equals To,Not Equal To,Greater Than,Greater Than or Equals To,Less Than,Less Than or Equals To,Is NULL,Is Not NULL,Old Than X Days';
+
+	operator1.defaultValue = null;
+	operator2.defaultValue = null;
+	operator3.defaultValue = null;
+
+	operator1.hidden = false;
+	operator2.hidden = false;
+	operator3.hidden = false;
+	
+	operator1.editable = true;
+	operator2.editable = true;
+	operator3.editable = true;
+
+	operator1.mandatory = false;
+	operator2.mandatory = false;
+	operator3.mandatory = false;
+
+	operator1.sortOrder = 2;
+	operator2.sortOrder = 7;
+	operator3.sortOrder = 12;		
+
+	parentAttribute1.name = 'Parent Entity Attribute';
+	parentAttribute2.name = 'Parent Entity Attribute';
+	parentAttribute3.name = 'Parent Entity Attribute';
+
+	parentAttribute1.shortName = 'parententityattribute1';
+	parentAttribute2.shortName = 'parententityattribute2';
+	parentAttribute3.shortName = 'parententityattribute3';
+
+	parentAttribute1.type = 'LIST';
+	parentAttribute2.type = 'LIST';
+	parentAttribute3.type = 'LIST';
+
+	parentAttribute1.listValues = parentAttributeListValueString;
+	parentAttribute2.listValues = parentAttributeListValueString;
+	parentAttribute3.listValues = parentAttributeListValueString;
+
+	parentAttribute1.defaultValue = null;
+	parentAttribute2.defaultValue = null;
+	parentAttribute3.defaultValue = null;
+
+	parentAttribute1.hidden = false;
+	parentAttribute2.hidden = false;
+	parentAttribute3.hidden = false;
+	
+	parentAttribute1.editable = true;
+	parentAttribute2.editable = true;
+	parentAttribute3.editable = true;
+
+	parentAttribute1.mandatory = false;
+	parentAttribute2.mandatory = false;
+	parentAttribute3.mandatory = false;	
+
+	parentAttribute1.sortOrder = 1;
+	parentAttribute2.sortOrder = 6;
+	parentAttribute3.sortOrder = 11;	
+
+	relationship1.name = 'Parent Entity Relationship (1)';
+	relationship2.name = 'Parent Entity Relationship (2)';
+	relationship3.name = 'Parent Entity Relationship (3)';
+
+	relationship1.shortName = 'parentrelationship1';
+	relationship2.shortName = 'parentrelationship2';
+	relationship3.shortName = 'parentrelationship3';
+
+	relationship1.type = 'LIST';
+	relationship2.type = 'LIST';
+	relationship3.type = 'LIST';
+
+	relationship1.listValues = listValueString;
+	relationship2.listValues = listValueString;
+	relationship3.listValues = listValueString;
+
+	relationship1.defaultValue = null;
+	relationship2.defaultValue = null;
+	relationship3.defaultValue = null;
+
+	relationship1.hidden = false;
+	relationship2.hidden = false;
+	relationship3.hidden = false;
+
+	relationship1.editable = true;
+	relationship2.editable = true;
+	relationship3.editable = true;	
+
+	relationship1.mandatory = false;
+	relationship2.mandatory = false;
+	relationship3.mandatory = false;
+	
+	relationship1.sortOrder = 0;
+	relationship2.sortOrder = 5;
+	relationship3.sortOrder = 10;
+
+	parameters.push(relationship1);
+	parameters.push(parentAttribute1);
+	parameters.push(operator1);
+	parameters.push(value1);
+	parameters.push(orphanedChild1);
+
+	parameters.push(relationship2);
+	parameters.push(parentAttribute2);
+	parameters.push(operator2);
+	parameters.push(value2);
+	parameters.push(orphanedChild2);
+
+	parameters.push(relationship3);
+	parameters.push(parentAttribute3);
+	parameters.push(operator3);
+	parameters.push(value3);
+	parameters.push(orphanedChild3);
+}
+
+function AddParamsToMaskFieldOb(parameters, attrLogicalNameList, entity, fieldRepeat, maskFieldRepeat){
+
+	var supportedMaskFields = [];
+	var entityLogicalName = entity.logicalName;
+	var recordId = entityLogicalName + 'id';
+	var attributes = entity.attributes;
+	var supportedMaskFieldsString = '';
+	var supportedFields = [];
+	var supportedFieldsString = '';
+
+	//get riddle of attributes of datatype primary key
+	for(var n = 0; n < attrLogicalNameList.length; n++){
+
+		var curAttr = attributes[attrLogicalNameList[n]];
+
+		if(curAttr){
+
+			if(curAttr.dataType && curAttr.dataType.trim().toLowerCase() !== 'uniqueidentifier' && curAttr.logicalName !== recordId){
+				supportedFields.push(attrLogicalNameList[n]);
+			}	
+		}
+		else{
+			console.log('get ' + entityLogicalName + ' attributes failed.');
+		}
+	}
+
+	supportedFields = getAscendingSortedList(supportedFields);
+	supportedFieldsString = supportedFields.join(',');
+
+	for(var n = 0; n < attrLogicalNameList.length; n++){
+
+		var curAttr = attributes[attrLogicalNameList[n]];
+
+		if(curAttr){
+
+			if(curAttr.dataType && (curAttr.dataType.trim().toLowerCase() === 'string' || curAttr.dataType.trim().toLowerCase() === 'memo') && curAttr.logicalName !== recordId){
+				supportedMaskFields.push(attrLogicalNameList[n]);
+			}	
+		}
+		else{
+			console.log('get ' + entityLogicalName + ' attributes failed.');
+		}
+	}
+
+	supportedMaskFields = getAscendingSortedList(supportedMaskFields);
+	supportedMaskFieldsString = supportedMaskFields.join(',');
+	
+	for(var i = 0; i < fieldRepeat; i++){
+
+		var field = {};
+		var op = {};
+		var value = {};
+
+		field.name = 'Field(' + (i+1) + ')';
+		field.shortName = 'col' + (i+1);
+		field.type = 'LIST';
+		field.listValues = supportedFieldsString;
+		field.defaultValue = null;
+		field.hidden = false;
+		field.editable = true;
+		field.mandatory = false;
+		field.sortOrder = i * fieldRepeat;
+
+		op.name = 'Operator(' + (i+1) + ')';
+		op.shortName = 'op' + (i+1);
+		op.type = 'LIST';
+		op.listValues = 'Equals To,Not Equal To,Greater Than,Greater Than or Equals To,Less Than,Less Than or Equals To,Is NULL,Is Not NULL,Old Than X Days';
+		op.defaultValue = null;
+		op.hidden = false;
+		op.editable = true;
+		op.mandatory = false;
+		op.sortOrder = i * fieldRepeat + 1;
+
+		value.name = 'Value(' + (i+1) + ')';
+		value.shortName = 'val' + (i+1);
+		value.type = 'TEXT_SINGLE_ROW';
+		value.defaultValue = null;
+		value.hidden = false;
+		value.editable = true;
+		value.mandatory = false;
+		value.sortOrder = i * fieldRepeat + 2;
+
+		parameters.push(field);
+		parameters.push(op);
+		parameters.push(value);
+	}
+
+	var maskChar = {};
+	maskChar.name = 'Mask Character';
+	maskChar.shortName = 'mask_character';
+	maskChar.type = 'TEXT_SINGLE_ROW';
+	maskChar.defaultValue = null;
+	maskChar.hidden = false;
+	maskChar.editable = true;
+	maskChar.mandatory = false;
+	maskChar.sortOrder = i * fieldRepeat;
+	parameters.push(maskChar);
+
+	for(var j = 0; j < maskFieldRepeat; j++){
+
+		var maskField = {};
+
+		maskField.name = 'Mask Field(' + (j+1) + ')';
+		maskField.shortName = 'mask_field' + (j+1);
+		maskField.type = 'LIST';
+		maskField.listValues = supportedMaskFieldsString;
+		maskField.defaultValue = null;
+		maskField.hidden = false;
+		maskField.editable = true;
+		maskField.mandatory = false;
+		maskField.sortOrder = i * fieldRepeat + j + 1;
+		parameters.push(maskField);
+	}
+
+}
+// Export Policy Model    -- end
+
+//
+function GetCenterAxisTop(controlHeight) {
+	var iDisplayTop = 0;
+	var iScreenHight = window.screen.height;
+	if (document.documentElement != undefined && document.documentElement != null && document.documentElement.clientHeight != undefined && document.documentElement.clientHeight != null) {
+		iScreenHight = document.documentElement.clientHeight;
+	}
+	else if (document.body != undefined && document.body != null && document.body.clientHeight != undefined && document.body.clientHeight != null) {
+		iScreenHight = document.body.clientHeight;
+	}
+	var iDialogboxHeight = controlHeight;
+	if (iScreenHight > iDialogboxHeight) {
+		iDisplayTop = (iScreenHight - iDialogboxHeight) / 2;
+	}
+	return iDisplayTop;
+}
+function GetCenterAxisLeft(controlWidth) {
+	var iDisplayLeft = 0;
+	var iScreenWidth = window.screen.width;
+	if (document.documentElement != undefined && document.documentElement != null && document.documentElement.clientWidth != undefined && document.documentElement.clientWidth != null) {
+		iScreenWidth = document.documentElement.clientWidth;
+	}
+	else if (document.body != undefined && document.body != null && document.body.clientWidth != undefined && document.body.clientWidth != null) {
+		iScreenWidth = document.body.clientWidth;
+	}
+	var iDialogboxWidth = controlWidth
+	if (iScreenWidth > iDialogboxWidth) {
+		iDisplayLeft = (iScreenWidth - iDialogboxWidth) / 2;
+	}
+	return iDisplayLeft;
+}
+function NextlabsProcessBar(strTitle, strStaticMessage, strDynamicMessageTitle, iTotal) {
+	var strProcessBarID = "Nextlabs_ProcessBar_Control";
+	//this nextlabs process bar div
+	var domNextlabsProcessBar = document.createElement("div");
+	domNextlabsProcessBar.setAttribute("id", strProcessBarID)
+	domNextlabsProcessBar.style["position"] = "fixed";
+	domNextlabsProcessBar.style["z-index"] = "9999";
+	domNextlabsProcessBar.style["width"] = "514px";
+	domNextlabsProcessBar.style["height"] = "209px";
+	domNextlabsProcessBar.style["background-color"] = "rgba(227, 227, 227, 0.498039215686275)";
+	domNextlabsProcessBar.style["border"] = "none";
+	domNextlabsProcessBar.style["border-radius"] = "5px";
+	domNextlabsProcessBar.style["-moz-box-shadow"] = "none";
+	domNextlabsProcessBar.style["-webkit-box-shadow"] = "none";
+	domNextlabsProcessBar.style["box-shadow:"] = "none";
+	domNextlabsProcessBar.style["font-family"] = "Arial";
+	domNextlabsProcessBar.style["font-weight"] = "400";
+	domNextlabsProcessBar.style["font-style"] = "none";
+	domNextlabsProcessBar.style["font-size"] = "14px";
+	domNextlabsProcessBar.style["color"] = "#333333";
+
+	//this is nextlabs main div
+	var domNextlabsProcessBarMain = document.createElement("div");
+	domNextlabsProcessBarMain.style["margin"] = "0 auto";
+	domNextlabsProcessBarMain.style["width"] = "507px";
+	domNextlabsProcessBarMain.style["height"] = "203px";
+	domNextlabsProcessBarMain.style["background-color"] = "rgba(255, 255, 255, 1)";
+	domNextlabsProcessBarMain.style["box-sizing"] = "border-box";
+	domNextlabsProcessBarMain.style["border-width"] = "1px";
+	domNextlabsProcessBarMain.style["border-style"] = "solid";
+	domNextlabsProcessBarMain.style["border-color"] = "rgba(203, 204, 203, 1)";
+	domNextlabsProcessBarMain.style["border-radius"] = "5px";
+	domNextlabsProcessBarMain.style["-moz-box-shadow"] = "none";
+	domNextlabsProcessBarMain.style["-webkit-box-shadow"] = "none";
+	domNextlabsProcessBarMain.style["box-shadow"] = "none";
+	domNextlabsProcessBar.appendChild(domNextlabsProcessBarMain);
+
+	//start title
+	//this is main title
+	var domNextlabsProcessBarTitle = document.createElement("div");
+	domNextlabsProcessBarTitle.style["width"] = "505px";
+	domNextlabsProcessBarTitle.style["height"] = "41px";
+	domNextlabsProcessBarTitle.style["background"] = "linear-gradient(180deg, rgba(247, 247, 247, 1) 0%, rgba(247, 247, 247, 1) 0%, rgba(234, 234, 234, 1) 100%, rgba(234, 234, 234, 1) 100%)";
+	domNextlabsProcessBarTitle.style["border-bottom"] = "1px";
+	domNextlabsProcessBarTitle.style["border-top"] = "0px";
+	domNextlabsProcessBarTitle.style["border-left"] = "0px";
+	domNextlabsProcessBarTitle.style["border-right"] = "0px";
+	domNextlabsProcessBarTitle.style["border-radius"] = "5px";
+	domNextlabsProcessBarTitle.style["border-bottom-right-radius"] = "0px";
+	domNextlabsProcessBarTitle.style["border-bottom-left-radius"] = "0px";
+	domNextlabsProcessBarTitle.style["border-style"] = "solid";
+	domNextlabsProcessBarTitle.style["border-color"] = "rgba(203, 204, 203, 1)";
+	domNextlabsProcessBarMain.appendChild(domNextlabsProcessBarTitle);
+	//this is title content
+	var domNextlabsProcessBarTitleContent = document.createElement("div");
+	domNextlabsProcessBarTitleContent.style["margin-left"] = "28px";
+	domNextlabsProcessBarTitleContent.style["height"] = "41px";
+	domNextlabsProcessBarTitleContent.style["line-height"] = "41px";
+	domNextlabsProcessBarTitleContent.style["font-weight"] = "700";
+	domNextlabsProcessBarTitleContent.style["font-size"] = "16px";
+	domNextlabsProcessBarTitleContent.style["color"] = "#111111";
+	domNextlabsProcessBarTitleContent.style["text-align"] = "left";
+	domNextlabsProcessBarTitle.appendChild(domNextlabsProcessBarTitleContent);
+	//this is title content span
+	var domNextlabsProcessBarTitleContentSpan = document.createElement("span");
+	domNextlabsProcessBarTitleContentSpan.innerHTML = strTitle;
+	domNextlabsProcessBarTitleContent.appendChild(domNextlabsProcessBarTitleContentSpan);
+	//endtitle
+
+	//start content(middle)
+	//this is content
+	var domNextlabsProcessBarContent = document.createElement("div");
+	domNextlabsProcessBarContent.style["height"] = "159px";
+	domNextlabsProcessBarContent.style["width"] = "auto";
+	domNextlabsProcessBarMain.appendChild(domNextlabsProcessBarContent);
+
+	//this is empty div
+	var domNextlabsProcessBarContentEmpty = document.createElement("div");
+	domNextlabsProcessBarContentEmpty.style["height"] = "14.5px";
+	domNextlabsProcessBarContentEmpty.style["width"] = "505px";
+	domNextlabsProcessBarContent.appendChild(domNextlabsProcessBarContentEmpty);
+	//this is main message div
+	var domNextlabsProcessBarContentStaticMessage = document.createElement("div");
+	domNextlabsProcessBarContentStaticMessage.style["width"] = "450px";
+	domNextlabsProcessBarContentStaticMessage.style["height"] = "40px";
+	domNextlabsProcessBarContentStaticMessage.style["margin"] = "0px auto 0 auto";
+	domNextlabsProcessBarContent.appendChild(domNextlabsProcessBarContentStaticMessage);
+	//this is span for static message
+	var domNextlabsProcessBarContentStaticMessageSpan = document.createElement("span");
+	domNextlabsProcessBarContentStaticMessageSpan.innerHTML = strStaticMessage;
+	domNextlabsProcessBarContentStaticMessage.appendChild(domNextlabsProcessBarContentStaticMessageSpan);
+
+	//this is for dynamic message
+	var domNextlabsProcessBarContentDynamicMessage = document.createElement("div");
+	domNextlabsProcessBarContentDynamicMessage.style["width"] = "450px";
+	domNextlabsProcessBarContentDynamicMessage.style["line-height"] = "normal";
+	domNextlabsProcessBarContentDynamicMessage.style["margin"] = "20.5px auto 0 auto";
+	domNextlabsProcessBarContent.appendChild(domNextlabsProcessBarContentDynamicMessage);
+	//this is span for dynamic message
+	var domNextlabsProcessBarContentDynamicMessageSpanTitle = document.createElement("span");
+	domNextlabsProcessBarContentDynamicMessageSpanTitle.innerHTML = strDynamicMessageTitle;
+	domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanTitle);
+
+	var domNextlabsProcessBarContentDynamicMessageSpanIndex = document.createElement("span");
+	domNextlabsProcessBarContentDynamicMessageSpanIndex.innerHTML = "0";
+	domNextlabsProcessBarContentDynamicMessageSpanIndex.style["margin-left"] = "10px";
+	domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanIndex);
+
+	var domNextlabsProcessBarContentDynamicMessageSpanSplie = document.createElement("span");
+	domNextlabsProcessBarContentDynamicMessageSpanSplie.innerHTML = "/";
+	domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanSplie);
+
+	var domNextlabsProcessBarContentDynamicMessageSpanTotal = document.createElement("span");
+	domNextlabsProcessBarContentDynamicMessageSpanTotal.innerHTML = iTotal;
+	domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanTotal);
+
+	var domNextlabsProcessBarContentDynamicMessageSpanSplieSecond = document.createElement("span");
+	domNextlabsProcessBarContentDynamicMessageSpanSplieSecond.innerHTML = " : ";
+	domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanSplieSecond);
+
+	var domNextlabsProcessBarContentDynamicMessageSpanCurrentTitle = document.createElement("span");
+	domNextlabsProcessBarContentDynamicMessageSpanCurrentTitle.innerHTML = "";
+	domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanCurrentTitle);
+
+	//this div for process bar
+	var domNextlabsProcessBarMainProcessBar = document.createElement("div");
+	domNextlabsProcessBarMainProcessBar.style["position"] = "relative";
+	domNextlabsProcessBarMainProcessBar.style["width"] = "450px";
+	domNextlabsProcessBarMainProcessBar.style["height"] = "25px";
+	domNextlabsProcessBarMainProcessBar.style["margin"] = "6.5px auto 0 auto";
+	domNextlabsProcessBarMainProcessBar.style["border-width"] = "1px";
+	domNextlabsProcessBarMainProcessBar.style["background-color"] = "rgba(255, 255, 255, 1)";
+	domNextlabsProcessBarMainProcessBar.style["box-sizing"] = "border-box";
+	domNextlabsProcessBarMainProcessBar.style["border-style"] = "solid";
+	domNextlabsProcessBarMainProcessBar.style["border-color"] = "rgba(204, 204, 204, 1)";
+	domNextlabsProcessBarMainProcessBar.style["border-radius"] = "0px";
+	domNextlabsProcessBarMainProcessBar.style["-moz-box-shadow"] = "none";
+	domNextlabsProcessBarMainProcessBar.style["-webkit-box-shadow"] = "none";
+	domNextlabsProcessBarMainProcessBar.style["box-shadow"] = "none";
+	domNextlabsProcessBarContent.appendChild(domNextlabsProcessBarMainProcessBar);
+	//this dynamic bar
+	var domNextlabsProcessBarMainProcessBarDynamicBar = document.createElement("div");
+	domNextlabsProcessBarMainProcessBarDynamicBar.style["position"] = "absolute";
+	domNextlabsProcessBarMainProcessBarDynamicBar.style["top"] = "1px";
+	domNextlabsProcessBarMainProcessBarDynamicBar.style["left"] = "1px";
+	domNextlabsProcessBarMainProcessBarDynamicBar.style["max-width"] = "446px";
+	domNextlabsProcessBarMainProcessBarDynamicBar.style["width"] = "0%";
+	domNextlabsProcessBarMainProcessBarDynamicBar.style["height"] = "21px";
+	domNextlabsProcessBarMainProcessBarDynamicBar.style["background"] = "linear-gradient(180deg, rgba(0, 124, 192, 1) 0%, rgba(0, 124, 192, 1) 0%, rgba(0, 109, 169, 1) 100%, rgba(0, 109, 169, 1) 100%)";
+	domNextlabsProcessBarMainProcessBar.appendChild(domNextlabsProcessBarMainProcessBarDynamicBar)
+
+	var domNextlabsProcessBarMainProcessBarDynamicTitle = document.createElement("div");
+	domNextlabsProcessBarMainProcessBarDynamicTitle.style["position"] = "absolute";
+	domNextlabsProcessBarMainProcessBarDynamicTitle.style["left"] = "218px";
+	domNextlabsProcessBarMainProcessBarDynamicTitle.style["width"] = "40px";
+	domNextlabsProcessBarMainProcessBarDynamicTitle.style["font-size"] = "12px";
+	domNextlabsProcessBarMainProcessBarDynamicTitle.style["height"] = "23px";
+	domNextlabsProcessBarMainProcessBarDynamicTitle.style["line-height"] = "23px";
+	domNextlabsProcessBarMainProcessBar.appendChild(domNextlabsProcessBarMainProcessBarDynamicTitle)
+
+	var domNextlabsProcessBarMainProcessBarDynamicTitleDynamicSpan = document.createElement("span");
+	domNextlabsProcessBarMainProcessBarDynamicTitleDynamicSpan.innerHTML = "0";
+	domNextlabsProcessBarMainProcessBarDynamicTitle.appendChild(domNextlabsProcessBarMainProcessBarDynamicTitleDynamicSpan);
+
+	var domNextlabsProcessBarMainProcessBarDynamicTitleStaticSpan = document.createElement("span");
+	domNextlabsProcessBarMainProcessBarDynamicTitleStaticSpan.innerHTML = "%";
+	domNextlabsProcessBarMainProcessBarDynamicTitle.appendChild(domNextlabsProcessBarMainProcessBarDynamicTitleStaticSpan);
+	this.Show = function () {
+		var iDisplayTop = 0;
+		var iDisplayLeft = 0;
+		iDisplayTop = GetCenterAxisTop(209);
+		iDisplayLeft = GetCenterAxisLeft(514);
+		domNextlabsProcessBar.style["top"] = '50vh';
+		domNextlabsProcessBar.style["left"] = '50vw';
+		domNextlabsProcessBar.style['transform'] = 'translate(-50%, -50%)';
+
+		if (document.getElementById(strProcessBarID) == null) {
+			document.documentElement.appendChild(domNextlabsProcessBar);
+		}
+	};
+	this.Hiddlen = function () {
+		if (document.getElementById(strProcessBarID) != null) {
+			document.documentElement.removeChild(domNextlabsProcessBar);
+		}
+	}
+	this.SetCurrentIndex = function (index) {
+		domNextlabsProcessBarContentDynamicMessageSpanIndex.innerHTML = index;
+	};
+	this.SetCurrentMessage = function (strMessage) {
+		domNextlabsProcessBarContentDynamicMessageSpanCurrentTitle.innerHTML = strMessage;
+	};
+	this.setCurrentDynamicBar = function (iCurrect) {
+		domNextlabsProcessBarMainProcessBarDynamicTitleDynamicSpan.innerHTML = iCurrect;
+		domNextlabsProcessBarMainProcessBarDynamicBar.style["width"] = iCurrect + "%";
+	};
+}
+
+function NextlabsAlertMessage(strTitle) {
+	var strAlertMessageDialogBoxId = "Nextlabs_AlertMessageDialogBox_Control";
+	//Create Main Div
+	var domDivMain = document.createElement("div");
+	domDivMain.setAttribute("id", strAlertMessageDialogBoxId);
+	domDivMain.style["width"] = screen.width + "px"
+	domDivMain.style["height"] = screen.height + "px";
+	domDivMain.style["position"] = "fixed";
+	domDivMain.style["z-index"] = "10000";
+	domDivMain.style["left"] = "0px";
+	domDivMain.style["top"] = "0px";
+
+
+	var domDivBackgroundMain = document.createElement("div");
+	domDivBackgroundMain.style["width"] = screen.width + "px"
+	domDivBackgroundMain.style["height"] = screen.height + "px";
+	domDivBackgroundMain.style["position"] = "fixed";
+	domDivBackgroundMain.style["z-index"] = "10000";
+	domDivBackgroundMain.style["left"] = "0px";
+	domDivBackgroundMain.style["top"] = "0px";
+	domDivBackgroundMain.style["background-color"] = "rgb(47, 79, 79)";
+	domDivBackgroundMain.style["opacity"] = "0.607843";
+	domDivMain.appendChild(domDivBackgroundMain);
+
+	var domDivDialogBoxMain = document.createElement("div");
+	domDivDialogBoxMain.style["position"] = "fixed";
+	domDivDialogBoxMain.style["opacity"] = "1";
+	domDivDialogBoxMain.style["visibility"] = "visible";
+	domDivDialogBoxMain.style["display"] = "block";
+	domDivDialogBoxMain.style["z-index"] = "10000";
+	domDivDialogBoxMain.style["width"] = "400px";
+	domDivDialogBoxMain.style["height"] = "200px";
+	domDivDialogBoxMain.style["border-width"] = "1px";
+	domDivDialogBoxMain.style["border-style"] = "solid";
+	domDivDialogBoxMain.style["border-color"] = "rgb(221, 221, 221)";
+	domDivDialogBoxMain.style["border-image"] = "initial";
+	domDivDialogBoxMain.style["background"] = "white";
+	domDivDialogBoxMain.style["font-family"] = "Arial";
+	domDivDialogBoxMain.style["font-weight"] = "400";
+	domDivDialogBoxMain.style["font-style"] = "normal";
+	domDivDialogBoxMain.style["font-size"] = "13px";
+	domDivDialogBoxMain.style["color"] = "rgb(51, 51, 51)";
+	domDivDialogBoxMain.style["text-align"] = "center";
+	domDivDialogBoxMain.style["line-height"] = "normal";
+	domDivMain.appendChild(domDivDialogBoxMain);
+
+
+	var domDivDialogBoxMainTitle = document.createElement("div");
+	domDivDialogBoxMainTitle.style["position"] = "absolute";
+	domDivDialogBoxMainTitle.style["left"] = "0px";
+	domDivDialogBoxMainTitle.style["top"] = "0px";
+	domDivDialogBoxMainTitle.style["width"] = "400px";
+	domDivDialogBoxMainTitle.style["height"] = "40px";
+	domDivDialogBoxMainTitle.style["text-align"] = "left";
+	domDivDialogBoxMainTitle.style["background"] = "rgb(221, 221, 221)";
+	domDivDialogBoxMain.appendChild(domDivDialogBoxMainTitle);
+
+	var domDivDialogBoxMainTitleSpan = document.createElement("span");
+	domDivDialogBoxMainTitleSpan.innerText = strTitle;
+	domDivDialogBoxMainTitleSpan.style["position"] = "absolute";
+	domDivDialogBoxMainTitleSpan.style["left"] = "20px";
+	domDivDialogBoxMainTitleSpan.style["top"] = "15px";
+	domDivDialogBoxMainTitleSpan.style["font-family"] = "'Arial Bold', Arial";
+	domDivDialogBoxMainTitleSpan.style["font-weight"] = "700";
+	domDivDialogBoxMainTitleSpan.style["color"] = "rgb(17, 17, 17)";
+	domDivDialogBoxMain.appendChild(domDivDialogBoxMainTitleSpan);
+
+	var domDivDialogBoxMainContent = document.createElement("div");
+	domDivDialogBoxMainContent.style["position"] = "absolute";
+	domDivDialogBoxMainContent.style["top"] = "60px";
+	domDivDialogBoxMainContent.style["visibility"] = "visible";
+	domDivDialogBoxMainContent.style["display"] = "block";
+	domDivDialogBoxMain.appendChild(domDivDialogBoxMainContent);
+
+	var domDivDialogBoxMainContentSpan = document.createElement("span");
+	domDivDialogBoxMainContentSpan.style["word-wrap"] = "break-word";
+	domDivDialogBoxMainContentSpan.style["color"] = "rgb(102, 102, 102)";
+	domDivDialogBoxMainContentSpan.style["line-height"] = "20px";
+	domDivDialogBoxMainContentSpan.style["left"] = "0px";
+	domDivDialogBoxMainContentSpan.style["position"] = "absolute";
+	domDivDialogBoxMainContentSpan.style["width"] = "380px";
+	domDivDialogBoxMainContentSpan.style["margin-left"] = "10px";
+	domDivDialogBoxMainContentSpan.style["text-align"] = "left";
+	domDivDialogBoxMainContentSpan.style["font-size"] = "12px";
+	domDivDialogBoxMainContent.appendChild(domDivDialogBoxMainContentSpan);
+
+	var domDivDialogBoxMainClose = document.createElement("div");
+	domDivDialogBoxMainClose.style["position"] = "absolute";
+	domDivDialogBoxMainClose.style["left"] = "0px";
+	domDivDialogBoxMainClose.style["top"] = "140px";
+	domDivDialogBoxMainClose.style["width"] = "400px";
+	domDivDialogBoxMainClose.style["height"] = "60px";
+	domDivDialogBoxMainClose.style["text-align"] = "left";
+	domDivDialogBoxMainClose.style["background"] = "rgb(221, 221, 221)";
+	domDivDialogBoxMain.appendChild(domDivDialogBoxMainClose);
+
+
+	var domDivDialogBoxMainCloseButton = document.createElement("input");
+	domDivDialogBoxMainCloseButton.type = "button";
+	domDivDialogBoxMainCloseButton.value = "close";
+	domDivDialogBoxMainCloseButton.onclick = function () {
+		if (document.getElementById(strAlertMessageDialogBoxId) != null) {
+			document.documentElement.removeChild(domDivMain);
+		}
+	}
+	domDivDialogBoxMainCloseButton.style["left"] = "250px";
+	domDivDialogBoxMainCloseButton.style["position"] = "absolute";
+	domDivDialogBoxMainCloseButton.style["top"] = "20px";
+	domDivDialogBoxMainCloseButton.style["width"] = "129px";
+	domDivDialogBoxMainCloseButton.style["height"] = "30px";
+	domDivDialogBoxMainCloseButton.style["font-family"] = "Arial";
+	domDivDialogBoxMainCloseButton.style["font-weight"] = "400";
+	domDivDialogBoxMainCloseButton.style["font-style"] = "normal";
+	domDivDialogBoxMainCloseButton.style["font-size"] = "13px";
+	domDivDialogBoxMainCloseButton.style["text-decoration"] = "none";
+	domDivDialogBoxMainClose.appendChild(domDivDialogBoxMainCloseButton);
+
+
+	this.Show = function (strMessage) {
+		var iDisplayTop = 0;
+		var iDisplayLeft = 0;
+		iDisplayTop = GetCenterAxisTop(200);
+		iDisplayLeft = GetCenterAxisLeft(400);
+		domDivDialogBoxMain.style["top"] = iDisplayTop + "px";
+		domDivDialogBoxMain.style["left"] = iDisplayLeft + "px";
+		domDivDialogBoxMainContentSpan.innerHTML = strMessage;
+		if (document.getElementById(strAlertMessageDialogBoxId) == null) {
+			document.documentElement.appendChild(domDivMain);
+		}
+	};
+}
+
+function IsAttributeValid(metaAttribute){
+
+	var result = true;
+	var supportAttributeType = [
+		'Boolean', 'Customer', 'DateTime', 'Decimal', 'Double', 'EntityName', 
+		'Integer', 'Lookup', 'Memo', 'Money', 'Owner', 'Picklist', 
+		'State', 'Status', 'String', 'Uniqueidentifier', 'BigInt'];
+	var unsupportedAttributeLogicalNames = ['iskit'];
+
+	if( supportAttributeType.indexOf(metaAttribute.AttributeType) < 0 || 
+		metaAttribute.IsValidForRead === false || 
+		!GetDisplayName(metaAttribute) ||
+		unsupportedAttributeLogicalNames.indexOf(metaAttribute.LogicalName) > -1){
+
+		result = false;
+	}
+
+	return result;
+}
+
+function GetOptionsFromMeta(metaAttribute){
+
+    var optionList = [];
+
+    if(metaAttribute){
+
+		if(metaAttribute.AttributeType === 'Boolean'){
+
+			if(metaAttribute.OptionSet && metaAttribute.OptionSet.TrueOption && metaAttribute.OptionSet.FalseOption){
+
+				var trueOption = metaAttribute.OptionSet.TrueOption;
+				var falseOption = metaAttribute.OptionSet.FalseOption;
+
+				var trueLabel = '';
+				var trueValue = trueOption.Value;
+
+				var falseLabel = '';
+				var falseValue = falseOption.Value;
+
+				if(trueOption.Label && trueOption.Label.UserLocalizedLabel && trueOption.Label.UserLocalizedLabel.Label){
+					trueLabel = trueOption.Label.UserLocalizedLabel.Label;
+				}
+
+				if(falseOption.Label && falseOption.Label.UserLocalizedLabel && falseOption.Label.UserLocalizedLabel.Label){
+					falseLabel = falseOption.Label.UserLocalizedLabel.Label;
+				}
+
+				var trueOptionAttr = new nxl.models.OptionAttr(trueLabel, trueValue);
+				var falseOptionAttr = new nxl.models.OptionAttr(falseLabel, falseValue);
+
+				optionList.push(trueOptionAttr);
+				optionList.push(falseOptionAttr);
+			}
+			else{
+				console.log('GetOptionsFromMeta of Type Boolean failed');
+			}
+		}
+		else{
+
+			if(metaAttribute.OptionSet && metaAttribute.OptionSet.Options && metaAttribute.OptionSet.Options.length > 0){
+
+				var metaOptionsList = metaAttribute.OptionSet.Options;
+
+				for(var i = 0; i < metaOptionsList.length; i++){
+
+					var curMetaOption = metaOptionsList[i];
+					var optionLabel = '';
+					var optionValue = curMetaOption.Value;
+
+					if(curMetaOption.Label && curMetaOption.Label.UserLocalizedLabel && curMetaOption.Label.UserLocalizedLabel.Label){
+						optionLabel = curMetaOption.Label.UserLocalizedLabel.Label;
+					}
+
+					var optionAttr = new nxl.models.OptionAttr(optionLabel, optionValue);
+					optionList.push(optionAttr);
+				}
+			}			
+		}
+    }
+
+    return optionList;
+}
+
+/**
+ * create an event
+ * bug: click/mouse event should be typeof mouseevent
+ * @param {string} evtName 
+ * @param {boolean} canBubble 
+ * @param {boolean} canCancel 
+ * @returns 
+ */
+function createEvent(evtName, canBubble, canCancel){
+
+    var evt = undefined;
+
+    if(typeof canBubble !== 'boolean'){
+        canBubble = true;
+    }
+
+    if(typeof canCancel !== 'boolean'){
+        canCancel = true;
+    }
+
+    if(evtName){
+        try{
+            if((evtName.indexOf('click') > -1) || evtName.indexOf('mouse') > -1){
+                evt = new MouseEvent(evtName, { bubbles: canBubble, cancelable: canCancel});    
+            }
+            else{
+                evt = new Event(evtName, { bubbles: canBubble, cancelable: canCancel});
+            }
+        }
+        catch(e){
+            evt = document.createEvent('Event');
+            evt.initEvent(evtName, canBubble, canCancel);     
+        }
+    }
+    else{
+        throw new Error('event name must be specified');
+    }
+
+    return evt;
+};
+
+/**
+ * download custom content with custom filename
+ * @param {string} content 
+ * @param {string} fileName 
+ * @param {string} [mimeType='text/plain'] 
+ * @returns {void} 
+ */
+function download(content, fileName, mimeType){
+
+    if(!content || !fileName){
+        return;
+    }
+
+    if(typeof mimeType !== 'string'){
+        mimeType = "text/plain";
+    }
+
+    if(window.navigator.msSaveBlob){
+        var blob = new Blob([content], fileName);
+        window.navigator.msSaveBlob(blob, fileName);
+    }
+    else{
+        var anchor = document.createElement('a');
+        anchor.href = 'data:' + mimeType + ',' + content;
+        anchor.download = fileName;
+        anchor.click();
+    }
+}
+
+function isEmpty(obj){
+
+    var result = true;
+
+    for(var key in obj){
+        if(obj.hasOwnProperty(key)){
+            result = false;
+            break;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * trigger resize event to ensure the plugin page & crm command menu display properly.
+ * - can only be called in plugin pages
+ */
+function resizeWindow(){
+
+    //var evt = createEvent('resize');
+    //window.parent.dispatchEvent(evt);
+}
+
+function getAscendingSortedList(listValues){
+
+	var sortedList = [];
+
+	if(Array.isArray(listValues)){
+		sortedList = listValues.slice();
+		sortedList.sort(function(a, b){
+			return alphabeticalSorter(a, b, true);
+		});
+	}
+
+	return sortedList;
+}
+
+function alphabeticalSorter(a, b, ascending){
+
+	a = '' + a;
+	b = '' + b;
+
+	a = a.trim().toLowerCase();
+	b = b.trim().toLowerCase();
+
+	if(a < b){
+		return ascending ? -1 : 1;
+	}
+	else if(a > b){
+		return ascending ? 1 : -1;
+	}
+	else{
+		return 0;
+	}
+}
+
+/**
+ * import policy model automatically
+ * @param {string} policyModel 
+ * @returns {}
+ */
+function importPolicyModel(policyModel) {
+	
+	return new Promise(function(resolve, reject){
+    	var importPMDatatype = 280240009;
+        var record = {
+            nxl_name: 'importPM',
+            nxl_datatype: { Value: importPMDatatype },
+            nxl_content: policyModel,
+            nxl_enabled: true
+        };
+        console.log('importPolicyModel : ' + JSON.stringify(record));
+        SDK.REST.createRecord(record, nxlStorageEntity).then(function(result){
+			if(!(result.nxl_content && result.nxl_content.trim().toLowerCase() === "ok")){
+				console.log('failed to sync policy model : '+ result.nxl_content);
+				alert('Error occurred.\r\nPlease try again.');
+			} else {
+				console.log('import policy model successfully');
+			}
+            if(typeof resolve === 'function'){
+                resolve();
+            }
+        }, function(error){
+			console.log('Failed to Secure Selected Entities : '+ error);
+		    if(error.indexOf('500') > -1 && error.indexOf('(Execute)') > -1 && error.indexOf('2-min') > -1){
+				alert('Error occurred due to 2-min limit of Microsoft Dynamics 365 platform, your operation was interrupted.\r\nSee console log and release note for details.');
+			} else{
+				alert('Error occurred.\r\nSee console log for details.');
+			}
+            if(typeof resolve === 'function'){
+                resolve();
+            }
+        });
+	});
+}
+/**
+ * authorize cloudAz Connection
+ */
+function AuthWebConsole(){
+	return SDK.REST.retrieveMultipleRecords(nxlStorageEntity, '$select=nxl_name,nxl_datatype,nxl_enabled,nxl_content&$filter=nxl_datatype/Value eq 280240004')
+	.then(SuccessRetrieveGeneralSetting)
+	.then(testWCConnection);
+}
+
+	
+function testWCConnectionSuccess(result){
+	if(result.nxl_content && result.nxl_content.trim().toLowerCase().substring(0,4) === "http"){
+		//loadEntities();
+		return new Promise(function(resolve, reject){
+			if(typeof resolve === 'function'){
+				resolve(result);
+			}
+		});
+	}
+	else if(result.nxl_content && result.nxl_content.trim().toLowerCase().substring(0,6) === "please"){
+		var dom = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', null);
+		var body = dom.createElement("body");
+			
+		// set timeout is needed because document.body is created after the current continuation finishes
+		setTimeout(function() {
+			document.body.innerHTML = '<div style="position:absolute;width:100%;height:99%;background:#FFF;padding-left:32px;"><h2><p style="display:inline-block">' + result.nxl_content + '&nbsp;on&nbsp;</p><a href="./nxl_generalsetting.html" style="display:inline-block">General Settings Page</a></h2></div>';
+		},0);
+		return new Promise(function(resolve, reject){});
+	} else{
+		var dom = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', null);
+		var body = dom.createElement("body");
+			
+		// set timeout is needed because document.body is created after the current continuation finishes
+		setTimeout(function() {
+			var strhint = result.nxl_content.length > 0 ? result.nxl_content + ', please try again' : 'please try again';
+			document.body.innerHTML = '<div style="position:absolute;width:100%;height:99%;background:#FFF;padding-left:32px;"><h2><p style="display:inline-block">' + strhint + '</h2></div>';
+		},0);
+		return new Promise(function(resolve, reject){});
+	}
+}
+
+function testWCConnection(gs){
+	
+	var testWC = new nxl.models.TestWC(gs.httpsEnable, gs.oauthServer, gs.oauthPort, gs.wcUsername, gs.wcPassword);
+
+	var wcJSON = {};
+	wcJSON.nxl_name = 'NXLTestWC';
+	wcJSON.nxl_datatype = { Value: 280240010 };
+	wcJSON.nxl_enabled = true;
+	wcJSON.nxl_content = testWC.serializeToString();
+	return SDK.REST.createRecord(wcJSON, nxlStorageEntity)
+		.then(testWCConnectionSuccess, function(){
+			console.log("Send request of getting authorized url to plugin failed");
+			var dom = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', null);
+			var body = dom.createElement("body");
+				
+			// set timeout is needed because document.body is created after the current continuation finishes
+			setTimeout(function() {
+				document.body.innerHTML = '<div style="position:absolute;width:100%;height:99%;background:#FFF;padding-left:32px;"><h2><p style="display:inline-block">Send request failed for opening CloudAz. Please reload the page.</p></h2></div>';
+			},0);
+			return new Promise(function(resolve, reject){});
+		});
+}
+
+function SuccessRetrieveGeneralSetting(results){
+	if(results.results.length != 0){
+
+		var gsResults = results.results;
+
+		if(!gsResults || gsResults.length > 1){
+			throw new Error('retrieving general setting failed, record is null or more than one general setting retrieved');
+		}
+
+		var gs = gsResults[0];
+
+		if(gs){
+
+			var gsName = gs.nxl_name;
+			var gsDataType = gs.nxl_datatype;
+			var gsContent = gs.nxl_content;
+
+			if(!gsName || gsName.trim().toLowerCase() !== 'NXLGeneralSettings'.trim().toLowerCase()){
+				throw new Error('retrieving general setting failed, record is invalid');
+			}
+
+			var newGS = new nxl.models.GeneralSetting();
+			newGS.parseFromString(gsContent);
+			
+			return new Promise(function(resolve, reject){
+				if(typeof resolve === 'function'){
+					resolve(newGS);
+				}
+			});
+		}
+		else{
+			throw new Error('get one general setting record but null');
+		}
+	}
+	else{
+		//unsave_hint
+		var dom = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', null);
+		var body = dom.createElement("body");
+		
+		// set timeout is needed because document.body is created after the current continuation finishes
+		setTimeout(function() {
+			document.body.innerHTML = '<div style="position:absolute;width:100%;height:99%;background:#FFF;padding-left:32px;"><h2><p style="display:inline-block">Please complete NextLabs Platform Configuration on&nbsp;</p><a href="./nxl_generalsetting.html" style="display:inline-block">General Settings Page</a></h2></div>';
+		},0);
+		return new Promise(function(resolve, reject){});
+	}
+}
+
+function attrNeedBeHandled(entity, curAttribute){
+	
+    if(curAttribute && curAttribute.dataType && 
+       (   
+        curAttribute.dataType.toLowerCase() === 'uniqueidentifier' ||
+        curAttribute.dataType.toLowerCase() === 'lookup' ||
+        curAttribute.dataType.toLowerCase() === 'bigint' ||
+        curAttribute.dataType.toLowerCase() === 'owner'  ||
+        curAttribute.dataType.toLowerCase() === 'customer'
+       )) {// do NOT handle these kinds of type
+                 return false;						
+    }
+	
+	if(curAttribute && curAttribute.displayName.indexOf("(Deprecated)") > -1){
+		// it is deprecated
+		return false;
+	}
+	
+	var m2mRelations = entity.m2mRelation ? entity.m2mRelation.relations : undefined;
+	if(m2mRelations && m2mRelations.length > 0){
+        var m2mCount = m2mRelations.length;
+    	for(var i = 0; i < m2mCount; i++){
+			//console.log('entity: '+ entity.logicalName +' attrNeedBeHandled: curAttribute ' + curAttribute.logicalName +' dataType == ' + curAttribute.dataType.toLowerCase() + ' m2mRelations.lookupAttrLogicalName '+m2mRelations[i].lookupAttrLogicalName);
+    		if(curAttribute.logicalName === m2mRelations[i].lookupAttrLogicalName){
+    			return false;
+    		}
+    	}		
+	}
+
+	var m2oRelations = entity.m2oRelation ? entity.m2oRelation.relations : undefined;
+	if(m2oRelations && m2oRelations.length > 0){
+        var m2oCount = m2oRelations.length;
+    	for(var i = 0; i < m2oCount; i++){
+						//console.log('entity: '+ entity.logicalName +' attrNeedBeHandled: curAttribute ' + curAttribute.logicalName +' dataType == ' + curAttribute.dataType.toLowerCase() + ' m2oRelations.lookupAttrLogicalName '+m2oRelations[i].lookupAttrLogicalName);
+    		if(curAttribute.logicalName === m2oRelations[i].lookupAttrLogicalName){
+    			return false;
+    		}
+    	}		
+	}
+	
+    return true;
+}

@@ -1,0 +1,112 @@
+<html>
+	<head>
+	    <title>User Attributes</title>
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+	    <meta name="apple-mobile-web-app-capable" content="yes">
+	    <link href="nxl_common.css" type="text/css" rel="stylesheet">
+	    <link href="nxl_attributesstyles.css" type="text/css" rel="stylesheet">
+			<script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>
+	    <script src="nxl_es6promise.js" type="text/javascript"></script>            
+	    <script src="nxl_sdk.js"></script>
+	    <script src="nxl_models.js"></script>
+	    <script src="nxl_common.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <!-- top toolbar -->
+        <div class="toolbar-top font-default font-lg bg-white">
+            <div id="toolbar-top-home-btn" class="toolbar-top-title-container">
+                <span class="toolbar-top-title-img"></span>
+                <span class="toolbar-top-title-text"><b>Entitlement Manager</b></span>
+            </div>
+            <div id="toolbar-top-save-btn" class="toolbar-top-save-container">
+                <span class="toolbar-top-save-img"></span>
+                <span class="toolbar-top-save-text">Save Attributes</span>
+            </div>
+            <div id="toolbar-top-export-btn" class="toolbar-top-export-container hide">
+                <span class="toolbar-top-export-img"></span>
+                <span class="toolbar-top-save-text">Export &amp; Save Selected Attributes</span>
+            </div>
+			<div id="toolbar-top-help-btn" class="toolbar-top-help-container">
+                <span class="toolbar-top-help-img"></span>
+                <span class="toolbar-top-help-text">Help</span>
+            </div>
+        </div>
+
+        <!-- main body -->
+        <div id="container" class="container font-default">
+            <!--main section-->
+            <div class="main-container">
+                <div class="main-header">
+                    <div class="main-header-img"></div>
+                    <div class="main-header-title-wrapper">
+                        <h2 class="font-lg">User Attributes</h2>
+                        <h4 class="font-default font-md">Configure User Attributes available for policy authoring and evaluation</h4>
+                        <div class="main-header-desc-wrapper">
+                            <span>Users can only access selected entities and records that they are authorized to use, based on the policies defined in NextLabs CloudAz.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-body">
+                    <div id="entity-list" class="main-entities-container">
+                        <div class="main-entity-select-all-row">
+                            <div class="main-entity-title-wrapper">
+                                <span id="select-all-checkbox" class="checkbox checkbox-md" data-checked="false"></span>
+                                <span class="main-entity-title font-bold font-lg">SELECT ALL</span>
+                            </div>
+                        </div>
+                        <!-- <div class="main-entity-row">
+                            <div class="main-entity-title-wrapper">
+                                <span class="checkbox checkbox-md"></span>
+                                <span class="main-entity-title font-bold">Activities<span class="main-entity-title font-default">(Sales | Service | Marketing )</span></span>
+                            </div>
+                            <div class="main-entity-detail-wrapper">
+                                <p class="main-entity-desc font-default">
+                                    Task performed, or to be performed, by a user. An activity is any action
+                                    for which an entry can be made on a calendar.
+                                </p>
+                                <div class="main-entity-field-toggle-wrapper">
+                                    <span class="main-entity-field-toggle font-default text-link text-link-md">Show Fields ...</label>
+                                </div>
+                                <div id="showFiled_msdyn_postconfig" class="main-entity-field-table-wrapper">
+                                    <p class="main-entity-field-table-desc">Fields available for policy authoring and evaluation</p>
+                                    <table class="main-entity-field-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="td-sm"><span class="checkbox checkbox-md"></span></th>
+                                                <th class="td-lg"><span>Display Name</span></th>
+                                                <th class="td-lg"><span>Name</span></th>
+                                                <th class="td-lg"><span>Data Type</span></th>
+                                                <th class="td-lg"><span>Required / Optional</span></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="td-sm"><span class="checkbox checkbox-md"></span></td>
+                                                <td class="td-lg bg-gray-light"><span>Account</span><span class="entity-display-name-info" title="Unique identifier of the account."></span></td>
+                                                <td class="td-lg"><span>accountid</span></td>
+                                                <td class="td-lg bg-gray-light"><span>Primary Key</span></td>
+                                                <td class="td-lg"><span>Required</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- bottom toolbar -->
+        <div class="toolbar-bottom font-default">
+            <div class="toobar-bottom-btnbar">
+                <button id="toolbar-bottom-save-btn" class="btn btn-lg-ex btn-default" type="button">Save Attributes</button>
+                <button id="toolbar-bottom-export-btn" class="btn btn-lg-ex btn-default hide" type="button">Export &amp; Save Selected Attributes</button>
+            </div>
+        </div>
+
+        <div id="submit-overlay" class="submit-overlay hide"></div>
+        <script src="nxl_userproperties.js" type="text/javascript"></script>
+    </body>
+</html>

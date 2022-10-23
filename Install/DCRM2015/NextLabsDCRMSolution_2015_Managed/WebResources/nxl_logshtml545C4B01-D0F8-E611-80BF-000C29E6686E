@@ -1,0 +1,618 @@
+
+<!-- DOCTYPE html -->
+<html>
+  <head>
+    <title>Logs</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <link href="nxl_jqueryuithemes.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_axurerppage.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_datastyles.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_logstyles.css" type="text/css" rel="stylesheet"/>
+    
+    <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>    
+    <script src="nxl_sdk.metadata.js" type="text/javascript"></script>
+    <script src="nxl_sdk.rest.js" type="text/javascript"></script>    
+    <script src="nxl_es6promise.js" type="text/javascript"></script>    
+    <script src="nxl_common.js" type="text/javascript"></script>
+    <script src="nxl_logs.js" type="text/javascript"></script>
+	<script src="nxl_calendar.js" type="text/javascript"></script>    
+  </head>
+  <body onload="HiddenCrmRibbonManager();AdjustCrmContentPanelLocation();LoadLogSetting();LoadLogs();">
+    <div id="base">
+
+      <!-- LogPanel -->
+	  <div id="saveDiscardDiv" class="ax_default" >
+			<div id="divTopIconAndText" onclick="RedirectHomePage()";>
+				<div id="divIcon">
+					<img id="nxl_u69" class="img " src="nxl_u69.png"/>
+				</div>
+				<div id="divText" class="text">
+					<p><span><b>Entitlement Management</b></span></p>
+				</div>
+			</div>
+		</div>
+		
+		<div id="underline1" class="ax_default line" style="position:relative;left:0px;height:2px;">
+          <img id="underline1_img" src="nxl_u105.png" style="width: 1220px; height: 2px;"/>
+        </div>
+		
+      <div class="ax_default" id="u5044" data-label="LogPanel">
+        <div class="panel_state" id="u5044_state0" data-label="State1">
+          <div class="panel_state_content" id="u5044_state0_content">
+		  
+            <!-- Unnamed (Rectangle) -->
+            <div class="ax_default heading_2" id="u5045">
+              <div id="u5045_div"></div>
+              <!-- Unnamed () -->
+              <div class="text" id="u5046">
+                <p><span>No records found</span></p>
+              </div>
+            </div>
+				  
+			<!-- Page Turning (Group) -->
+			<div class="ax_default" id="u5130">
+                <!-- Unnamed (Rectangle) -->
+                <div id="u5131">
+				  <input type="button" value=" << " id="PrePage" style="height:19px; width:30px;" disabled="disabled" onclick="OnPrePage()">
+                </div>
+                <!-- Unnamed (Rectangle) -->
+                <div  id="u5132">
+				  <input type="button" value=" >> " id="NextPage" style="height:19px; width:30px;" onclick="OnNextPage()">
+                </div>
+                <!-- Unnamed (Rectangle) -->
+                <div id="u5133">
+				  <p><span>0-0</span></p>
+                </div>			 
+			</div>
+		
+            <!-- Unnamed (Rectangle) -->
+            <div class="ax_default shape2" id="u5047" onclick="OrderByLevel()" style="cursor:pointer;">
+              <div id="u5047_div"></div>
+              <!-- Unnamed () -->
+              <div id="u5048" style="font-weight:700;">
+			    <p><span>Severity Level</span></p>		
+              </div>
+            </div>
+
+            <!-- Unnamed (Image) -->
+            <div class="ax_default image1" id="u5049">
+              <img class="img " id="u5049_img" src="nxl_u323.png">
+              <!-- Unnamed () -->
+              <div class="text" id="u5050" style="display: none; visibility: hidden;">
+                <p><span></span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Rectangle) -->
+            <div class="ax_default shape2" id="u5051" onclick="OrderByUser()" style="cursor:pointer;">
+              <div id="u5051_div"></div>
+              <!-- Unnamed () -->
+              <div id="u5052" style="font-weight:700;">
+			  <p><span>User Name</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Image) -->
+            <div class="ax_default image1" id="u5053">
+              <img class="img " id="u5053_img" src="nxl_u323.png">
+              <!-- Unnamed () -->
+              <div class="text" id="u5054" style="display: none; visibility: hidden;">
+                <p><span></span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Rectangle) -->
+            <div class="ax_default shape2" id="u5055" style="cursor:pointer;" onclick="OrderByEvent()">
+              <div id="u5055_div"></div>
+              <!-- Unnamed () -->
+              <div id="u5056" style="font-weight:700;">
+			  <p><span>Event</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Rectangle) -->
+            <div class="ax_default shape2" id="u5057" onclick="OrderByEntity();" style="cursor:pointer;" >
+              <div id="u5057_div"></div>
+              <!-- Unnamed () -->
+              <div id="u5058" style="font-weight:700;">
+			  <p><span>Entity</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Image) -->
+            <div class="ax_default image1" id="u5059">
+              <img class="img " id="u5059_img" src="nxl_u323.png">
+              <!-- Unnamed () -->
+              <div class="text" id="u5060" style="display: none; visibility: hidden;">
+                <p><span></span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Image) -->
+            <div class="ax_default image1" id="u5061">
+              <img class="img " id="u5061_img" src="nxl_u323.png">
+              <!-- Unnamed () -->
+              <div class="text" id="u5062" style="display: none; visibility: hidden;">
+                <p><span></span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Rectangle) -->
+            <div class="ax_default shape2" id="u5063" style="cursor:pointer;" onclick="OrderByTime()">
+              <div id="u5063_div"></div>
+              <!-- Unnamed () -->
+              <div id="u5064" style="font-weight:700;">
+			   <p><span>Date/Time</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Image) -->
+            <div class="ax_default image1" id="u5065">
+              <img class="img " id="u5065_img" src="nxl_u323.png">
+              <!-- Unnamed () -->
+              <div class="text" id="u5066" style="display: none; visibility: hidden;">
+                <p><span></span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Rectangle) -->
+            <div class="ax_default shape2" id="u5067" style="cursor:pointer;" onclick="OrderByMessage();">
+              <div id="u5067_div"></div>
+              <!-- Unnamed () -->
+              <div id="u5068" class="text" style="font-weight:700;">
+			    <p><span>Message</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Image) -->
+            <div class="ax_default image1" id="u5069">
+              <img class="img " id="u5069_img" src="nxl_u323.png">
+              <!-- Unnamed () -->
+              <div class="text" id="u5070" style="display: none; visibility: hidden;">
+                <p><span></span></p>
+              </div>
+            </div>
+			
+            <!-- Unnamed (Horizontal Line) -->
+            <div class="ax_default line" id="u5179">
+              <img class="img " id="u5179_img" src="nxl_u578.png">
+              <!-- Unnamed () -->
+              <div class="text" id="u5180" style="display: none; visibility: hidden;">
+                <p><span></span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>       
+
+	  <!-- SearchBar (Dynamic Panel) -->
+      <div class="ax_default" id="u5071" data-label="SearchBar">
+        <div class="panel_state" id="u5071_state0" data-label="Basic Search">
+          <div class="panel_state_content" id="u5071_state0_content">
+
+            <!-- Unnamed (Group) -->
+            <div class="ax_default" id="u5072" data-width="1115" data-height="31">
+			
+              <!-- Unnamed (Droplist) -->
+              <div class="ax_default droplist" id="u5073">
+                <select id="u5073_input" onchange="ChangeView()">
+				<option value="Any" selected="">&nbsp; Any</option>
+                <option value="Last 5 min">&nbsp; Last 5 min</option>
+                <option value="Last 1 hour">&nbsp; Last 1 hour</option>
+                <option value="Last 10 hours">&nbsp; Last 10 hours</option>
+                <option value="Last 1 day">&nbsp; Last 1 day</option>
+                <option value="Last 7 days">&nbsp; Last 7 days</option>
+                </select>
+              </div>
+
+              <!-- Unnamed (Rectangle) -->
+              <div class="ax_default heading_2" id="u5074">
+                <div id="u5074_div"></div>
+                <!-- Unnamed () -->
+                <div class="text" id="u5075">
+                <p><span>View</span></p>
+                </div>
+              </div>
+
+              <!-- Unnamed (Group) -->
+              <div class="ax_default" id="u5076" data-width="400" data-height="30">
+                <!-- Unnamed (Group) -->
+                <div class="ax_default" id="u5077" data-width="400" data-height="30">
+                  <!-- Unnamed (Group) -->
+                  <div class="ax_default" id="u5078" data-width="288" data-height="30">
+                    <!-- Unnamed (Rectangle) -->
+                    <div class="ax_default box_1" id="u5079">
+					<input type="text" id="SearchBasicInput" class="textarea" placeholder="Search" style="height:30px; width:288px;">
+                    </div>
+                  </div>
+
+                  <!-- Unnamed (Group) -->
+                  <div class="ax_default" id="u5081" data-width="113" data-height="30">
+                    <!-- Unnamed (Rectangle) -->
+                    <div id="u5082">
+                      <input type="button" id="SearchBasic" value="Search" style="height:30px; width:113px; color:white; border-color: rgba(21, 131, 181, 1); background-color: rgba(21, 131, 181, 1);" onclick="BasicSearchLogs()">
+                    </div>
+                  </div> 
+                </div>                     
+              </div>
+			  
+			  <!-- Unnamed (Rectangle) -->
+			  <div class="ax_default link_text" id="u5086" style="cursor: pointer;" onmouseover="AdvancedSearchMouseOver()" onmouseout="AdvancedSearchMouseOut()">
+                <!-- Unnamed () -->
+                <div id="u5087">
+				  <input type="button" id="Advanced Search" value="Advanced Search" style="border:none; background-color:transparent;" onclick="AdvancedSearchClick()">
+                </div>
+              </div>			  
+            </div>
+		  </div>
+		</div>
+				
+		<div id="u5071_state1" class="panel_state" data-label="Advanced Search" style="visibility: hidden; display:none;">
+          <div id="u5071_state1_content" class="panel_state_content">
+
+            <!-- Unnamed (Group) -->
+            <div id="u5088" class="ax_default" data-width="189" data-height="30">
+                <!-- Unnamed (Rectangle) -->
+                <div id="u5090">
+                    <input type="button" id="SearchAdvance" value="Search" style="height:30px; width:189px; color:white; border-color: rgba(21, 131, 181, 1); background-color: rgba(21, 131, 181, 1);" onclick="AdvancedSearchLogs()">
+				</div>
+            </div>
+			
+			<!-- Unnamed (Group) -->
+            <div id="u5175" class="ax_default" data-width="189" data-height="30">
+			    <!-- Unnamed (Rectangle) -->
+                <div id="u5177">
+                    <input type="button" id="Advanced Reset" value="Reset" style="height:30px; width:189px; color:white; border-color: rgba(153, 153, 153, 1); background-color: rgba(153, 153, 153, 1);" onclick="SearchReset()">
+				</div>             
+            </div>
+			
+			<!-- Unnamed (Rectangle) -->
+			<div class="ax_default link_text" id="u5092" style="cursor: pointer;" onmouseover="BasicSearchMouseOver()" onmouseout="BasicSearchMouseOut()">
+              <!-- Unnamed () -->
+              <div id="u5093">
+				<input type="button" id="Basic Search" value="Basic Search" style="border:none; background-color:transparent;" onclick="BasicSearchClick(); closeCalender();" >
+              </div>
+            </div>
+						
+            <!-- Unnamed (Paragraph) -->
+            <div id="u5098" class="ax_default paragraph">
+              <!-- Unnamed () -->
+              <div id="u5099" class="text">
+                <p><span>Select Time Range</span></p>
+              </div>
+            </div>
+			
+			<!-- Unnamed (Group) -->
+            <div id="u5116" class="ax_default" data-width="130" data-height="28">
+              <!-- Unnamed (Rectangle) -->
+                <div id="u5117">
+				  <input type="text" id="BeginDate" style="height:28px; width:130px;" onClick="showCalender(this, 'BeginDate');">
+                </div>
+            </div>
+
+			<!-- Unnamed (Group) -->
+            <div id="u5118" class="ax_default" data-width="130" data-height="28">
+              <!-- Unnamed (Rectangle) -->
+                <div id="u5119">
+				  	<select id="BeginTime" style="height:28px;width:100px;">
+					<option value="00"> 12 Midnight</option>
+					<option value="01"> 1:00 AM</option>
+					<option value="02"> 2:00 AM</option>
+					<option value="03"> 3:00 AM</option>
+					<option value="04"> 4:00 AM</option>
+					<option value="05"> 5:00 AM</option>
+					<option value="06"> 6:00 AM</option>
+					<option value="07"> 7:00 AM</option>
+					<option value="08"> 8:00 AM</option>
+					<option value="09"> 9:00 AM</option>
+					<option value="10"> 10:00 AM</option>
+					<option value="11"> 11:00 AM</option>
+					<option value="12"> 12 Noon</option>
+					<option value="13"> 1:00 PM</option>
+					<option value="14"> 2:00 PM</option>
+					<option value="15"> 3:00 PM</option>
+					<option value="16"> 4:00 PM</option>
+					<option value="17"> 5:00 PM</option>
+					<option value="18"> 6:00 PM</option>
+					<option value="19"> 7:00 PM</option>
+					<option value="20"> 8:00 PM</option>
+					<option value="21"> 9:00 PM</option>
+					<option value="22"> 10:00 PM</option>
+					<option value="23"> 11:00 PM</option>
+					</select>
+                </div>
+            </div>
+            
+			<div id="u5124" class="ax_default paragraph">
+              <!-- Unnamed () -->
+              <div id="u5125" class="text">
+                <p><span>to</span></p>
+              </div>
+            </div>
+			
+			<!-- Unnamed (Group) -->
+            <div id="u5120" class="ax_default" data-width="130" data-height="28">
+              <!-- Unnamed (Rectangle) -->
+                <div id="u5121">
+				  <input type="text" id="EndDate" style="height:28px; width:130px;" onClick="showCalender(this, 'EndDate');">
+                </div>
+            </div>
+
+			<!-- Unnamed (Group) -->
+            <div id="u5122" class="ax_default" data-width="130" data-height="28">
+              <!-- Unnamed (Rectangle) -->
+                <div id="u5123">
+				  <select id="EndTime" style="height:28px;width:100px;">
+					<option value="00"> 12 Midnight</option>
+					<option value="01"> 1:00 AM</option>
+					<option value="02"> 2:00 AM</option>
+					<option value="03"> 3:00 AM</option>
+					<option value="04"> 4:00 AM</option>
+					<option value="05"> 5:00 AM</option>
+					<option value="06"> 6:00 AM</option>
+					<option value="07"> 7:00 AM</option>
+					<option value="08"> 8:00 AM</option>
+					<option value="09"> 9:00 AM</option>
+					<option value="10"> 10:00 AM</option>
+					<option value="11"> 11:00 AM</option>
+					<option value="12"> 12 Noon</option>
+					<option value="13"> 1:00 PM</option>
+					<option value="14"> 2:00 PM</option>
+					<option value="15"> 3:00 PM</option>
+					<option value="16"> 4:00 PM</option>
+					<option value="17"> 5:00 PM</option>
+					<option value="18"> 6:00 PM</option>
+					<option value="19"> 7:00 PM</option>
+					<option value="20"> 8:00 PM</option>
+					<option value="21"> 9:00 PM</option>
+					<option value="22"> 10:00 PM</option>
+					<option value="23"> 11:00 PM</option>
+					</select>
+                </div>
+            </div>
+            
+            <!-- Unnamed (Paragraph) -->
+            <div id="u5096" class="ax_default paragraph">
+              <!-- Unnamed () -->
+              <div id="u5097" class="text">
+                <p><span>Severity Level</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Droplist) -->
+            <div id="u5100" class="ax_default droplist">
+              <select id="u5100_input">
+                <option selected value="Any">&nbsp; Any</option>
+                <option value="Warning">&nbsp; Warning</option>
+                <option value="Error">&nbsp; Error</option>
+              </select>
+            </div>
+
+            <!-- Unnamed (Paragraph) -->
+            <div id="u5109" class="ax_default paragraph">
+              <!-- Unnamed () -->
+              <div id="u5110" class="text">
+                <p><span>Event</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Droplist) -->
+            <div id="u5111" class="ax_default droplist">
+              <select id="u5111_input">
+                <option selected value="Any">&nbsp; Any</option>
+                <option value="Retrieve">&nbsp; Retrieve</option>
+                <option value="RetrieveMultiple">&nbsp; Retrieve Multiple</option>
+				<option value="Create">&nbsp; Create</option>
+				<option value="Update">&nbsp; Update</option>
+				<option value="Delete">&nbsp; Delete</option>
+              </select>
+            </div>
+
+			<!-- Unnamed (Paragraph) -->
+            <div id="u5094" class="ax_default paragraph">
+              <!-- Unnamed () -->
+              <div id="u5095" class="text">
+                <p><span>User Name</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Group) -->
+            <div id="u5101" class="ax_default" data-width="150" data-height="28">
+              <!-- Unnamed (Rectangle) -->
+                <div class="ax_default box_1" id="u5102">
+				  <input type="text" id="SearchUser" class="textarea" style="height:28px; width:150px;">
+                </div>
+            </div>
+			
+            <!-- Unnamed (Paragraph) -->
+            <div id="u5104" class="ax_default paragraph">
+              <!-- Unnamed () -->
+              <div id="u5105" class="text">
+                <p><span>Entitie(s) Name</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Group) -->
+            <div id="u5106" class="ax_default" data-width="298" data-height="28">
+              <!-- Unnamed (Rectangle) -->
+                <div class="ax_default box_1" id="u5107">
+				  <input type="text" id="SearchEntity" class="textarea" style="height:28px; width:298px;">
+              </div>
+            </div>
+
+            <!-- Unnamed (Paragraph) -->
+            <div id="u5112" class="ax_default paragraph">
+              <!-- Unnamed () -->
+              <div id="u5113" class="text">
+                <p><span>Message</span></p>
+              </div>
+            </div>
+
+            <!-- Unnamed (Group) -->
+            <div id="u5114" class="ax_default" data-width="787" data-height="50">
+
+              <!-- Unnamed (Rectangle) -->
+              <div id="u5115" class="ax_default box_1">
+				<input type="text" id="SearchMessage" class="textarea" style="height:50px; width:787px;">
+              </div>
+            </div>									
+          </div>
+        </div>
+	  </div>
+ 
+      <!-- Unnamed (Image) -->
+      <div class="ax_default image" id="u5464">
+        <img class="img " id="u5464_img" src="nxl_u78.png">
+        <!-- Unnamed () -->
+        <div class="text" id="u5465" style="display: none; visibility: hidden;">
+          <p><span></span></p>
+        </div>
+      </div>
+
+      <!-- Unnamed (Rectangle) -->
+      <div class="ax_default heading_2" id="u5466">
+        <div id="u5466_div"></div>
+        <!-- Unnamed () -->
+        <div class="text" id="u5467">
+          <p><span>Logs</span></p>
+        </div>
+      </div>
+
+      <!-- Unnamed (Horizontal Line) -->
+      <div class="ax_default line" id="u5488">
+        <img class="img " id="u5488_img" src="nxl_u105.png">
+        <!-- Unnamed () -->
+        <div class="text" id="u5489" style="display: none; visibility: hidden;">
+          <p><span></span></p>
+        </div>
+      </div>
+
+      <!-- Unnamed (Rectangle) -->
+      <div class="ax_default heading_2" id="u5490">
+        <div id="u5490_div"></div>
+        <!-- Unnamed () -->
+        <div class="text" id="u5491">
+          <p><span>Entitlement Management logs</span></p>
+        </div>
+      </div>
+	  
+	  
+	  <div id="logSettingDiv"> 
+	    <div>
+		   <span class="heading_1" style="font-weight: 700; font-size: 16px; color: #666666;">Log Settings</span>
+		</div>
+		<div id="enableState" onclick="changeState(this)"; style="position: absolute; top:40px;">
+		  <div id="enabledState" style="visibility: hidden; display: none;">
+			<img class="img" src="nxl_u171.png"/>
+		  </div>
+		  <div id="disaledState" style="visibility: visible; display: block;">
+			<img class="img" src="nxl_u169.png"/>
+		  </div>
+		</div>
+		<span class="ax_default" style="position: absolute;top:45px;left:40px;text-align: left; font-size: 14px;">Enable</span>
+		<div style="position: absolute; left: 100px; top: 40px; width: 400px;">
+		    <div id="LevelOptionDiv" style="width: 150px;">
+				<select id="setting_loglevel" style="height: 30px;width: 150px;">
+                    <option value="Debug">&nbsp; Debug Logs</option>
+                    <option value="Information">&nbsp; Information Logs</option>
+                    <option value="Warning">&nbsp; Warning Logs</option>
+                    <option selected value="Error">&nbsp; Error Logs</option>
+                </select>
+		    </div>
+		    <div id="saveDiv" style="position:absolute; left:170px; top:0px;">
+				<input id="saveButton" style="height:30px; width:180px;" type="submit" value="Save Log Settings" onclick="SaveLogSetting();"/>
+		   </div>
+		</div>
+		<div id="disabledDiv" style="position: absolute; left: 100px; top: 40px; width: 150px; height: 30px; background-color:rgba(255, 255, 255, 0.509803921568627);">
+		</div>
+		<div class="image1" style="position: absolute; top: 100px; z-index: -1;">
+			<img src="nxl_u354.png" style="position: absolute; left: 0px; width:478px; height: 51px;">
+		</div>
+	  </div>
+	  
+	  
+	  <div id="popupDialog" style="visibility:hidden; display:none;">
+			<div id="lightbox" 
+			style="position: fixed; left: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(47, 79, 79); opacity: 0.607843; z-index: 1010; ">
+			   <div id="alertPanel" style="position:fixed; left:360px; top: 200px; z-index:1012; visibility:hidden; display:none;">
+			   </div>
+			   
+			</div>
+			
+			<div id="workingon" class="ax_default" style="border:1px solid #dddddd; position:fixed; top:300px; left:360px; background: white;z-index:1013; visibility:hidden;display:none;width:400px; height:200px;background:white;">
+				<div id="alerttitle" >
+				   <span class="alertTitleText">Save Alert</span>
+				</div>
+				<img style="position:absolute; left:50px; top:100px;" src="../../_imgs/AdvFind/progress.gif"/>
+				<span style="position:absolute; left:100px; top:100px; font-size: 30px; color: #666666;"> Working on it...</span>
+			</div>
+			
+			<div id="saveAlert" class="ax_default">
+				<div id="alerttitle" >
+				   <span class="alertTitleText">Save Alert</span>
+				</div>
+				<div id="alertsuccessContent" style="position:absolute;top:80px; visibility:hidden; display:none">
+					<img style="position: absolute;margin-left: 30px;margin-top: -10px;" src="nxl_successimg.png" />
+					<span  class="alertContent">Logs settings saved successfully.</span>
+				</div>
+				<div id="alertErrorContent" style="position:absolute;top:80px; visibility:hidden; display:none">
+				    <img style="position: absolute; margin-left: 30px;margin-top: -10px;width: 40px;height: 37px;" src="nxl_errorimg.png" />
+					<span class="errorAlert"> Error in saving logs settings.</span>
+				</div>
+				<div id="closebuttonDiv">
+					<input class="alertButton" type="submit" value="close" onclick="closeAlert();"/>
+				</div>
+			</div>
+		
+		</div>
+	  
+	  
+	  
+      <!-- Unnamed (logsblock) -->
+      <div id="logsblock" style="border-width:0px;position:absolute;left:102px;top:454px;width:1116px;height:580px;text-align:left;z-index:0;overflow-x:hidden;overflow-y:auto;"> </div>
+
+	</div>
+	
+	<!-- Unnamed (Calendar) -->
+	<table id="calenderTable">
+	 <tbody id="calenderTableHead">
+		<tr>
+		  <td colspan="4" align="center">
+			<select onChange="showCalenderBody(createCalender(document.getElementById('selectYear').value,
+			this.selectedIndex, false));" id="selectMonth">
+			<option value="0">Jan</option>
+			<option value="1">Feb</option>
+			<option value="2">Mar</option>
+			<option value="3">Apr</option>
+			<option value="4">May</option>
+			<option value="5">Jun</option>
+			<option value="6">Jul</option>
+			<option value="7">Aug</option>
+			<option value="8">Sep</option>
+			<option value="9">Oct</option>
+			<option value="10">Nov</option>
+			<option value="11">Dec</option>
+			</select>
+		  </td>
+		  <td colspan="2" align="center">
+			<select onChange="showCalenderBody(createCalender(this.value, 
+			document.getElementById('selectMonth').selectedIndex, false));" id="selectYear">
+			</select>
+		  </td>
+		  <td align="center">
+			<a href="#" onClick="closeCalender();"><font color="#003333" size="+1">X</font></a>
+		  </td>
+		</tr>
+	  </tbody>
+	  <tbody id="calenderTableDays">
+		<tr style="">
+			<td>Sun</td><td>Mon</td><td>Tue</td><td>Wed</td><td>Thu</td><td>Fri</td><td>Sat</td>
+		</tr>
+	  </tbody>
+	  <tbody id="calender"></tbody>
+	</table>
+	
+  </body>
+</html>

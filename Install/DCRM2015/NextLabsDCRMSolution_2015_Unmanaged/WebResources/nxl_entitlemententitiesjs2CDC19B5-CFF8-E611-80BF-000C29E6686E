@@ -1,0 +1,2345 @@
+var unsupportedEntity = new Array("annualfiscalcalendar", "applicationfile", "asyncoperation", "attachment", "attributemap", "audit",
+    "authorizationserver", "bulkdeletefailure", "bulkdeleteoperation", "bulkoperation", "bulkoperationlog", "businessdatalocalizedlabel",
+    "businessunitmap", "calendarrule", "channelaccessprofile", "channelaccessprofileentityaccesslevel", "channelaccessprofilerule",
+    "channelaccessprofileruleitem", "childincidentcount", "clientupdate", "columnmapping", "commitment", "competitoraddress", "complexcontrol",
+    "constraintbasedgroup", "convertrule", "convertruleitem", "dataperformance", "dependencyfeature", "dependencynode", "displaystring",
+    "displaystringmap", "documentindex", "duplicaterecord", "duplicaterule", "duplicaterulecondition", "emailhash", "emailsearch", "entitymap",
+    "externalparty", "externalpartyitem", "filtertemplate", "fixedmonthlyfiscalcalendar", "nxl_storage", "nxl_nxlnotices", "imagedescriptor", "import",
+    "importdata", "importentitymapping", "importfile", "importjob", "importlog", "importmap", "integrationstatus", "internaladdress",
+    "interprocesslock", "isvconfig", "knowledgesearchmodel", "lookupmapping", "mailbox", "mailboxstatistics", "mailboxtrackingfolder",
+    "mailmergetemplate", "metadatadifference", "monthlyfiscalcalendar", "multientitysearch", "multientitysearchentities", "notification",
+    "officedocument","organizationstatistic","organizationui","owner","ownermapping","partnerapplication","picklistmapping","pluginassembly",
+    "plugintype","plugintypestatistic","postregarding","postrole","principalattributeaccessmap","principalentitymap","principalobjectaccess",
+    "principalobjectaccessreadsnapshot","principalsyncattributemap","privilege","privilegeobjecttypecodes","processstage","processtrigger",
+    "quarterlyfiscalcalendar","queueitemcount","queuemembercount","recommendationcache","recommendationmodel","recommendationmodelmapping",
+    "recordcountsnapshot","relationshiprole","relationshiprolemap","replicationbacklog","report","reportcategory","reportentity","reportlink",
+    "reportvisibility", "resource", "resourcegroup", "resourcegroupexpansion", "resourcespec", "ribboncommand", "ribboncontextgroup",
+    "ribboncustomization", "ribbondiff", "ribbonrule", "ribbontabtocommandmap", "roletemplate", "roletemplateprivileges", "rollupjob",
+    "rollupproperties", "routingrule", "routingruleitem", "salesprocessinstance", "sdkmessage", "sdkmessagefilter", "sdkmessagepair",
+    "sdkmessageprocessingstep", "sdkmessageprocessingstepimage", "sdkmessageprocessingstepsecureconfig", "sdkmessagerequest",
+    "sdkmessagerequestfield","sdkmessageresponse","sdkmessageresponsefield","semiannualfiscalcalendar","sharepointdata","sla","slaitem",
+    "socialinsightsconfiguration", "sqlencryptionaudit", "statusmap", "stringmap", "subscription", "subscriptionclients",
+    "subscriptionmanuallytrackedobject", "subscriptionstatisticsoffline", "subscriptionstatisticsoutlook", "subscriptionsyncentryoffline",
+    "subscriptionsyncentryoutlook", "subscriptionsyncinfo", "subscriptiontrackingdeletedobject", "syncattributemapping",
+    "syncattributemappingprofile", "syncerror", "systemapplicationmetadata", "systemuserbusinessunitentitymap", "systemusermanagermap",
+    "systemuserprincipals", "systemusersyncmappingprofiles", "teamsyncattributemappingprofiles", "timestampdatemapping", "timezonedefinition",
+    "timezonelocalizedname", "timezonerule", "topic", "topichistory", "topicmodel", "topicmodelexecutionhistory", "traceassociation", "traceregarding",
+    "transformationmapping", "transformationparametermapping", "unresolvedaddress", "userapplicationmetadata", "userentityuisettings", "userfiscalcalendar",
+    "webwizard", "wizardaccessprivilege", "wizardpage", "workflow", "workflowdependency", "workflowlog", "workflowwaitsubscription","webresource");
+		
+var ShowMapEntities=
+{
+	CreateNew:function()
+	{
+		var ShowMapEntities={};
+		ShowMapEntities.ShowName="";
+		ShowMapEntities.Entities=new Array();
+		return ShowMapEntities;
+	}
+	
+};
+var AreaMapShows=
+{
+	CreateNew:function()
+	{
+		var AreaMapShows={};
+		AreaMapShows.AreaName="";
+		AreaMapShows.Shows=new Array();
+		return AreaMapShows;
+	}
+};
+
+var g_ArrydisplayArea=new Array();
+var results;
+var message;
+var separatorChar = ":";
+var entities = [];
+var enforcedEntities = [];
+var selectedEntities = [];
+var resetEntities = [];
+var enforcedAttributes = [];
+var selectedAttributes= [];
+var entitiesDescription = {};
+var entitiesPluralDisplayName = {};
+var NotSecuredEntities = new Array();
+var SalesEntities = new Array();
+var ServicesEntities = new Array();
+var MarketingEntities = new Array();
+var SettingsEntities = new Array();
+var HelpEntities = new Array();
+var submitErrorMessage = "";
+var siteMapGeted=null;
+var nextlabsProcessBar;
+function InitDisplayAreasAndShow(areas)
+{
+	var tempAreas=areas;
+	if(IsNullOrNaNOrUndefined(areas))
+	{
+		tempAreas=new Arrary();
+		var areaSales=Area.CreateNew();
+		areaSales.Name="Sales";
+		tempAreas.push(areaSales);
+		
+		var areaService=Area.CreateNew();
+		areaService.Name="Service";
+		tempAreas.push(areaService);
+		
+		var areaMarketing=Area.CreateNew();
+		areaMarketing.Name="Marketing";
+		tempAreas.push(areaMarketing);
+		
+		var areaHelp=Area.CreateNew();
+		areaHelp.Name="Help";
+		tempAreas.push(areaHelp);
+	}
+	var areaAny=Area.CreateNew();
+	areaAny.Name="Any";
+	tempAreas.push(areaAny);
+	for(var i=0;i<tempAreas.length;i++)
+	{
+		var areaMapShows=AreaMapShows.CreateNew();
+		areaMapShows.AreaName=tempAreas[i].Name;
+		
+		var showMapEntitiesAll=ShowMapEntities.CreateNew();
+		showMapEntitiesAll.ShowName="All Entities";
+			
+		var showMapEntitiesEnforced=ShowMapEntities.CreateNew();
+		showMapEntitiesEnforced.ShowName="Secure Entities";
+		
+		var showMapEntitiesUnenforced=ShowMapEntities.CreateNew();
+		showMapEntitiesUnenforced.ShowName="Not Secure Entities";
+		
+		areaMapShows.Shows.push(showMapEntitiesAll);
+		areaMapShows.Shows.push(showMapEntitiesEnforced);
+		areaMapShows.Shows.push(showMapEntitiesUnenforced);
+		
+		g_ArrydisplayArea.push(areaMapShows);
+	}
+}
+function LoadEntities() {
+    //Assign the global variables
+    results = document.getElementById("entities_results");
+    message = document.getElementById("entities_message");
+    enforcedEntities = [];   	
+
+	//First we need retrieve "SiteMap" it define entities display area
+	
+	SDK.REST.retrieveMultipleRecords(SiteMapEntity, "$select=SiteMapXml",successRetrieveSiteMap, errorRetrieveSiteMap, onCompleteRetrieveSiteMap);
+}
+function successRetrieveSiteMap(results)
+{
+	//console.log("successRetrieveSiteMap:"+results.length);
+	var areaFilter = document.getElementById("u547_input");
+	
+	// mean we success get SiteMap Entity
+	if(results.length>0)
+	{
+		var entitySiteMap=results[0];
+		var strSiteMapXML=results[0].SiteMapXml;
+		var siteMapObject=LoadSiteMap(strSiteMapXML);
+		if(siteMapObject!=null&&siteMapObject.Area!=null)
+		{
+			for(var i=0;i<siteMapObject.Area.length;i++)
+			{
+				areaFilter.options.add(new Option(siteMapObject.Area[i].Name,siteMapObject.Area[i].Name));
+			}
+			InitDisplayAreasAndShow(siteMapObject.Area);
+			siteMapGeted=siteMapObject;
+		}
+		else
+		{
+			//console.log("Transform xml to SiteMap object failed");
+			AreaAddDefaultValue();
+			InitDisplayAreasAndShow(null);
+		}
+		
+	}
+	else
+	{
+		//console.log("Retrieve sitemap success , but result length is 0");
+		AreaAddDefaultValue();
+		InitDisplayAreasAndShow(null);
+	}
+}
+function errorRetrieveSiteMap(error)
+{
+	//console.log("errorNextLabsStorage:"+error);
+	AreaAddDefaultValue();
+	InitDisplayAreasAndShow(null);
+	// if success or faild, we need retrieve nxlStorageEntity
+	SDK.REST.retrieveMultipleRecords(nxlStorageEntity, "$select=nxl_name,nxl_value&$filter=startswith(nxl_name, 'entity')", successRetrieveNextLabsStorageEntitlementEntities, errorNextLabsStorage, onCompleteRetrieveNextLabsStorage);
+}
+function onCompleteRetrieveSiteMap()
+{
+	//console.log("onCompleteRetrieveSiteMap");
+	// if success or faild, we need retrieve nxlStorageEntity
+	SDK.REST.retrieveMultipleRecords(nxlStorageEntity, "$select=nxl_name,nxl_value&$filter=startswith(nxl_name, 'entity')", successRetrieveNextLabsStorageEntitlementEntities, errorNextLabsStorage, onCompleteRetrieveNextLabsStorage);
+}
+function AreaAddDefaultValue()
+{
+	var areaFilter = document.getElementById("u547_input");
+	areaFilter.options.add(new Option("Sales","Sales"));
+	areaFilter.options.add(new Option("Service","Service"));
+	areaFilter.options.add(new Option("Marketing","Marketing"));
+	areaFilter.options.add(new Option("Help","Help"));
+}
+
+//save selected of current entities 
+function SubmitEntitlementEntities(callback) 
+{	
+	var lightbox = document.getElementById("lightbox");
+	lightbox.style["visibility"] = "visible";
+	lightbox.style["display"] = "block";
+	
+	var selectedEntitiesCopy = new Array();
+	selectedEntitiesCopy = selectedEntities.slice(0);
+	
+	submitrecordCollection = new Array();
+	var enforceEntsLen = enforcedEntities.length;
+	for(var i = 0; i< enforceEntsLen; i++)
+	{
+		var record = {};
+		var entity = enforcedEntities[i];
+		var pos = selectedEntitiesCopy.indexOf(entity);
+		for(var j = 0; j < selectedEntitiesCopy.length; j++)
+		{
+			if(selectedEntitiesCopy[j] == entity)
+			{
+				break;
+			}
+		}
+		if(j != selectedEntitiesCopy.length)
+		{
+			selectedEntitiesCopy.splice(j,1);
+		}
+		else
+		{
+			record.nxl_name = "entity_"+ entity;
+			record.nxl_value = "No";
+			submitrecordCollection.push(record);
+		}
+	}
+	
+	var len = selectedEntitiesCopy.length;
+	for(var i = 0; i < len; i++)
+	{
+		var record = {};
+		record.nxl_name = "entity_"+ selectedEntitiesCopy[i];
+		record.nxl_value = "Yes";
+		submitrecordCollection.push(record);
+	}
+	
+		
+	for(var i=0; i< enforcedAttributes.length; i++)
+	{
+		var record = {};
+		var attributeName = enforcedAttributes[i];
+		var pos = attributeName.indexOf(separatorChar);
+		var entityName = attributeName.substring(0,pos);
+		if(-1!=selectedEntities.indexOf(entityName))
+		{
+			var ind = selectedAttributes.indexOf(attributeName);
+			for(var j = 0; j < selectedAttributes.length; j++)
+			{
+				if(selectedAttributes[j] == attributeName)
+				{
+					break;
+				}
+			}
+			if(j != selectedAttributes.length)
+			{
+				selectedAttributes.splice(j,1);   //enforcedAttributes and selectedAttributes both all contain this attribute  , don't change nxl_storage data
+			}
+			else
+			{
+				record.nxl_name = "entityAttr_"+ attributeName;
+				record.nxl_value = "No";
+				submitrecordCollection.push(record);
+			}
+		}
+		else
+		{
+			record.nxl_name = "entityAttr_"+ attributeName;
+			record.nxl_value = "No";
+			submitrecordCollection.push(record);
+		}
+		
+	}
+	
+	for(var i = 0; i<selectedAttributes.length;i++)
+	{
+		var record = {};
+		var attributeName = selectedAttributes[i];
+		var pos = attributeName.indexOf(separatorChar);
+		var entityName = attributeName.substring(0,pos);
+		if(-1!=selectedEntities.indexOf(entityName))
+		{
+			record.nxl_name = "entityAttr_"+ attributeName;
+			record.nxl_value = "Yes";
+			submitrecordCollection.push(record);
+		}
+	}
+	
+	globalLength = submitrecordCollection.length;
+	//console.log("globalLength---"+ globalLength);
+	var arrayNeedSubmitRecord= SerializeNeedSubmitRecord(submitrecordCollection);
+	nextlabsProcessBar=new NextlabsProcessBar("Working on it...",
+	"Enabling NextLabs Entitlement Management for the selected Dynamics CRM Entities. This may take a little while...",
+	"Processing Entity",
+	arrayNeedSubmitRecord.length
+	);
+	nextlabsProcessBar.Show();
+	
+	var indexEntities = 0;
+	var indexRecords=0;
+	insertRecord(indexEntities ,indexRecords, arrayNeedSubmitRecord);
+}
+function GetEntityNameFromRecord(nxl_name)
+{
+	if(nxl_name.startsWith("entity_"))
+	{
+		return nxl_name.replace("entity_","");
+	}
+	else if(nxl_name.startsWith("entityAttr_"))
+	{
+		return nxl_name.replace("entityAttr_","").split(":")[0]
+	}
+}
+function insertRecord(indexEntities,indexRecords,arrayEntitiesRecords)
+{
+    if(indexEntities<arrayEntitiesRecords.length)
+	{
+		//this code will make performance low
+		var arrayRecords = arrayEntitiesRecords[indexEntities];
+		nextlabsProcessBar.SetCurrentIndex(indexEntities+1);
+		
+		nextlabsProcessBar.SetCurrentMessage(entitiesPluralDisplayName[GetEntityNameFromRecord(arrayEntitiesRecords[indexEntities][0].nxl_name)]);
+		nextlabsProcessBar.setCurrentDynamicBar(parseInt(indexRecords/arrayRecords.length*100));
+		if(indexRecords<arrayRecords.length)
+		{
+			SDK.REST.createRecord(arrayRecords[indexRecords], nxlStorageEntity, true,function(record)
+			{
+				setTimeout(insertRecord(indexEntities,indexRecords+1,arrayEntitiesRecords), 20 );
+			}
+			, 
+			function(error)
+			{
+				//console.log(error);
+				submitErrorMessage += arrayRecords[indexRecords].nxl_name + " , ";
+				//console.log(submitErrorMessage);
+				setTimeout(insertRecord(indexEntities,indexRecords+1,arrayEntitiesRecords), 20 );
+			});
+		}
+		else
+		{
+			setTimeout(insertRecord(indexEntities+1,0,arrayEntitiesRecords), 20 );
+		}
+    }
+	else
+	{
+		nextlabsProcessBar.Hiddlen();
+		var iDisplayTop=GetCenterAxisTop(200);
+		var iDisplayLeft=GetCenterAxisLeft(400);
+			
+		var AlertDiv = document.getElementById("saveAlert");
+	    AlertDiv.style["visibility"] = "visible";
+		AlertDiv.style["display"] = "block";
+		AlertDiv.style["top"]=iDisplayTop+"px";
+		AlertDiv.style["left"]=iDisplayLeft+"px";
+		if(submitErrorMessage == "")
+		{
+			var successAlertContent = document.getElementById("alertsuccessContent");
+			successAlertContent.style["visibility"] = "visible";
+			successAlertContent.style["display"] = "block";
+		}
+		else
+		{
+			submitErrorMessage +=" Please save the failed entitie(s) and field(s) again!"
+			AlertDiv.style["height"] = "300px";		
+			var closebuttonDiv = document.getElementById("closebuttonDiv");
+			closebuttonDiv.style["top"] = "240px";
+			var errorAlertContent = document.getElementById("alertErrorContent");
+			errorAlertContent.style["visibility"] = "visible";
+			errorAlertContent.style["display"] = "block";
+			var errorMessageSpan = document.getElementById("errorMessage");
+			errorMessageSpan.innerHTML ="Failed entitie(s) and field(s): "+ submitErrorMessage;
+		}  
+    }
+}
+function SerializeNeedSubmitRecord(submitrecordCollection)
+{
+	var arrayEntitysAndAttributesRecord=new Array();
+	for(var i=0;i<submitrecordCollection.length;i++)
+	{
+		var record=submitrecordCollection[i];
+		//first find all entity at array
+		if(record.nxl_name.startsWith("entity_"))
+		{
+			var arrayRecord=new Array(record);
+			arrayEntitysAndAttributesRecord.push(arrayRecord);
+			
+		}
+	}
+	for(var i=0;i<submitrecordCollection.length;i++)
+	{
+		var record=submitrecordCollection[i];
+		//second , find the attribute and push to arry to its parent entity
+		if(record.nxl_name.startsWith("entityAttr_"))
+		{
+			//get its parent entity name
+			var strKeyParentEntity=record.nxl_name.replace("entityAttr_","entity_").split(":")[0];
+			var strKeyParentAttribute=record.nxl_name.split(":")[0];
+			var strCurrentEntityName=GetEntityNameFromRecord(record.nxl_name);
+			if(arrayEntitysAndAttributesRecord.length>0)
+			{
+				var bfind=false;
+				for(var j=0;j<arrayEntitysAndAttributesRecord.length;j++)
+				{
+					var strTempEntityName=GetEntityNameFromRecord(arrayEntitysAndAttributesRecord[j][0].nxl_name);
+					if(strCurrentEntityName==strTempEntityName)
+					{
+						arrayEntitysAndAttributesRecord[j].push(record);
+						bfind=true;
+						break;
+					}
+				}
+				if(!bfind)
+				{
+					var arrayRecord=new Array(record);
+					arrayEntitysAndAttributesRecord.push(arrayRecord);
+				}
+			}
+			else
+			{
+				var arrayRecord=new Array(record);
+				arrayEntitysAndAttributesRecord.push(arrayRecord);
+			}
+		}
+	}
+	return arrayEntitysAndAttributesRecord;
+}
+
+function SelectAllEntities(obj) {
+	var displayEntities = [];
+	//displayEntities = GetCurrentEntities();
+	displayEntities = SearchEntities();
+	var setFlag = false;
+	
+
+	var child1 = document.getElementById("u589_state0");   //uncheckedDiv
+	var child2 = document.getElementById("u589_state1");   //checked
+	if (child1.style["visibility"] == "visible" || child1.style["visibility"] == "" ) {
+		setFlag = true;
+		child1.style["visibility"] = "hidden";
+		child1.style["display"] = "none";
+		child2.style["visibility"] = "visible";		
+        child2.style["display"] = "block";			
+	} else {
+		setFlag = false;
+		child1.style["visibility"] = "visible";
+		child1.style["display"] = "block";	
+		child2.style["visibility"] = "hidden";	
+        child2.style["display"] = "none";	
+
+        selectedAttributes = [];
+	}	
+	
+	var entitycb;
+	var entitychild1, entitychild2;
+	for (var i = 0; i < displayEntities.length; i++) {
+		entitycb = document.getElementById(displayEntities[i]);		
+		entitychild1 = entitycb.childNodes.item(0);    //checkeddiv
+		if (child2.style["visibility"] == entitychild1.style["visibility"]) {
+			continue;
+		}
+		entitychild2 = entitycb.childNodes.item(1);	 //unckeckedDiv
+		if (setFlag) {		
+			entitychild1.style["visibility"] = "visible";
+		    entitychild1.style["display"] = "block";
+		    entitychild2.style["visibility"] = "hidden";		
+            entitychild2.style["display"] = "none";
+			selectedEntities.push(displayEntities[i]);
+		    selectedEntities.sort(NxlArraySort);	
+		} else {
+			entitychild1.style["visibility"] = "hidden";
+			entitychild1.style["display"] = "none";
+			entitychild2.style["visibility"] = "visible";	
+            entitychild2.style["display"] = "block";	
+			var pos = selectedEntities.indexOf(displayEntities[i]);
+            if(-1!=pos){
+			    selectedEntities.splice(pos,1);
+				removeAllselectedAttrs(displayEntities[i]);
+		    }				
+		}
+	}
+     var summaryDiv = document.getElementById("summaryentis");
+     summaryDiv.innerHTML = "";
+	 DrawSummaryEntities(selectedEntities);	
+}
+
+function ResetEntities() {
+	SetSelectAllCheckbox(false);
+	
+	var displayEntities = [];
+	displayEntities = GetCurrentEntities();	
+	
+	selectedEntities = resetEntities.slice(0);
+	
+	DrawEntities(displayEntities);
+}
+
+function ChangeEntitiesArea() {
+	SetSelectAllCheckbox(false);
+	
+	var displayEntities = [];
+	var entityFilter = document.getElementById("u550_input");
+	entityFilter.value = "All Entities";
+	entityFilter.options[0].selected = true;  	
+	onSearchEntities();
+}
+
+function ChangeEntitiesFilter(){
+	//console.log("-----change filter----");
+	SetSelectAllCheckbox(false);
+	onSearchEntities();
+}
+
+function successRetrieveNextLabsStorageEntitlementEntities(results) {
+    for (var i = 0; i < results.length; i++) {
+		var resultName = results[i].nxl_name;
+		var resultValue = results[i].nxl_value;
+		if(-1 != resultName.indexOf("entity_")){
+			//console.log("entity  name: "+ resultName + "  value: "+ resultValue);
+			if(resultValue == "Yes"){
+				var name = resultName.substring(7);
+				enforcedEntities.push(name);
+		        selectedEntities.push(name);
+				enforcedEntities.sort(NxlArraySort);
+				selectedEntities.sort(NxlArraySort);
+			}
+		}else if(-1 != resultName.indexOf("entityAttr_")){
+			if(resultValue == "Yes"){
+			    var attrName = resultName.substring(11);			
+			    enforcedAttributes.push(attrName);
+			    selectedAttributes.push(attrName);
+				selectedAttributes.sort(NxlArraySort);
+			}
+		}	
+    }
+}
+
+function successRetrieveAllEntities(entityMetadataCollection) {
+    ///<summary>
+    /// Receives the data from SDK.Metadata.RetrieveAllEntities and 
+    /// appends a list item to results for each one.
+    ///</summary>
+  
+    entityMetadataCollection.sort(function (a, b) {
+		var a_PluralDisplayName = GetPluralDisplayName(a);
+		var b_PluralDisplayName = GetPluralDisplayName(b);
+        if (a_PluralDisplayName.toLowerCase() < b_PluralDisplayName.toLowerCase()) {
+            return -1
+        }
+        if (a_PluralDisplayName.toLowerCase() > b_PluralDisplayName.toLowerCase()) {
+            return 1
+        }
+        return 0;
+    });	
+
+    for (var i = 0; i < entityMetadataCollection.length; i++) {
+        var entity = entityMetadataCollection[i];
+
+        var idx;
+        for (idx = 0; idx < unsupportedEntity.length; idx++) {
+            if (entity.LogicalName == unsupportedEntity[idx]) {
+                break;
+            }
+        }
+        if (idx < unsupportedEntity.length) {
+            continue;
+        }
+		entities.push(entity.LogicalName);
+		entitiesPluralDisplayName[entity.LogicalName] = GetPluralDisplayName(entity);
+		if (entity.Description.UserLocalizedLabel != null && entity.Description.UserLocalizedLabel.Label != null) {
+			entitiesDescription[entity.LogicalName] =  entity.Description.UserLocalizedLabel.Label;
+		} else {
+			entitiesDescription[entity.LogicalName] = "";
+		}
+    }
+		
+	DrawEntities(entities);
+	DrawSummaryEntities(selectedEntities);
+}
+
+function errorRetrieveAllEntities(error) {
+    ///<summary>
+    /// Displays the error returned from  SDK.Metadata.RetrieveAllEntities if it fails.
+    ///</summary>
+    //setText(message, error.message);
+}
+
+
+
+function retrieveAttributes(name) {
+    ///<summary>
+    /// Retrieves attributes for the entity list item that is clicked
+    ///</summary>  if (this.attributesRetrieved == false) {
+        var entityLogicalName = name;
+        // Display an entity list item level notification while retrieving data.
+        // var notification = document.createElement("span");
+
+        // setText(notification, "   Retrieving attributes for " + getText(this) + "...");
+        // notification.id = entityLogicalName + "Notification";
+        // this.parentElement.appendChild(notification);
+
+        SDK.Metadata.RetrieveEntity(
+		SDK.Metadata.EntityFilters.Attributes,
+        entityLogicalName,
+        null,
+        false,
+        function (entityMetadata) { successRetrieveEntity(entityLogicalName, entityMetadata); },
+        errorRetrieveEntity);
+    
+}
+
+function successRetrieveEntity(logicalName, entityMetadata) {
+    ///<summary>
+    /// Retrieves attributes for the entity list item that is clicked
+    ///</summary>
+
+    entityMetadata.Attributes.sort(function (a, b) 
+	    {
+			var a_DisplayName = GetDisplayName(a);
+			var b_DisplayName = GetDisplayName(b);
+
+			if (a_DisplayName.toLowerCase() < b_DisplayName.toLowerCase()) {
+				return -1
+			}
+			if (a_DisplayName.toLowerCase() > b_DisplayName.toLowerCase()) {
+				return 1
+			}
+			return 0;
+       }
+	);
+	//console.log("attr--");
+    //console.log(entityMetadata.Attributes);
+    
+	var root = document.getElementById(logicalName).parentElement;
+	
+	
+	var fieldsShowDiv = document.createElement("div");
+	fieldsShowDiv.id = "showFiled_"+logicalName;
+	fieldsShowDiv.className = "ax_default fieldsShowDiv";
+	fieldsShowDiv.style["visibility"] = "visible"; 
+	fieldsShowDiv.style["display"] = "block";
+	
+	
+	var infoImageDiv = document.createElement("div");
+	var infoImage = document.createElement("img");
+	infoImageDiv.className = "ax_default image1 info_imgDiv";
+	infoImage.className = "img info_img";
+	infoImage.src = "nxl_u134.png";
+	infoImageDiv.appendChild(infoImage);
+	fieldsShowDiv.appendChild(infoImageDiv);
+	
+	var infoTextDiv = document.createElement("div");
+	infoTextDiv.className = "ax_default text info_textDiv";
+	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = "Fields available for policy authoring and evaluation";
+	p.appendChild(span);
+	infoTextDiv.appendChild(p);
+	fieldsShowDiv.appendChild(infoTextDiv);
+		
+	var div0 = document.createElement("div");
+	div0.style["position"] = "relative";
+	div0.style["height"] = "320px";
+	div0.style["overflow"] = "auto";
+	div0.style["marginTop"] = "70px";
+	div0.style.overflowX = "hidden";
+	
+	
+	var div11 = document.createElement("div");
+	div11.className="ax_default shape2";
+	div11.style["left"] = "0px";
+	div11.style["width"] = "61px";
+	div11.className = "fieldTitleBox";
+	
+	var checkboxSelectAll = document.createElement("input");
+	checkboxSelectAll.className = "checkboxClass";
+	checkboxSelectAll.type = "checkbox";
+	checkboxSelectAll.checked = false;
+	checkboxSelectAll.setAttribute("onchange", "OnChangeAllAttr(this,'"+ logicalName +"');");
+	div11.appendChild(checkboxSelectAll);
+	var div12 = document.createElement("div");
+    div12.className ="ax_default shape2";
+	div12.style["left"] = "61px";
+	div12.style["width"] = "172px";
+	div12.className = "fieldTitleBox";
+	
+	var div121 = document.createElement("div");
+    div121.className = "text fieldTitleText";
+	var p1 = document.createElement("p");
+	var span1 = document.createElement("span");
+	span1.innerHTML = "Display Name";
+	p1.appendChild(span1);
+	div121.appendChild(p1);
+	div12.appendChild(div121);
+	
+	var div13 = document.createElement("div");
+    div13.className ="ax_default shape2";
+	div13.style["left"] = "233px";
+	div13.style["width"] = "200px";
+	div13.className = "fieldTitleBox";
+	
+	var div131 = document.createElement("div");
+    div131.className = "text fieldTitleText";
+	var p2 = document.createElement("p");
+	var span2 = document.createElement("span");
+	span2.innerHTML = "Name";
+	p2.appendChild(span2);
+	div131.appendChild(p2);
+	div13.appendChild(div131);
+	
+	
+	var div14 = document.createElement("div");
+    div14.className ="ax_default shape2";
+	div14.style["left"] = "433px";
+	div14.style["width"] = "157px";
+	div14.className = "fieldTitleBox";
+	
+	var div141 = document.createElement("div");
+    div141.className = "text fieldTitleText";
+	var p3 = document.createElement("p");
+	var span3 = document.createElement("span");
+	span3.innerHTML = "Data Type";
+	p3.appendChild(span3);
+	div141.appendChild(p3);
+	div14.appendChild(div141);
+	
+	var div15 = document.createElement("div");
+    div15.className ="ax_default shape2";
+	div15.style["left"] = "590px";
+	div15.style["width"] = "160px";
+	div15.className = "fieldTitleBox";
+	var div151 = document.createElement("div");
+    div151.className = "text fieldTitleText";
+	var p4 = document.createElement("p");
+	var span4 = document.createElement("span");
+	span4.innerHTML = "Required / Optional";
+	p4.appendChild(span4);
+	div151.appendChild(p4);
+	div15.appendChild(div151);
+	
+	var attributes = entityMetadata.Attributes;
+	
+	fieldsShowDiv.appendChild(div11);
+	fieldsShowDiv.appendChild(div12);
+	fieldsShowDiv.appendChild(div13);
+	fieldsShowDiv.appendChild(div14);
+	fieldsShowDiv.appendChild(div15);
+	var idrawAttrIndex=0;
+	var attribute;
+	for(var i = 0; i < attributes.length; i++)
+	{
+		attribute = attributes[i];
+		if(strArryNotEnforcedAttrType.indexOf(attribute.AttributeType)<0)
+		{	   
+			var displayName = GetDisplayName(attribute);
+	   		var attrName = attribute.LogicalName;
+		    var attrType = GetAttributrType(attribute);
+	   		var requiredLevel =  GetRequiredLevel(attribute);
+			var descrip = "No description.";
+			if (attribute.Description.UserLocalizedLabel != null && attribute.Description.UserLocalizedLabel.Label != null) 
+			{
+				descrip =  attribute.Description.UserLocalizedLabel.Label;
+			}
+	   		DrawOneAttribute(idrawAttrIndex,div0, displayName,attrName,attrType,requiredLevel, descrip,logicalName,selectedAttributes);
+	   		idrawAttrIndex=idrawAttrIndex+1;
+	   	}
+	}
+	fieldsShowDiv.appendChild(div0);
+	root.appendChild(fieldsShowDiv);
+	
+}
+
+
+function OnChangeAllAttr(obj,logicalName){
+	var checked = obj.checked;
+	var showFieldBox = document.getElementById("showFiled_"+logicalName);
+	var elementNodes = showFieldBox.getElementsByTagName("input");
+	for(var i= 0; i < elementNodes.length ; i++){
+		var checkboxNode = elementNodes[i];
+		if(checkboxNode.type == "checkbox" && checkboxNode.checked!=checked){
+			checkboxNode.checked = checked;
+			if(checked == true){			
+			    selectedAttributes.push(checkboxNode.id);
+				selectedAttributes.sort(NxlArraySort);
+				
+			}else{
+				var pos = selectedAttributes.indexOf(checkboxNode.id);
+				if(-1 != pos){
+					selectedAttributes.splice(pos,1);
+				}
+			}
+		}
+	}
+	  
+	var summaryEntityFeild = document.getElementById("entityfield_"+ logicalName);
+	if(summaryEntityFeild!=undefined && summaryEntityFeild!=null){   // entity have selected
+		summaryEntityFeild.innerHTML = "";
+		if(checked){
+		    drawAllSelectedEntityAtts(logicalName,summaryEntityFeild);
+	    }else{
+			var fieldCountText = document.getElementById(logicalName+"_"+"attrsCount");
+	        if(fieldCountText!=undefined && fieldCountText!=null){
+		        var count = parseInt(fieldCountText.innerHTML);
+				//console.log(count);
+				fieldCountText.innerHTML= "0";
+			}
+		}
+	}else{
+		var entitySelectState = document.getElementById(logicalName); 
+		if(entitySelectState!=undefined && entitySelectState!= null)
+		{
+		   var selectedState = entitySelectState.childNodes.item(0);
+		   var unselectedState = entitySelectState.childNodes.item(1);
+		   if(checked && selectedState.style["visibility"] != "visible")
+		   {
+				selectedEntities.push(logicalName);
+				selectedEntities.sort(NxlArraySort);
+				selectedState.style["visibility"] = "visible";
+				selectedState.style["display"] = "block";
+				unselectedState.style["visibility"] = "hidden";
+				unselectedState.style["display"] = "none";
+				var summaryDiv = document.getElementById("summaryentis");
+				summaryDiv.innerHTML = "";
+				DrawSummaryEntities(selectedEntities);
+		   }
+		}
+	}	
+}
+
+function removeAllselectedAttrs(entityLogicalname){
+	var showFieldBox = document.getElementById("showFiled_"+entityLogicalname);
+	if(showFieldBox!=undefined && showFieldBox!=null){
+		var elementNodes = showFieldBox.getElementsByTagName("input");
+		for(var i= 0; i < elementNodes.length ; i++){
+			var checkboxNode = elementNodes[i];
+			if(checkboxNode.type == "checkbox" && checkboxNode.checked == true){
+				checkboxNode.checked = false;
+				var attributeName = checkboxNode.id;
+				if(attributeName!=null){
+					var pos = selectedAttributes.indexOf(attributeName);
+					if(-1 != pos){
+						selectedAttributes.splice(pos,1);
+					}
+				}
+			}
+		}
+	}else{
+		var len = selectedAttributes.length;
+		for(var i = len-1; i >=0; i-- ){
+			var pos = selectedAttributes[i].indexOf(entityLogicalname+":");
+			if(pos!=-1){
+				selectedAttributes.splice(i,1);
+			}
+		}
+	}
+	
+}
+
+function DrawOneAttribute(index,fieldsShowDiv, displayName, attrName, attrType,requiredLevel,descrip,entityLogicalName,selectedAttributes){
+	// draw checkbox
+	var div11 = document.createElement("div");
+	div11.className="ax_default shape2";
+	div11.style["left"] = "0px";
+	div11.style["width"] = "61px";
+	div11.className = "fieldTitleBox";
+	div11.style["background-color"] = "rgba(254, 255, 254, 1)";
+	div11.style["background"] = "rgba(254, 255, 254, 1)";
+	var top1  = index * 54;
+	div11.style["top"] = top1  + "px";
+	var checkbox11 = document.createElement("input");
+	checkbox11.className = "checkboxClass";
+
+	checkbox11.id = entityLogicalName+separatorChar+attrName;
+	checkbox11.setAttribute("displayName",displayName);
+	checkbox11.type = "checkbox";
+	checkbox11.setAttribute("onchange", "OnChangeAttr(this,'"+ entityLogicalName +"');");
+	if(-1 != selectedAttributes.indexOf(checkbox11.id)){
+		checkbox11.checked = true;
+	}
+	div11.appendChild(checkbox11);
+	
+	var div12 = document.createElement("div");
+    div12.className ="ax_default shape2";
+	div12.style["left"] = "61px";
+	div12.style["width"] = "172px";
+	div12.className = "fieldTitleBox";
+	div12.style["background-color"] = "rgba(246, 246, 246, 1)";
+	div12.style["background"] = "rgba(246, 246, 246, 1)";
+	div12.style["top"] = top1  + "px";
+	var div121 = document.createElement("div");
+    div121.className = "text fieldTitleText summaryfieldCountText displayName";
+	var p1 = document.createElement("p");
+	var span1 = document.createElement("span");
+	span1.innerHTML = displayName;
+	p1.appendChild(span1);
+	div121.appendChild(p1);
+	
+	var div122 = document.createElement("div");
+	div122.className = "attributeDescription";
+	var descripImg = document.createElement("img");
+	descripImg.className = "img"
+	descripImg.src = "nxl_infoimg.png";
+	descripImg.title = descrip;
+	div122.appendChild(descripImg);
+	
+	div12.appendChild(div121);
+	div12.appendChild(div122);
+	var div13 = document.createElement("div");
+    div13.className ="ax_default shape2";
+	div13.style["left"] = "233px";
+	div13.style["width"] = "200px";
+	div13.className = "fieldTitleBox";
+	div13.style["background-color"] = "rgba(254, 255, 254, 1)";
+	div13.style["background"] = "rgba(254, 255, 254, 1)";
+	div13.style["top"] = top1  + "px";
+	var div131 = document.createElement("div");
+    div131.className = "text fieldTitleText summaryfieldCountText";
+	var p2 = document.createElement("p");
+	var span2 = document.createElement("span");
+	span2.innerHTML = attrName;
+	p2.appendChild(span2);
+	div131.appendChild(p2);
+	div13.appendChild(div131);
+	
+	
+	var div14 = document.createElement("div");
+    div14.className ="ax_default shape2";
+	div14.style["left"] = "433px";
+	div14.style["width"] = "157px";
+	div14.className = "fieldTitleBox";
+	div14.style["background-color"] = "rgba(246, 246, 246, 1)";
+	div14.style["background"] = "rgba(246, 246, 246, 1)";
+	div14.style["top"] = top1  + "px";
+	var div141 = document.createElement("div");
+    div141.className = "text fieldTitleText summaryfieldCountText";
+	var p3 = document.createElement("p");
+	var span3 = document.createElement("span");
+	span3.innerHTML = attrType;
+	p3.appendChild(span3);
+	div141.appendChild(p3);
+	div14.appendChild(div141);
+	
+	var div15 = document.createElement("div");
+    div15.className ="ax_default shape2";
+	div15.style["left"] = "590px";
+	div15.style["width"] = "142px";
+	div15.className = "fieldTitleBox";
+	div15.style["background-color"] = "rgba(254, 255, 254, 1)";
+	div15.style["background"] = "rgba(254, 255, 254, 1)";
+	div15.style["top"] = top1  + "px";
+	
+	var div151 = document.createElement("div");
+    div151.className = "text fieldTitleText summaryfieldCountText";
+	var p4 = document.createElement("p");
+	var span4 = document.createElement("span");
+	span4.innerHTML = requiredLevel;
+	p4.appendChild(span4);
+	div151.appendChild(p4);
+	div15.appendChild(div151);
+	
+	
+	fieldsShowDiv.appendChild(div11);
+	fieldsShowDiv.appendChild(div12);
+	fieldsShowDiv.appendChild(div13);
+	fieldsShowDiv.appendChild(div14);
+	fieldsShowDiv.appendChild(div15);
+	
+}
+
+
+function OnChangeAttr(obj, logicalName){
+
+  if(obj.checked){
+	  selectedAttributes.push(obj.id);
+	  selectedAttributes.sort(NxlArraySort);
+	  var entityFieldDiv = document.getElementById("entityfield_"+logicalName);
+	  if(entityFieldDiv!=null && entityFieldDiv!=undefined){
+		   entityFieldDiv.innerHTML = "";
+	       drawAllSelectedEntityAtts(logicalName,entityFieldDiv);
+	  }else{
+		  var entitySelectState = document.getElementById(logicalName);
+		  if(entitySelectState!=undefined && entitySelectState!= null)
+		  {
+			   var selectedState = entitySelectState.childNodes.item(0);
+			   var unselectedState = entitySelectState.childNodes.item(1);
+			   if(selectedState.style["visibility"] != "visible")
+			   {
+					selectedEntities.push(logicalName);
+					selectedEntities.sort(NxlArraySort);
+					selectedState.style["visibility"] = "visible";
+					selectedState.style["display"] = "block";
+					unselectedState.style["visibility"] = "hidden";
+					unselectedState.style["display"] = "none";
+					var summaryDiv = document.getElementById("summaryentis");
+					summaryDiv.innerHTML = "";
+					DrawSummaryEntities(selectedEntities);
+			   }
+		  }
+	  }
+  }else{
+	  var pos = selectedAttributes.indexOf(obj.id);
+	  if(-1!=pos){
+		  selectedAttributes.splice(pos,1);
+	  }
+	  var entityAttrApan = document.getElementById("summaryEntiAttr_"+obj.id);
+	  if(entityAttrApan!=null && entityAttrApan!=undefined){
+		  var parentDiv = entityAttrApan.parentElement;
+		  parentDiv.removeChild(entityAttrApan);
+	  }
+	  var fieldCountText = document.getElementById(logicalName+"_"+"attrsCount");
+	  if(fieldCountText!=undefined && fieldCountText!=null){
+		var count = parseInt(fieldCountText.innerHTML);
+		//console.log(count);
+		fieldCountText.innerHTML= "" + count-1;
+	  }
+	  
+  }
+}
+
+
+function errorRetrieveEntity(error) {
+    ///<summary>
+    /// Displays the error returned from SDK.Metadata.RetrieveEntity if it fails.
+    ///</summary>
+    //setText(message, error.message);
+}
+
+function toggleDisplayAttributes() {
+    ///<summary>
+    /// toggles whether the list of attributes is displayed.
+    ///</summary>
+
+    if (this.parentElement.attributesDisplayed) {
+        this.parentElement.lastChild.style.display = "none";
+        this.parentElement.attributesDisplayed = false;
+        this.title = "Click to show attributes.";
+    } else {
+        this.parentElement.lastChild.style.display = "block";
+        this.parentElement.attributesDisplayed = true;
+        this.title = "Click to hide attributes.";
+    }
+}
+
+function onCompleteRetrieveNextLabsStorage()
+{
+	enforcedEntities.sort(NxlArraySort);
+	selectedEntities.sort(NxlArraySort);
+	
+    //Retrieve entities
+    SDK.Metadata.RetrieveAllEntities(SDK.Metadata.EntityFilters.Entity, false,
+        successRetrieveAllEntities, errorRetrieveAllEntities);
+}
+
+function OnClickEntity(obj) {	
+	var checked = obj.childNodes.item(0);
+	var unchecked = obj.childNodes.item(1);
+	
+	if (unchecked.style["visibility"] == "visible") {
+		unchecked.style["visibility"] = "hidden";
+		unchecked.style["display"] = "none";
+		checked.style["visibility"] = "visible";
+		checked.style["display"] = "block";		
+		selectedEntities.push(obj.id);
+		selectedEntities.sort(NxlArraySort);	
+		var summaryDiv = document.getElementById("summaryentis");
+		summaryDiv.innerHTML = "";
+		DrawSummaryEntities(selectedEntities);
+	
+	} else {
+		unchecked.style["visibility"] = "visible";
+		unchecked.style["display"] = "block";
+		checked.style["visibility"] = "hidden";
+		checked.style["display"] = "none";		
+		var pos = selectedEntities.indexOf(obj.id)
+		if(-1!=pos){
+			//console.log("---delete obj---"+ obj.id);
+			selectedEntities.splice(pos, 1);
+			removeAllselectedAttrs(obj.id);
+		}
+        //delete summary entity
+        var entityname = obj.id;
+		var summaryEntity = document.getElementById("summary_"+entityname);
+		var parentDiv = summaryEntity.parentElement;
+		parentDiv.removeChild(summaryEntity);
+		var selectedEntitiesCount = document.getElementById("selectedEntitiesCount");
+		selectedEntitiesCount.innerHTML = ""+selectedEntities.length;
+		if(selectedEntities.length<1){
+			var noentityDiv = document.getElementById("noentity");
+			noentityDiv.style["visibility"] = "visible";
+			noentityDiv.style["display"] = "block";
+			var buttonHideBox =  document.getElementById("outline_ButtonHide");
+			buttonHideBox.style["visibility"] = "visible";
+			buttonHideBox.style["display"] = "block";
+		}
+	}			
+}
+
+
+function DrawEntityCheckbox(root, name, flag) {	
+	var checkboxRootDiv = document.createElement("div");
+	checkboxRootDiv.id = name;
+	checkboxRootDiv.className = "ax_default shape2 checkboxRootDiv";
+	var checkedDiv = document.createElement('div');
+	checkedDiv.className = "panel_state_content";
+	checkboxRootDiv.setAttribute("onclick", "OnClickEntity(this);");
+	var uncheckedDiv = document.createElement('div');
+	
+	uncheckedDiv.className = "panel_state_content";
+	if (flag) {
+		checkedDiv.style["visibility"] = "visible";
+		uncheckedDiv.style["visibility"] = "hiden";
+		uncheckedDiv.style["display"] = "none";
+	} 
+	else {
+		checkedDiv.style["visibility"] = "hidden";
+		checkedDiv.style["display"] = "none";
+		uncheckedDiv.style["visibility"] = "visible";
+	}
+	var checkedImgDiv = document.createElement("div");
+	checkedImgDiv.className = "ax_default image2";
+	var checkedImg = document.createElement("img");
+	checkedImg.className = "img"
+	checkedImg.src = "nxl_u171.png";
+	checkedImg.style["width"]="25px";
+	checkedImg.style["height"]="25px";
+	checkedImgDiv.appendChild(checkedImg);
+	
+	var uncheckedImgDiv = document.createElement("div");
+	var uncheckedImg = document.createElement("img");
+	uncheckedImg.className = "img";	
+	uncheckedImg.src = "nxl_u169.png";
+	uncheckedImg.style["width"]="25px";
+	uncheckedImg.style["height"]="25px";
+	uncheckedImgDiv.appendChild(uncheckedImg);
+	
+	
+	checkedDiv.appendChild(checkedImgDiv);
+	uncheckedDiv.appendChild(uncheckedImgDiv);
+	checkboxRootDiv.appendChild(checkedDiv);
+	checkboxRootDiv.appendChild(uncheckedDiv);
+	root.appendChild(checkboxRootDiv);
+	
+}
+
+
+
+function DrawEntityName(root, name) {
+	
+	var entityTitleDiv = document.createElement("div");
+	entityTitleDiv.className = "ax_default paragraph entitytitle";
+
+	var entityTitleTextDiv = document.createElement("div");
+	entityTitleTextDiv.className="text entitytitletextDiv";
+	
+	var pText = document.createElement("p");
+	pText.style["font-size"]= "16px";
+	
+	var span1 = document.createElement("span");
+	span1.className = "text1";
+	span1.innerHTML = entitiesPluralDisplayName[name] + " ";
+    pText.appendChild(span1);
+	if(!IsNullOrNaNOrUndefined(siteMapGeted))
+	{
+		var areasString = " (";
+		for(var iAreaIndex = 0; iAreaIndex < siteMapGeted.Area.length; iAreaIndex++)
+		{
+			if(-1 != siteMapGeted.Area[iAreaIndex].Entites.indexOf(name)){
+				var areaName = siteMapGeted.Area[iAreaIndex].Name;
+				areasString += areaName + " | ";
+			}
+		}
+		var areasStringLen = areasString.length
+		if(areasStringLen>2){
+			areasString = areasString.substring(0, areasStringLen-2);
+			areasString += " )";
+			var areaSpan = document.createElement("span");
+			areaSpan.className="text2";
+			areaSpan.innerHTML = areasString;
+			pText.appendChild(areaSpan);
+		}
+	}
+	
+	entityTitleTextDiv.appendChild(pText);
+	entityTitleDiv.appendChild(entityTitleTextDiv);
+	root.appendChild(entityTitleDiv);
+}
+
+
+function DrawEntityDescription(root, name) {
+	if(entitiesDescription[name] != ""){
+		var descripTextDiv = document.createElement("div");	
+		descripTextDiv.style["word-wrap"] = "break-word";
+		descripTextDiv.className = "ax_default paragraph descripDiv text";	
+		var p = document.createElement("p");
+		var span = document.createElement("span");
+		span.innerHTML = entitiesDescription[name];			
+		p.appendChild(span);
+		descripTextDiv.appendChild(p);
+		root.appendChild(descripTextDiv);
+	}
+}
+
+
+function DrawOneLine(name, flag, root) {
+	
+	var rowDiv =  document.createElement("div");
+	rowDiv.style["width"] = "800px";
+	rowDiv.style["overflow"] = "auto";
+	rowDiv.style["overflow-x"] = "hidden";
+	rowDiv.style["-ms-overflow-x"] = "hidden";
+	rowDiv.style["position"] = "relative";
+	var imgStartDiv = document.createElement("div");
+	imgStartDiv.className="ax_default image1";
+	var imgStart = document.createElement("img");
+	imgStart.style["position"]="absolute";
+	imgStart.style["left"]="0px";
+	imgStart.style["width"] = "745px";
+	imgStart.style["height"] = "51px";
+	imgStart.src = "nxl_u354.png";
+	imgStartDiv.appendChild(imgStart);
+	rowDiv.appendChild(imgStartDiv);
+	root.appendChild(rowDiv);
+	DrawEntityCheckbox(rowDiv, name, flag);
+	
+	DrawEntityName(rowDiv, name);
+	DrawEntityDescription(rowDiv, name);
+    DrawEntityFieldsTitle(rowDiv,name);	
+}
+
+
+function DrawEntities(displayEntities) {
+	//console.log(displayEntities);	
+	var block = document.getElementById("enityblock");
+	block.innerHTML = "";
+			
+	resetEntities = selectedEntities.slice(0);	
+	
+	var root = document.getElementById("enityblock");
+	var flag;
+	for(var i = 0; i < displayEntities.length; i++){
+		flag = false;
+		if(selectedEntities.indexOf(displayEntities[i])!=-1){
+			flag = true;
+		}
+		DrawOneLine(displayEntities[i], flag, root);
+	}
+}
+
+function DrawSummaryEntities(entities){
+	
+	var summaryDiv = document.getElementById("summaryentis");
+	var noEntity = document.getElementById("noentity");
+	var len = entities.length;
+	var selectedEntitiesCount = document.getElementById("selectedEntitiesCount");
+	selectedEntitiesCount.innerHTML = ""+len;
+	if(len<1){
+		noEntity.style["visibility"] = "visible";
+		noEntity.style["display"] = "block";
+		var buttonHideBox =  document.getElementById("outline_ButtonHide");
+		buttonHideBox.style["visibility"] = "visible";
+		buttonHideBox.style["display"] = "block";
+	}else{
+		noEntity.style["visibility"] = "hidden";
+		noEntity.style["display"] = "none";
+		var buttonHideBox =  document.getElementById("outline_ButtonHide");
+		buttonHideBox.style["visibility"] = "hidden";
+		buttonHideBox.style["display"] = "none";
+		for(var i = 0; i < len; i++){
+			DrawSummaryOneLine(entities[i],summaryDiv);
+		}
+	}
+}
+
+
+function DrawSummaryOneLine(name, root){
+	
+	var rowDiv =  document.createElement("div");
+	rowDiv.className="summaryRowDiv";
+	rowDiv.id = "summary_"+ name;
+	root.appendChild(rowDiv);
+	var summaryExpColDiv =document.createElement("div");
+	summaryExpColDiv.className = "ExpColDiv";
+	summaryExpColDiv.setAttribute("onclick", "OnClickSummaryExpOrCol(this,'"+name+"')");
+	var expandStateDiv = document.createElement("div");
+	expandStateDiv.style["visibility"] = "visible";
+	expandStateDiv.style["display"] = "block";
+	var expandImg = document.createElement("img");
+	expandImg.className = "img info_img";
+	expandImg.src = "nxl_u143.png";
+	expandStateDiv.appendChild(expandImg);
+	var collapseStateDiv = document.createElement("div");
+	collapseStateDiv.style["visibility"] = "hidden";
+	collapseStateDiv.style["display"] = "none";
+	var collapseImg = document.createElement("img");
+	collapseImg.className = "img info_img";
+	collapseImg.src = "nxl_u156.png";
+	collapseStateDiv.appendChild(collapseImg);
+	
+	summaryExpColDiv.appendChild(expandStateDiv);
+	summaryExpColDiv.appendChild(collapseStateDiv);
+	rowDiv.appendChild(summaryExpColDiv);
+	
+	var summaryentityname = document.createElement("div");
+	summaryentityname.className = "summaryentityname text";
+	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.className = "text1";
+	span.innerHTML = entitiesPluralDisplayName[name];
+	
+	if(-1 == enforcedEntities.indexOf(name)){
+		span.innerHTML = entitiesPluralDisplayName[name] + " * ";
+		span.style["color"] = "rgb(255, 0, 0)";
+		span.style["font-style"] = "italic";
+	}
+	p.appendChild(span);
+	var span2 = document.createElement("span"); 
+	span2.className="summaryfieldCountText";
+	span2.innerHTML= " (";
+	p.appendChild(span2);
+	var span3 = document.createElement("span");
+	span3.className="summaryfieldCountText";
+	span3.id=name+"_"+"attrsCount";
+	span3.innerHTML = "" + GetSelectedEntityFieldsCount(name);
+	p.appendChild(span3);
+	var span4 = document.createElement("span");
+	span4.className="summaryfieldCountText";
+	span4.innerHTML = " fields)";
+	p.appendChild(span4);
+	var a1 = document.createElement("a");
+	a1.className = "ax_default clearSearchLink"
+	a1.style["font-size"] = "11px";
+	a1.style["marginLeft"] = "15px";
+	a1.innerHTML = "Remove";
+	a1.href = "javascript:void(0);";
+	a1.setAttribute("onclick", "RemoveSummaryEntity('"+name+"')");
+	p.appendChild(a1);
+	summaryentityname.appendChild(p);
+	rowDiv.appendChild(summaryentityname);
+		
+	var entityfield = document.createElement("div");
+	entityfield.id = "entityfield_"+ name;
+	entityfield.className = "entityfield";
+	entityfield.style["visibility"] = "hidden";
+	entityfield.style["display"] = "none";
+	entityfield.style["width"] = "330px";
+	entityfield.setAttribute("loadType","0");
+	rowDiv.appendChild(entityfield);
+	
+	var summarySeparator=document.createElement("div");
+	summarySeparator.className="summarySeparator";
+	summarySeparator.innerHTML="<img style='width:340px' id='u346_img' class='img ' src='nxl_u578.png'>";
+	summarySeparator.style["position"]="absolute";
+	rowDiv.appendChild(summarySeparator);
+}
+
+function GetSelectedEntityFieldsCount(entityName){
+    var attrlens = selectedAttributes.length;
+	var pos = -1;
+	var count = 0;
+	for(var j = 0; j < attrlens; j++){
+		pos = selectedAttributes[j].indexOf(entityName+":");
+		if(pos==-1){
+			continue;
+		}
+		count++;
+	}
+	return count;
+	var fieldCountText = document.getElementById(entityName+"_"+"attrsCount");
+	if(fieldCountText!=undefined && fieldCountText!=null){
+		fieldCountText.innerHTML= "" + count;
+	}
+}
+
+function RemoveAllSummaryEntity()
+{
+	var len=selectedEntities.length;
+	for(var i=0;i<len;i++)
+	{
+		RemoveSummaryEntity(selectedEntities[0]);
+	}
+	SetSelectAllCheckbox(false);
+}
+function RemoveSummaryEntity(name){
+	var summaryEntityDiv = document.getElementById("summary_"+name);
+	if(summaryEntityDiv != undefined && summaryEntityDiv != null){
+		var parentDiv = summaryEntityDiv.parentElement;
+		parentDiv.removeChild(summaryEntityDiv);
+		var pos = selectedEntities.indexOf(name)
+		if(-1!=pos){
+			//console.log("---delete obj---"+ name);
+			selectedEntities.splice(pos, 1);
+		}
+		var entityCheckbox = document.getElementById(name);	
+		if(entityCheckbox != null || entityCheckbox!=undefined){
+			var checked = entityCheckbox.childNodes.item(0);
+			var unchecked = entityCheckbox.childNodes.item(1);
+			checked.style["visibility"] = "hidden";
+			checked.style["display"] = "none";
+			unchecked.style["visibility"] = "visible";
+			unchecked.style["display"] = "block";
+			removeAllselectedAttrs(name);
+		}	
+		var selectedEntitiesCount = document.getElementById("selectedEntitiesCount");
+		selectedEntitiesCount.innerHTML = selectedEntities.length+"";
+		if(selectedEntities.length<1){
+			var noentityDiv = document.getElementById("noentity");
+			noentityDiv.style["visibility"] = "visible";
+			noentityDiv.style["display"] = "block";
+			var buttonHideBox =  document.getElementById("outline_ButtonHide");
+			buttonHideBox.style["visibility"] = "visible";
+			buttonHideBox.style["display"] = "block";
+		}
+	}
+}
+
+
+function OnClickSummaryExpOrCol(obj, entityname){
+	var expand = obj.childNodes.item(0);
+	var col = obj.childNodes.item(1);
+    var entityfield = document.getElementById("entityfield_"+entityname);
+	if(expand.style["visibility"] == "visible" ){
+		if(entityfield.getAttribute("loadType") == "0"){
+			var entityLogicalName = entityname;
+			SDK.Metadata.RetrieveEntity(
+			SDK.Metadata.EntityFilters.Attributes,
+			entityLogicalName,
+			null,
+			false,
+			function (entityMetadata) {
+				entityMetadata.Attributes.sort(function (a, b) 
+					{
+						var a_DisplayName = GetDisplayName(a);
+						var b_DisplayName = GetDisplayName(b);
+
+						if (a_DisplayName.toLowerCase() < b_DisplayName.toLowerCase()) {
+							return -1
+						}
+						if (a_DisplayName.toLowerCase() > b_DisplayName.toLowerCase()) {
+							return 1
+						}
+						return 0;
+					});
+				var selectedAttrLens = selectedAttributes.length;
+				var allAttrLens = entityMetadata.Attributes.length;
+				//var pos = -1;
+				var count = 0;
+
+				for(var i = 0 ; i < allAttrLens; i++ ){
+					var attrName = entityMetadata.Attributes[i].LogicalName;
+					for(var j = 0 ; j < selectedAttrLens ; j++){
+						if(selectedAttributes[j]==(entityname+ ":" + attrName)){
+							break;
+						}
+					}
+					if(j == selectedAttrLens){
+						continue;
+					}
+					// the attribute is selected
+					var attrDisplayName = GetDisplayName(entityMetadata.Attributes[i]);
+					var span1 = document.createElement("span");
+					span1.id = "summaryEntiAttr_"+selectedAttributes[j];
+					span1.className = "summaryEntiAttr";
+					var entityAttrNameSpan = document.createElement("span");
+					entityAttrNameSpan.innerHTML = attrDisplayName;
+					entityAttrNameSpan.className = "entityAttrNameSpan";
+					for(var j =0 ;j < enforcedAttributes.length; j++){
+						if(enforcedAttributes[j] == entityname+":"+attrName){
+							break;
+						}
+					}
+					if(j == enforcedAttributes.length){
+						entityAttrNameSpan.innerHTML = attrDisplayName+" *";
+						entityAttrNameSpan.style["font-style"] = "italic";
+						entityAttrNameSpan.style["color"] ="#FF0000";
+					}
+
+					span1.appendChild(entityAttrNameSpan);
+					var deleteAttrSpan = document.createElement("span");
+					deleteAttrSpan.setAttribute("onclick", "deleteEntiAttr(this,'"+ selectedAttributes[j] +"','"+entityname+"');");
+					
+					deleteAttrSpan.className = "deleteAttrSpan";
+					var deleteAttrImage = document.createElement("img");
+					deleteAttrImage.src = "nxl_u361.png";
+					deleteAttrImage.className = "deleteAttrImage";
+					deleteAttrSpan.appendChild(deleteAttrImage);
+					
+					span1.appendChild(deleteAttrSpan);
+					entityfield.appendChild(span1);
+				}
+				entityfield.setAttribute("loadType","1");
+			},
+			errorRetrieveEntity);
+		}
+		expand.style["visibility"] = "hidden";
+		expand.style["display"] = "none";
+		col.style["visibility"] = "visible";
+		col.style["display"] = "block";
+		entityfield.style["visibility"] = "visible";
+		entityfield.style["display"] = "block";
+	}else{
+		expand.style["visibility"] = "visible";
+		expand.style["display"] = "block";
+		col.style["visibility"] = "hidden";
+		col.style["display"] = "none";
+		entityfield.style["visibility"] = "hidden";
+		entityfield.style["display"] = "none";
+	}
+}
+
+function drawAllSelectedEntityAtts(entityName , entityfieldDiv){
+
+	var attrlens = selectedAttributes.length;
+	var pos = -1;
+	var count = 0;
+	for(var j = 0; j < attrlens; j++){
+		pos = selectedAttributes[j].indexOf(entityName+":");
+		if(pos==-1){
+			continue;
+		}
+		
+		var attrObjId=selectedAttributes[j];
+		var attrObj = document.getElementById(attrObjId);
+		var attrName = attrObj.getAttribute("displayName");
+		var span1 = document.createElement("span");
+	    span1.id = "summaryEntiAttr_"+selectedAttributes[j];
+		span1.className = "summaryEntiAttr";
+		var entityAttrNameSpan = document.createElement("span");
+		entityAttrNameSpan.innerHTML = attrName;
+		entityAttrNameSpan.className = "entityAttrNameSpan";
+		if(-1 == enforcedAttributes.indexOf(attrObjId)){
+			entityAttrNameSpan.innerHTML = attrName+" *";
+			entityAttrNameSpan.style["font-style"] = "italic";
+			entityAttrNameSpan.style["color"] ="#FF0000";
+		}
+		span1.appendChild(entityAttrNameSpan);
+		var deleteAttrSpan = document.createElement("span");
+		deleteAttrSpan.setAttribute("onclick", "deleteEntiAttr(this,'"+ selectedAttributes[j] +"','"+entityName+"');");
+		
+		deleteAttrSpan.className = "deleteAttrSpan";
+		var deleteAttrImage = document.createElement("img");
+		deleteAttrImage.src = "nxl_u361.png";
+		deleteAttrImage.className = "deleteAttrImage";
+		deleteAttrSpan.appendChild(deleteAttrImage);
+		
+		span1.appendChild(deleteAttrSpan);
+		entityfieldDiv.appendChild(span1);
+		count++;
+	}
+	var entityfield = document.getElementById("entityfield_"+entityName);
+	entityfield.setAttribute("loadType","1");
+	var fieldCountText = document.getElementById(entityName+"_"+"attrsCount");
+	if(fieldCountText!=undefined && fieldCountText!=null){
+		fieldCountText.innerHTML= "" + count;
+	}
+}
+
+
+function deleteEntiAttr(obj, selectedAttr,entityName ){
+	var summaryentityAttr = obj.parentElement;
+	var entityFieldDiv = summaryentityAttr.parentElement;
+	entityFieldDiv.removeChild(summaryentityAttr);
+	var entityAttr = document.getElementById(selectedAttr);
+	if(entityAttr!=null && entityAttr!=undefined){
+		entityAttr.checked = false;
+	}
+	var fieldCountText = document.getElementById(entityName+"_"+"attrsCount");
+	if(fieldCountText!=undefined && fieldCountText!=null){
+		var count = parseInt(fieldCountText.innerHTML);
+		//console.log(count);
+		fieldCountText.innerHTML= "" + count-1;
+	}
+	var pos = selectedAttributes.indexOf(selectedAttr);
+	if(-1 != pos){
+		selectedAttributes.splice(pos,1);
+	}
+}
+
+
+function OnClickExpOrCol(obj){
+	var ExpImgDiv = obj.childNodes.item(0);
+	var ColImgDiv = obj.childNodes.item(1);
+	if (ExpImgDiv.style["visibility"] == "visible") {
+		ExpImgDiv.style["visibility"] ="hidden";
+		ExpImgDiv.style["display"] = "none";
+		ColImgDiv.style["visibility"] = "visible";
+		ColImgDiv.style["display"] = "block";
+		var showEntitiesBox = obj.parentElement.childNodes.item(2);
+		if(showEntitiesBox !=null){
+			showEntitiesBox.style["visibility"] = ColImgDiv.style["visibility"];
+			showEntitiesBox.style["display"] = ColImgDiv.style["display"];
+		}
+	}else{
+		ColImgDiv.style["visibility"] ="hidden";
+		ColImgDiv.style["display"] = "none";
+		ExpImgDiv.style["visibility"] = "visible";
+		ExpImgDiv.style["display"] = "block"
+		var showEntitiesBox = obj.parentElement.childNodes.item(2);
+		if(showEntitiesBox !=null){
+			showEntitiesBox.style["visibility"] = ColImgDiv.style["visibility"];
+			showEntitiesBox.style["display"] = ColImgDiv.style["display"];
+		}
+	}
+}
+
+function DrawEntityFieldsTitle(root,name){
+	var fieldsDiv = document.createElement("div");
+	fieldsDiv.className = "ax_default fieldsDiv";
+	var stateShow = document.createElement("div");
+	stateShow.className= "panel_state fieldsTitleDiv";
+	
+	stateShow.style["visibility"] = "visible";
+	stateShow.setAttribute("alreadyload" , "false");
+	var stateShowContentDiv = document.createElement("div");
+	stateShowContentDiv.className = "ax_default paragraph text fieldsstateContentDiv";
+	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = "Show fields ...";
+	p.appendChild(span);
+	stateShowContentDiv.appendChild(p);
+	
+	var stateHide = document.createElement("div");
+	//stateHide.id = "hideField_"+name;
+	stateHide.style["visibility"] = "hidden";
+	stateHide.style["display"] = "none";
+	stateHide.className= "panel_state fieldsTitleDiv";
+	
+	var stateHideContentDiv = document.createElement("div");
+	stateHideContentDiv.className = "ax_default paragraph text fieldsstateContentDiv";
+	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = "Hide Fields ...";
+	p.appendChild(span);
+	stateHideContentDiv.appendChild(p);
+	
+	fieldsDiv.setAttribute("onclick", "OnClickShowOrHide(this,'"+name+"');");
+	stateHide.appendChild(stateHideContentDiv);
+	stateShow.appendChild(stateShowContentDiv);
+	fieldsDiv.appendChild(stateShow);
+	fieldsDiv.appendChild(stateHide);
+	root.appendChild(fieldsDiv);
+}
+
+function OnClickShowOrHide(obj,name){
+	var showDiv = obj.childNodes.item(0);
+	var hideDiv = obj.childNodes.item(1);
+	if (showDiv.style["visibility"] == "visible") {
+		showDiv.style["visibility"] ="hidden";
+		showDiv.style["display"] = "none";
+		hideDiv.style["visibility"] = "visible";
+		hideDiv.style["display"] = "block";
+		var showFieldBox = document.getElementById("showFiled_"+name);
+		
+		if(showFieldBox ==null ){
+			retrieveAttributes(name);
+		}else{
+			showFieldBox.style["visibility"] ="visible";
+		    showFieldBox.style["display"] = "block";
+		}
+	}else{
+		hideDiv.style["visibility"] ="hidden";
+		hideDiv.style["display"] = "none";
+		showDiv.style["visibility"] = "visible";
+		showDiv.style["display"] = "block"
+		var showFieldBox = document.getElementById("showFiled_"+name);
+		if(showFieldBox !=null){
+			showFieldBox.style["visibility"]=="hidden";
+			showFieldBox.style["display"] = "none";
+		}
+	}
+}
+	
+function ChangeSelectedEntities() {
+	//console.log(selectedEntities);	
+	
+	if (this.checked == true) {
+		selectedEntities.push(this.id);
+		selectedEntities.sort(NxlArraySort);	
+		
+		var entityid;
+		for (var i = 0; i < entitiesId.length; i++) {			
+			if (entitiesId[i].name == this.id) {
+				entityid = entitiesId[i].id;
+				break;
+			}
+		}
+		
+		return;
+	}
+	
+	for (var i = 0; i < selectedEntities.length; i++) {
+		if (selectedEntities[i] != this.id) {
+			continue;
+		}
+		selectedEntities.splice(i, 1);
+		break;
+	}
+	//console.log(selectedEntities);
+}
+
+
+
+
+function GetCurrentEntities() {
+	//var filter = document.getElementById("entitesfilter");
+	var areaFilter = document.getElementById("u547_input");
+	var entityFilter = document.getElementById("u550_input");
+	
+	var strAreaName=areaFilter.value;
+	var strShowName=entityFilter.value;
+	
+	for(var iAreaIndex=0;iAreaIndex<g_ArrydisplayArea.length ;iAreaIndex++)
+	{
+		if(g_ArrydisplayArea[iAreaIndex].AreaName==strAreaName)
+		{
+			for(var iShowIndex=0;g_ArrydisplayArea[iAreaIndex].Shows.length;iShowIndex++)
+			{
+				if(g_ArrydisplayArea[iAreaIndex].Shows[iShowIndex].ShowName== strShowName)
+				{
+					var arryEntities=g_ArrydisplayArea[iAreaIndex].Shows[iShowIndex].Entities;
+					if(arryEntities.length>1)
+					{
+						return arryEntities;
+					}
+					else
+					{
+						for(var i=0; i<entities.length; i++)
+						{
+							var entity = entities[i];
+							if(IsbelongToArea(entities[i],strAreaName))
+							{
+								if(IsBelongToFilter(entity,strShowName))
+								{
+									if(arryEntities.indexOf(entity)<0)
+									{
+										arryEntities.push(entity);
+									}
+								}
+							}
+						}
+						return arryEntities;
+					}
+				}
+			}
+		}
+	}
+}
+
+function SetSelectAllCheckbox(flag) {
+	//var selectAll = document.getElementById("selectallentities");
+	//if (selectAll.checked != flag) {
+		//selectAll.checked = flag;
+	//}	
+	var child1 = document.getElementById("u589_state0");
+	var child2 = document.getElementById("u589_state1");
+	if (flag) {
+		child1.style["visibility"] = "hidden";
+		child1.style["display"] = "none";
+		child2.style["visibility"] = "visible";		
+        child2.style["display"] = "block";		
+	} else {
+		child1.style["visibility"] = "visible";
+		child1.style["display"] = "block";	
+		child2.style["visibility"] = "hidden";	
+        child2.style["display"] = "none";			
+	}		
+}
+
+function SetTotalEntitiesHint(length) {
+	var message = document.getElementById("u571");
+	message.innerHTML = "<p><span>Total " + length + " entities</span></p>";
+}
+
+function ExportAndSavePolicyModel() {	
+	var attributes;
+	var policyModels = new Object();
+	policyModels.policyModels = new Array();
+	policyModels.components = new Array();
+	var selectedEntCount = selectedEntities.length;
+	var policyModelId = 90000;
+	var defaultActions;
+	var defaultActionDescrip = "This is a system generated Action component. Deleting the same Action in policy model definition will delete this Action component";
+	for (var i = 0; i < selectedEntCount; i++) {
+		//console.log(selectedEntities[i]);
+		var entity = selectedEntities[i];
+        SDK.Metadata.RetrieveEntity(SDK.Metadata.EntityFilters.Attributes,
+        entity,
+        null,
+        false,
+        function (entityMetadata) { attributes = entityMetadata; },
+        function () {}, false);		
+		
+		//console.log(attributes);
+		
+		var policyModel = new Object();
+		policyModel.id = policyModelId;
+		policyModel.name =entitiesPluralDisplayName[entity];
+		policyModel.shortName =entity;
+		policyModel.description = entitiesDescription[entity];
+		policyModel.type = "RESOURCE";
+		policyModel.status = "ACTIVE";
+		policyModel.tags = new Array();
+		AddTagToPolicyModel(policyModel.tags,"dynamics_365","Dynamics 365");
+		var fields = new Array();
+		policyModel.attributes = new Array();
+		var attrSortOrder = 0;
+		var objectAttr = new Object();
+		objectAttr.name  = "crm_object";
+	    objectAttr.shortName = "crm_object";
+	    fields.push(objectAttr.shortName);
+		objectAttr.sortOrder = attrSortOrder;
+		attrSortOrder++;
+	    objectAttr.operatorConfigs = new Array();
+				
+		objectAttr.dataType = "STRING";
+		var objectAttrOpConfig1 = new Object();
+		objectAttrOpConfig1.key = "=";
+		objectAttrOpConfig1.label = "is";
+		objectAttrOpConfig1.dataType = "STRING";
+		objectAttr.operatorConfigs[0] = objectAttrOpConfig1;		
+		var objectAttrOpConfig2 = new Object();			
+		objectAttrOpConfig2.key = "!=";
+		objectAttrOpConfig2.label = "is not";
+		objectAttrOpConfig2.dataType = "STRING";
+		objectAttr.operatorConfigs[1] = objectAttrOpConfig2;
+		policyModel.attributes.push(objectAttr);
+				
+		for (var k = 0; k < attributes.Attributes.length; k++) {
+			var attr = attributes.Attributes[k];
+			var pos = selectedAttributes.indexOf(entity + separatorChar + attr.LogicalName);
+			if(-1==pos){
+				continue;
+			}
+			var attribute = new Object();
+			attribute.name  = GetDisplayName(attr);
+			attribute.shortName = attr.LogicalName;	
+			attribute.operatorConfigs = new Array();
+			attribute.sortOrder = attrSortOrder;
+			attrSortOrder++;
+			var attrType = attr.AttributeType !=null ? attr.AttributeType:" ";
+		    if(attrType.toLowerCase()=="integer" || attrType.toLowerCase() == "double" || attrType.toLowerCase() == "bigint"
+		       || attrType.toLowerCase()=="decimal"){
+			    attribute.dataType = "NUMBER";
+				var opConfig1 = new Object();
+				opConfig1.key = "=";
+			    opConfig1.label = "=";
+		        opConfig1.dataType = "NUMBER";
+				attribute.operatorConfigs[0] = opConfig1;
+				var opConfig2 = new Object();
+				opConfig2.key = "!=";
+			    opConfig2.label = "!=";
+		        opConfig2.dataType = "NUMBER";
+				attribute.operatorConfigs[1] = opConfig2;
+				var opConfig3 = new Object();
+				opConfig3.key = ">=";
+			    opConfig3.label = ">=";
+		        opConfig3.dataType = "NUMBER";
+				attribute.operatorConfigs[2] = opConfig3;
+				var opConfig4 = new Object();
+				opConfig4.key = "<";
+			    opConfig4.label = "<";
+		        opConfig4.dataType = "NUMBER";
+				attribute.operatorConfigs[3] = opConfig4;
+				
+				var opConfig5 = new Object();
+				opConfig5.key = "<=";
+			    opConfig5.label = "<=";
+		        opConfig5.dataType = "NUMBER";
+				attribute.operatorConfigs[4] = opConfig5;
+				
+				var opConfig6 = new Object();
+				opConfig6.key = ">";
+			    opConfig6.label = ">";
+		        opConfig6.dataType = "NUMBER";
+				attribute.operatorConfigs[5] = opConfig6;
+		    }else{
+				attribute.dataType = "STRING";
+				var opConfig = new Object();
+			    opConfig.key = "=";
+			    opConfig.label = "is";
+			    opConfig.dataType = "STRING";
+				attribute.operatorConfigs[0] = opConfig;
+				
+				var opConfig2 = new Object();			
+				opConfig2.key = "!=";
+			    opConfig2.label = "is not";
+			    opConfig2.dataType = "STRING";
+				attribute.operatorConfigs[1] = opConfig2;
+			}									
+			policyModel.attributes.push(attribute);
+			fields.push(attribute.shortName);
+		}
+		policyModel.actions = new Array();
+		var viewAction = new Object();
+		viewAction.name = "View";
+		viewAction.shortName = entity.toUpperCase()+"_VIEW";
+		viewAction.shortCode = "";
+		viewAction.sortOrder = 0;
+		policyModel.actions[0] = viewAction;
+	    defaultActions = new Array();
+		defaultActions.push(viewAction.shortName);
+	    AddComponentToPM(policyModels.components,viewAction.name,defaultActionDescrip,"ACTION","COMPONENT",policyModelId,defaultActions);
+		var editAction = new Object();
+		editAction.name = "Edit";
+		editAction.shortName = entity.toUpperCase()+"_EDIT";
+		editAction.shortCode = "";
+		editAction.sortOrder = 1;
+		policyModel.actions[1] = editAction;
+		defaultActions = new Array();
+		defaultActions.push(editAction.shortName);
+	    AddComponentToPM(policyModels.components,editAction.name,defaultActionDescrip,"ACTION","COMPONENT",policyModelId,defaultActions);
+		var createAction = new Object();
+		createAction.name = "Create";
+		createAction.shortName = entity.toUpperCase()+"_CREATE";
+		createAction.shortCode = "";
+		createAction.sortOrder = 2;
+		policyModel.actions[2] = createAction;
+		defaultActions = new Array();
+		defaultActions.push(createAction.shortName);
+	    AddComponentToPM(policyModels.components,createAction.name,defaultActionDescrip,"ACTION","COMPONENT",policyModelId,defaultActions);
+		var deleteAction = new Object();
+		deleteAction.name = "Delete";
+		deleteAction.shortName = entity.toUpperCase()+"_DELETE"; 
+		deleteAction.shortCode = "";
+		deleteAction.sortOrder = 3;
+		policyModel.actions[3] = deleteAction;
+		defaultActions = new Array();
+		defaultActions.push(deleteAction.shortName);
+	    AddComponentToPM(policyModels.components,deleteAction.name,defaultActionDescrip,"ACTION","COMPONENT",policyModelId,defaultActions);
+		policyModel.obligations = new Array();
+		var obligation1 = new Object();
+		obligation1.name = "Apply Security Filter";
+		obligation1.shortName = "app_sec_filter";
+		obligation1.runAt = "PEP";
+		obligation1.sortOrder = 0;
+		obligation1.parameters = new Array();
+		
+		for(var j = 0;j<5;j++){
+			AddparametersToSecuFilterOb(j+1,fields,obligation1.parameters);
+		}
+			
+        policyModel.obligations[0] = obligation1;
+        var obligation2 = new Object();
+		obligation2.name = "Display Policy Violation Message";
+		obligation2.shortName = "dp_violation_message";
+		obligation2.runAt = "PEP";
+		obligation2.sortOrder = 1;
+		obligation2.parameters = new Array();	
+        	
+        var param20 = new Object();
+		param20.name = "Message";
+		param20.shortName = "message";
+		param20.type = "TEXT_SINGLE_ROW";
+		param20.defaultValue = null;
+		param20.listValues = null;
+		param20.hidden = false;
+		param20.editable = true;
+		param20.mandatory = false;	
+        param20.sortOrder = 0;			
+		obligation2.parameters[0] = param20;	
+		
+	    policyModel.obligations[1] = obligation2;
+		
+		var obligation3 = new Object();
+		obligation3.name = "Owner Always Allow";
+		obligation3.shortName = "owner_always_allow";
+		obligation3.runAt = "PEP";
+		obligation3.sortOrder = 2;
+		obligation3.parameters = new Array();	
+		policyModel.obligations[2] = obligation3;		
+		policyModels.policyModels[i] = policyModel;		
+        policyModelId++;		
+	}
+	policyModels.policyTree = new Object();
+	policyModels.importedPolicyIds = new Array();
+	policyModels.overrideDuplicates = false;
+	policyModels.componentToSubCompMap = new Object();	
+	
+	//console.log(policyModels);
+	//console.log(JSON.stringify(policyModels));		
+	
+	var str = JSON.stringify(policyModels);
+//	var formatStr = format(str,false);
+	
+//	formatStr =  encodeURIComponent(formatStr); 
+
+if(!!window.ActiveXObject || "ActiveXObject" in window)
+	{
+		showDetail("Export Data",str);
+	}
+	else
+	{
+	var fileName = "NextLabs_DynamicsEM_PolicyModel_"+currentDateTime()+".bin";
+	if (window.navigator.msSaveBlob) {  // FOR IE
+		var blob = new Blob([str]);
+		window.navigator.msSaveBlob(blob, fileName);
+	} else {    	
+		var alink = document.createElement('a');
+		alink.href = "data:text/plain," + str;
+		alink.download = fileName;
+		alink.click();
+	}
+	
+	
+	}
+	SubmitEntitlementEntities(RefleshPage);
+}
+
+function AddComponentToPM(components,name,descrip,type,category,policyModelId,actions){
+	var action = new Object();
+	action.name = name;
+	action.description = descrip;
+	action.type = type;
+	action.category = category;
+	action.policyModel = new Object();
+	action.policyModel.id = policyModelId;
+	action.actions = actions;
+	action.status = "DRAFT";
+	action.parentId = null;
+	action.deployed = false;
+	action.skipValidate = false;
+	action.reIndexAllNow = true;
+	action.preCreated = true;
+	components.push(action);
+	
+}
+
+function AddparametersToSecuFilterOb(index,fields,parameters){
+	var param0 = new Object();
+	var fieldsString = fields.join(",");
+	param0.name = "Field ("+index+")";
+	param0.shortName = "col"+index;
+	param0.type = "LIST";
+	param0.defaultValue = null;
+	param0.listValues = fieldsString;
+	param0.hidden = false;
+	param0.editable = true;
+	param0.mandatory = false;
+	param0.sortOrder = (index-1)*3;
+	parameters[(index-1)*3] = param0;	
+	
+	var param1 = new Object();
+	param1.name = "Operator";
+	param1.shortName = "op"+index;
+	param1.type = "LIST";
+	param1.defaultValue = "Equals To";
+	param1.listValues = "Equals To,Not Equal To,Greater Than,Greater Than or Equals To,Less Than,Less Than or Equals To";
+	param1.hidden = false;
+	param1.editable = true;
+	param1.mandatory = false;
+	param1.sortOrder = (index-1)*3+1;		
+	parameters[(index-1)*3+1] = param1;	
+
+	var param2 = new Object();
+	param2.name = "Value";
+	param2.shortName = "val"+index;
+	param2.type = "TEXT_SINGLE_ROW";
+	param2.defaultValue = null;
+	param2.listValues = null;
+	param2.hidden = false;
+	param2.editable = true;
+	param2.mandatory = false;	
+	param2.sortOrder = (index-1)*3+2;			
+	parameters[(index-1)*3+2] = param2;						
+}
+
+function currentDateTime(){
+	var d = new Date(); 
+	var year = d.getFullYear(); 
+	var month = d.getMonth()+1; 
+	var date = d.getDate(); 
+	var day = d.getDay(); 
+	var hours = d.getHours(); 
+	var minutes = d.getMinutes(); 
+	var seconds = d.getSeconds(); 
+	var ms = d.getMilliseconds(); 
+	var curDateTime= year;
+	if(month>9)
+		curDateTime = curDateTime +""+month;
+	else
+		curDateTime = curDateTime +"0"+month;
+	if(date>9)
+		curDateTime = curDateTime +""+date;
+	else
+		curDateTime = curDateTime +"0"+date;
+	if(hours>9)
+		curDateTime = curDateTime +""+hours;
+	else
+		curDateTime = curDateTime +"0"+hours;
+	if(minutes>9)
+		curDateTime = curDateTime +""+minutes;
+	else
+		curDateTime = curDateTime +"0"+minutes;
+	if(seconds>9)
+		curDateTime = curDateTime +""+seconds;
+	else
+		curDateTime = curDateTime +"0"+seconds;
+	return curDateTime; 
+}
+
+
+function format(txt,compress){
+	var indentChar = '    ';   
+	if(/^\s*$/.test(txt)){   
+		return;   
+	}   
+	try{var data=eval('('+txt+')');}   
+	catch(e){     
+		return;   
+	};   
+	var draw=[],last=false,This=this,line=compress?'':'\r\n',nodeCount=0,maxDepth=0;   
+	   
+	var notify=function(name,value,isLast,indent/*??*/,formObj){   
+		nodeCount++;
+		for (var i=0,tab='';i<indent;i++ )tab+=indentChar;
+		tab=compress?'':tab;
+		maxDepth=++indent;
+		if(value&&value.constructor==Array){
+			draw.push(tab+(formObj?('"'+name+'":'):'')+'['+line);
+			for (var i=0;i<value.length;i++)   
+				notify(i,value[i],i==value.length-1,indent,false);   
+			draw.push(tab+']'+(isLast?line:(','+line)));
+		}else   if(value&&typeof value=='object'){
+				draw.push(tab+(formObj?('"'+name+'":'):'')+'{'+line);
+				var len=0,i=0;   
+				for(var key in value)len++;   
+				for(var key in value)notify(key,value[key],++i==len,indent,true);   
+				draw.push(tab+'}'+(isLast?line:(','+line)));
+			}else{   
+					if(typeof value=='string')value='"'+value+'"';   
+					draw.push(tab+(formObj?('"'+name+'":'):'')+value+(isLast?'':',')+line);   
+			};   
+	};   
+	var isLast=true,indent=0;   
+	notify('',data,false,indent,false);   
+	return draw.join('');   
+}  
+
+
+function IsBelongToFilter(entityName,showName)
+{
+	if(showName=="All Entities")
+	{
+		return true;
+	}
+	else if(showName=="Secure Entities")
+	{
+		if(enforcedEntities.indexOf(entityName)>-1)
+		{
+			return true;
+		}
+	}
+	else if(showName=="Not Secure Entities")
+	{
+		if(enforcedEntities.indexOf(entityName)<0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// check the entity whether belong to this area, not implement yet
+function IsbelongToArea(entityName,areaName)
+{
+	if(IsNullOrNaNOrUndefined(siteMapGeted))
+	{
+		if(areaName=="Sales")
+		{
+			if(entityName=="account" || entityName =="contact" || entityName =="lead" || entityName =="opportunity"
+			|| entityName =="competitor" || entityName == "quote" ||entityName == "invoice"||entityName == "salesorder"
+			||entityName == "product" || entityName == "salesliterature"|| entityName == "list" ||entityName == "goal"
+			||entityName == "metric"||entityName == "goalrollupquery")
+			{
+				return true;
+			}
+		}
+		else if(areaName=="Services")
+		{
+			if(entityName=="account" || entityName =="contact" || entityName =="socialprofile" || entityName =="incident"
+			|| entityName =="queueitem" || entityName =="product" || entityName =="service" || entityName =="goal" 
+			|| entityName =="metric" || entityName =="knowledgearticle" || entityName =="kbarticle" || entityName =="goalrollupquery")
+			{
+				return true;
+			}
+		}
+		else if(areaName=="Marketing")
+		{
+			if(entityName=="activitypointer" || entityName =="contact" || entityName =="account" || entityName =="lead"
+			|| entityName =="list" || entityName =="product" || entityName =="campaign" || entityName =="bulkoperation" 
+			|| entityName =="salesliterature")
+			{
+				return true;
+			}
+		}
+		else if(areaName=="Settings")
+		{
+			if(entityName=="solution" || entityName =="plugintracelog" || entityName =="asyncoperation" || entityName =="msdyn_postconfig"
+			|| entityName =="msdyn_postruleconfig")
+			{
+				return true;
+			}
+		}
+		else if(areaName=="Any")
+		{
+			return true;
+		}
+	}
+	else
+	{
+		if(areaName=="Any")
+		{
+			return true;
+		}
+		for(var iAreaIndex=0;iAreaIndex<siteMapGeted.Area.length;iAreaIndex++)
+		{
+			if(!IsNullOrNaNOrUndefined(siteMapGeted.Area[iAreaIndex].Name))
+			{
+				if(siteMapGeted.Area[iAreaIndex].Name.toLowerCase()==areaName.toLowerCase())
+				{
+					for(var iEntityIndex=0;iEntityIndex<siteMapGeted.Area[iAreaIndex].Entites.length;iEntityIndex++)
+					{
+						if(!IsNullOrNaNOrUndefined(siteMapGeted.Area[iAreaIndex].Entites[iEntityIndex]))
+						{
+							if(siteMapGeted.Area[iAreaIndex].Entites[iEntityIndex].toLowerCase()==entityName.toLowerCase())
+							{
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+	
+}
+
+//return all entities belong to the area, not implement yet
+function GetEntities(areaName){
+	
+	
+	//return entityname array
+}
+
+function onSearchEntities(){
+	var currentEnts = new Array();
+	currentEnts = SearchEntities();
+	var len = currentEnts.length;
+	DrawEntities(currentEnts);
+	var checkBox=document.getElementById("u589");
+	var checkBoxText=document.getElementById("u587");
+	var searchContent = document.getElementById("SearchContent");	
+	var divNoSearchResult=document.getElementById("divSearchNoResult");
+	var searchStr = searchContent.value;
+	searchStr = trimStr(searchStr);
+	var resultOutlineDiv = document.getElementById("resultOutline");
+	if(searchStr !="")
+	{
+		var searchNum = document.getElementById("resultNum");
+		var keywordSpan = document.getElementById("keyword");		
+		if(len>0)
+		{
+			resultOutlineDiv.style["visibility"] = "visible";
+		    resultOutlineDiv.style["display"] = "block";
+			checkBox.style["visibility"]="visible";
+			checkBox.style["display"]="block";
+			checkBoxText.style["visibility"]="visible";
+			checkBoxText.style["display"]="block";
+			divNoSearchResult.style["visibility"]="hidden";
+			divNoSearchResult.style["display"] = "none";
+			searchNum.innerHTML = len;
+			keywordSpan.innerHTML ='"'+searchStr+'"';
+		}
+		else
+		{
+			resultOutlineDiv.style["visibility"] = "hidden";
+		    resultOutlineDiv.style["display"] = "none";
+			checkBox.style["visibility"]="hidden";
+			checkBox.style["display"] = "none";
+			checkBoxText.style["visibility"]="hidden";
+			checkBoxText.style["display"]="none";
+			divNoSearchResult.style["visibility"]="visible";
+			divNoSearchResult.style["display"] = "block";
+		}
+		
+	}else{
+		resultOutlineDiv.style["visibility"] = "hidden";
+		resultOutlineDiv.style["display"] = "none";
+		checkBox.style["visibility"]="visible";
+		checkBox.style["display"] = "block";
+		checkBoxText.style["visibility"]="visible";
+		checkBoxText.style["display"]="block";
+		divNoSearchResult.style["visibility"]="hidden";
+	    divNoSearchResult.style["display"] = "none";
+	}
+}
+
+
+function SearchEntities(){
+	var currentEnts = new Array();
+	currentEnts = GetCurrentEntities().slice(0);
+	var searchContent = document.getElementById("SearchContent");	
+	var searchStr = searchContent.value;
+	//console.log("before----"+currentEnts.length);
+	searchStr = trimStr(searchStr);
+	if(searchStr !=""){		
+		for(var i = currentEnts.length-1; i >= 0; i--){
+			var entityName = currentEnts[i];
+			var index = entitiesPluralDisplayName[entityName].toLowerCase().indexOf(searchStr.toLowerCase());
+			if(index==-1){
+				currentEnts.splice(i,1);
+			}
+		}
+	}
+	//console.log("after----"+currentEnts.length);
+	return currentEnts;
+}
+
+function DeleteSearchInput(){
+	var searchContent = document.getElementById("SearchContent");	
+	searchContent.value= "";
+}
+
+function trimStr(str){
+   return str.replace(/(^\s*)|(\s*$)/g, "");
+}
+
+function keyDownEvent(){
+	var e = window.event || arguments.callee.caller.arguments[0];
+	if(e && e.keyCode == 13){
+		//console.log(" enter ----");
+		var searchDiv = document.getElementById("u611")
+		searchDiv.focus();
+		searchDiv.click(); 
+	}
+}
+
+function clearSearchContent(){
+	DeleteSearchInput();
+	var currentEnts = new Array();
+	currentEnts = SearchEntities();
+	DrawEntities(currentEnts);
+	var resultOutlineDiv = document.getElementById("resultOutline");
+	resultOutlineDiv.style["visibility"] = "hidden";
+	resultOutlineDiv.style["display"] = "none";
+}
+
+function closeAlert(callback){
+	    if (typeof callback == "function") {
+		   callback();
+	    }
+}

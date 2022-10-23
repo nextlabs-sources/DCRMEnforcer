@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Configuring Entitlement Manager for User Attributes</title>
+	<meta charset='utf-8'>
+
+	<style>
+	body, html{
+    display:table;
+    height:100%;
+    width:100%;
+	}
+	.container{
+		display:table-cell;
+		vertical-align:top;
+	}
+	.container .box{
+		width:100%;
+		height:100%;
+		margin:0 auto;
+		
+	}
+	.note-content {
+	line-height:1.5;
+	color:#2c3f51
+	}
+	.note-content div,.note-content dl,.note-content dt,.note-content em,.note-content font,.note-content h3,.note-content h4,.note-content h5,.note-content h6,.note-content hr,.note-content i,.note-content ins,.note-content kbd,.note-content li,.note-content map,.note-content ol,.note-content p,.note-content pre,.note-content q,.note-content s,.note-content samp,.note-content small,.note-content span,.note-content strike,.note-content strong,.note-content sub,.note-content sup,.note-content table,.note-content tbody,.note-content td,.note-content tfoot,.note-content th,.note-content thead,.note-content tr,.note-content tt,.note-content u,.note-content ul {
+		line-height:1.6
+	}
+	h1, h2 {
+		text-align: center;
+	}
+	p {
+		text-align:justify;
+	}
+	</style>
+</head>
+<body>
+	<div class='container note-content'>
+		<div class='box' style="max-width: 800px;">
+		
+			<h1 id="configuring-entitlement-management-for-user-attributes">Configuring Entitlement Manager<br>for User Attributes</h1>
+
+			<p>Perform the following steps to configure user attributes to work with the Enforcer. After selecting the User Attributes, you can export these attributes for configuring policies in Control Center.</p>
+
+			<h2 id="procedure">Procedure</h2>
+
+			<ol><li rel="1"><p>In the Microsoft Dynamics CRM app, go to the Main menu &gt; Settings &gt; Entitlement Manager.</p></li>
+			<li rel="2"><p>Click User Attributes to enable the entitlement manager for attributes.</p></li>
+			<li rel="3"><p>Select the attributes from the list and click Save Attributes.</p></li>
+			<li rel="4"><p>To facilitate creating policies in the Control Center Console, click Export &amp; Save Selected Attributes to export the secured attributes as policy model. A .BIN file is saved in your browser’s default download location.</p></li>
+			</ol>
+			
+		</div>
+	</div>
+</body>
+</html>

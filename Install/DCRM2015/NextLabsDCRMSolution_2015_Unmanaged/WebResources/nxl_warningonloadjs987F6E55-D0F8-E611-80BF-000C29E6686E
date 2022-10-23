@@ -1,0 +1,270 @@
+  
+  function GetODataPath(){
+  
+  return Xrm.Page.context.getClientUrl()+"/XRMServices/2011/OrganizationData.svc/"
+  }
+   ///<summary>
+  /// Private function to convert matching string values to Date objects.
+  ///</summary>
+  ///<param name="key" type="String">
+  /// The key used to identify the object property
+  ///</param>
+  ///<param name="value" type="String">
+  /// The string value representing a date
+  ///</param>
+  function _dateReviver(key, value) {
+ 
+  var a;
+  if (typeof value === 'string') {
+   a = /Date\(([-+]?\d+)\)/.exec(value);
+   if (a) {
+    return new Date(parseInt(value.replace("/Date(", "").replace(")/", ""), 10));
+   }
+  }
+  return value;
+ }
+   ///<summary>
+  /// Sends an asynchronous request to delete a record.
+  ///</summary>
+  ///<param name="id" type="String">
+  /// A String representing the GUID value for the record to delete.
+  ///</param>
+  ///<param name="type" type="String">
+  /// The Schema Name of the Entity type record to delete.
+  /// For an Account record, use "Account"
+  ///</param>
+  ///<param name="successCallback" type="Function">
+  /// The function that will be passed through and be called by a successful response. 
+  /// Nothing will be returned to this function.
+  /// </param>
+  ///<param name="errorCallback" type="Function">
+  /// The function that will be passed through and be called by a failed response. 
+  /// This function must accept an Error object as a parameter.
+  /// </param>
+ function deleteRecord(id, type, successCallback, errorCallback) {
+
+  var req = new XMLHttpRequest();
+  req.open("POST", encodeURI(GetODataPath() + type + "Set(guid'" + id + "')"), true);
+  req.setRequestHeader("Accept", "application/json");
+  req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+  req.setRequestHeader("X-HTTP-Method", "DELETE");
+  req.onreadystatechange = function () {
+
+   if (this.readyState == 4 /* complete */) {
+    req.onreadystatechange = null;
+    if (this.status == 204 || this.status == 1223) {
+     successCallback();
+    }
+    else {
+     //console.log("DeleteRecord error");
+    }
+   }
+  };
+  req.send();
+
+ }
+  ///<summary>
+  /// Sends an asynchronous request to retrieve records.
+  ///</summary>
+  ///<param name="type" type="String">
+  /// The Schema Name of the Entity type record to retrieve.
+  /// For an Account record, use "Account"
+  ///</param>
+  ///<param name="options" type="String">
+  /// A String representing the OData System Query Options to control the data returned
+  ///</param>
+  ///<param name="successCallback" type="Function">
+  /// The function that will be passed through and be called for each page of records returned.
+  /// Each page is 50 records. If you expect that more than one page of records will be returned,
+  /// this function should loop through the results and push the records into an array outside of the function.
+  /// Use the OnComplete event handler to know when all the records have been processed.
+  /// </param>
+  ///<param name="errorCallback" type="Function">
+  /// The function that will be passed through and be called by a failed response. 
+  /// This function must accept an Error object as a parameter.
+  /// </param>
+  ///<param name="OnComplete" type="Function">
+  /// The function that will be called when all the requested records have been returned.
+  /// No parameters are passed to this function.
+  /// </param>
+function retrieveMultipleRecords(type, options, successCallback, errorCallback, OnComplete) {
+  //this._stringParameterCheck(type, "SDK.REST.retrieveMultipleRecords requires the type parameter is a string.");
+  if (options != null)
+   //this._stringParameterCheck(options, "SDK.REST.retrieveMultipleRecords requires the options parameter is a string.");
+  //this._callbackParameterCheck(successCallback, "SDK.REST.retrieveMultipleRecords requires the successCallback parameter is a function.");
+  //this._callbackParameterCheck(errorCallback, "SDK.REST.retrieveMultipleRecords requires the errorCallback parameter is a function.");
+  //this._callbackParameterCheck(OnComplete, "SDK.REST.retrieveMultipleRecords requires the OnComplete parameter is a function.");
+
+  var optionsString;
+  if (options != null) {
+   if (options.charAt(0) != "?") {
+    optionsString = "?" + options;
+   }
+   else
+   { optionsString = options; }
+  }
+  var req = new XMLHttpRequest();
+  req.open("GET", GetODataPath() + type + "Set" + optionsString, true);
+  req.setRequestHeader("Accept", "application/json");
+  req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+  req.onreadystatechange = function () 
+  {
+   if (this.readyState == 4 /* complete */) 
+   {
+		req.onreadystatechange = null;
+		if (this.status == 200) 
+		{
+			var returned = JSON.parse(this.responseText, _dateReviver).d;
+			successCallback(returned.results);
+			if (returned.__next != null) 
+			{
+				var queryOptions = returned.__next.substring((GetODataPath() + type + "Set").length);
+				SDK.REST.retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, OnComplete);
+			}
+			else
+			{ 
+				OnComplete(); 
+			}
+		}
+		else 
+		{
+			errorCallback(this);
+		}
+   }
+  };
+  req.send();
+ }
+ function errorNextLabsStorage(error) {
+	//console.log("Error Get NXLNotify Entity");
+    //console.log(error);
+	var primaryAttrbuteValue=Xrm.Page.data.entity.getPrimaryAttributeValue();
+	var entityId=Xrm.Page.data.entity.getId();
+	if(IsDeny(entityId,primaryAttrbuteValue,Xrm.Page.data.entity.attributes))
+	{
+		Xrm.Page.ui.setFormNotification("Access denied, you are not authorized to perform this operation.","ERROR","1");
+		DisableAllControl();
+	}
+}
+function deleteSuccess(result){
+	//console.log(result);
+}
+function deleteError(error){
+	//console.log(error);
+}
+	
+function onCompleteRetrieveNextLabsStorage()
+{
+	//console.log("Complete");
+	// enforcedEntities.sort(NxlArraySort);
+	// selectedEntities.sort(NxlArraySort);
+	
+    // //Retrieve entities
+    // SDK.Metadata.RetrieveAllEntities(SDK.Metadata.EntityFilters.Entity, false,
+        // successRetrieveAllEntities, errorRetrieveAllEntities);
+    // setText(message, "Loading...");
+}
+ function successRetrieveNextLabsStorageEntitlementEntities(results) {
+	 var currectEntityName=Xrm.Page.data.entity.getEntityName();
+	 if(results.length>0)
+	 {
+		var bDenyFlag=false;
+		 var allMessage="";
+		 for(var i=0;i<results.length;i++)
+		 {
+			 var notifyEntityName=results[i].nxl_Entity;
+			 var alertMessage= results[i].nxl_Message;
+			 if(notifyEntityName==currectEntityName)
+			 {
+				bDenyFlag=true;
+				 if(allMessage.indexOf(alertMessage)<0)
+				 {
+					 allMessage=alertMessage+"\r\n"+allMessage;
+				 }
+			 }
+			 deleteRecord(results[i].nxl_nxlnoticesId,"nxl_nxlnotices",deleteSuccess,deleteError);
+		 }
+		 if(bDenyFlag==true)
+		 {
+			var primaryAttrbuteValue=Xrm.Page.data.entity.getPrimaryAttributeValue();
+			var entityId=Xrm.Page.data.entity.getId();
+			if(IsDeny(entityId,primaryAttrbuteValue,Xrm.Page.data.entity.attributes))
+			{
+				//console.log("need deny");
+				Xrm.Page.ui.setFormNotification(allMessage,"ERROR","1");
+				DisableAllControl(); 
+			}
+		} 
+	}
+}
+function DisableAllControl()
+{
+	Xrm.Page.data.entity.attributes.forEach(function (attribute, index) 
+	{    
+		var control = Xrm.Page.getControl(attribute.getName());
+        	if (control) 
+		{
+            		control.setDisabled(true);
+        	}
+    	});
+}
+function IsDeny(entityId,primaryAttrbuteValue,attributes)
+{
+	var bResult=false;
+	if(entityId!=null&&entityId!="")
+	{
+		if(primaryAttrbuteValue==null||primaryAttrbuteValue=="")
+		{
+			if(!IsRequiredFieldHaveValue(attributes))
+			{
+				bResult=true;
+			}
+		}
+		else
+		{
+			//console.log("primaryAttrbuteValue is not NULL, This page is allow read recode");
+		}
+	}
+	else
+	{
+		//console.log("entityId Is Null,This page is create new entity");
+	}
+	return bResult;
+}
+function IsRequiredFieldHaveValue(attributes)
+{
+	var bResult=true;
+	try 
+	{
+		attributes.forEach(function (attribute, index)
+		{
+			var strName=attribute.getName();
+			var strValue=attribute.getValue();
+			var strRequiredLevel=attribute.getRequiredLevel();
+			if(strRequiredLevel=="required")
+			{
+				if(strValue==null)
+				{
+					bResult=false;
+					foreach.break=new Error("StopIteration");
+				}
+			}
+		});
+	}
+	catch(e)
+	{
+		
+	}
+	return bResult;
+}
+ function warningonload(){
+	//console.log("onload");
+	var userSid=Xrm.Page.context.getUserId();
+	userSid=userSid.substring(1,userSid.length-2);
+	var queryEntityName="nxl_nxlnotices";
+	var queryOption="$select=nxl_nxlnoticesId,nxl_Id,nxl_IsRead,nxl_Message,nxl_NotifyUser,nxl_Entity&$filter=startswith(nxl_NotifyUser,'"+ userSid+"')";
+	//console.log("User Id:" +userSid);
+	//console.log("Query Option:"+queryOption);
+	retrieveMultipleRecords(queryEntityName, queryOption, 
+		successRetrieveNextLabsStorageEntitlementEntities, errorNextLabsStorage, onCompleteRetrieveNextLabsStorage);
+	
+}

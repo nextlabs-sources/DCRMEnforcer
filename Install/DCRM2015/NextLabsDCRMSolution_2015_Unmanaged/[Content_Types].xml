@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="xml" ContentType="application/octet-stream"/>
+  <Default Extension="dll" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_commonjs21A8DD7C-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_controlcenterhtmlFB426B8A-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_controlcenterjs67858199-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_entitlemententitieshtml86C44CA7-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_entitlemententitiesjs2CDC19B5-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u72png88C2B1DF-7A1F-E711-80C5-000C29608015" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u69png65AC08F8-7A1F-E711-80C5-000C29608015" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u5894png5ECB4411-7B1F-E711-80C5-000C29608015" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u911pngD2944321-7B1F-E711-80C5-000C29608015" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u912pngCCE4CC2C-7B1F-E711-80C5-000C29608015" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u602pngC9360247-7B1F-E711-80C5-000C29608015" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u6146png0E1C4F59-7B1F-E711-80C5-000C29608015" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u6151png464E7E65-7B1F-E711-80C5-000C29608015" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_entitlementmanagementhtml0294E1C4-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_es6promisejs983BA0D3-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_generalsettinghtml2D513DE2-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_generalsettingjsD423BAEF-CFF8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_logshtml545C4B01-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_logsjsE3B98D0E-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_sdkmetadatajs77426E1D-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_sdkrestjsDA654A2A-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_userpropertieshtml81B8EF38-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_userpropertiesjs9511D447-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_warningonloadjs987F6E55-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_attributesstylescssE01F346B-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_axurerppagecss63E99D76-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_controlcenterstylescss4082CA81-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_datastylescss0F809E8D-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_entitlemententitiesstylescss17BDAE9B-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_jqueryuithemescss6B4E0BA8-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_logstylescssD20BF3B4-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_settingstylescss7B7FB6BF-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_stylescssE3613ACB-D0F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_entitlementmanagementpngDD618A17-D1F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u3png230DB472-D1F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u9png0AA076CE-D1F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u11pngB4DB96E6-D1F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u15pngF53F6DF9-D1F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u21png1728C30B-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u47png6B3A141F-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u61png3D02862B-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_errorimgpng3BA23440-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_infoimgpngA22AA651-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_successimgpng0641E064-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_trianglepng7D6A2C74-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_img1000png239C1D93-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_img1001png1D84E6CB-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_img1002pngB79C05DB-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_img1003png23041DEE-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_img1004png5A9302FD-DD20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_img1005png6BD79C0F-DE20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_img1006png99F3A021-DE20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_img1007pngE09C2930-DE20-E711-80BF-000C293A928D" ContentType="application/octet-stream" />
+  <Override PartName="/WebResources/nxl_u134png4B409DCB-F3FB-E611-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u143pngB0BA4FE7-F3FB-E611-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u156pngEE1DA4FC-F3FB-E611-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u354pngCA46ED12-F4FB-E611-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u356pngB6B4B537-F4FB-E611-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_EntitiesClassifyConfigjsA34C6B35-F5FB-E611-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u578png0EA834B1-F6FB-E611-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u74pngCD41323B-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u76png582FC147-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u78png10B1AB57-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u105png01D0EF65-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u169png0AFC2573-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u171png8520D881-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u323png42B10190-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u361pngEDEE629B-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_u1871png180031AA-D2F8-E611-80BF-000C29E6686E" ContentType="application/octet-stream"/>
+<Override PartName="/WebResources/nxl_discardchangepngCE546B1E-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_collapseallJPGF7314042-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_dividerpng5347C954-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_expandallimgjpgF8E70E62-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_exportimgpng1F836577-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_importimgpng78531189-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_saveimgpng19F8B59A-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_testconnectionfailpngDBE815A9-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+  <Override PartName="/WebResources/nxl_testconnectionsuccesspng3C65D7BF-230A-E711-80C2-000C294825F7" ContentType="application/octet-stream"/>
+<Override PartName="/WebResources/nxl_calendarjs0E8CBA9E-D70A-E711-80C7-000C29A1D090" ContentType="application/octet-stream"/>
+</Types>

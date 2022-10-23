@@ -1,0 +1,1352 @@
+'use strict';
+
+/**
+ * the dcrm models namespace
+ * @external 'nxl.models'
+ * @typedef {{ name: string, datatype: number|string, enabled: boolean|string, content: string }} Entity
+ * @typedef {{ results: Array<Entity>, isCompleted: boolean, nextQueryOption: string }} QueryResult
+ * @typedef {{ entityMetadata: object, args: object }} EntityMetadata
+ * @typedef {{ entityMetadataCollection: Array<object>, args: object }} EntityMetaCollection
+ */
+(function(){
+
+/**
+ * alias for nxl.models namespace
+ * @type {object}
+ */
+var models = nxl.models;
+
+//Models class alias
+var Entity = models.Entity;
+var Attribute = models.Attribute;
+var OptionAttr = models.OptionAttr;
+var Area = models.Area;
+var Relation = models.Relation;
+var ManyToManyRelation = models.ManyToManyRelation;
+var ManyToOneRelation = models.ManyToOneRelation;
+var EntityState = models.EntityState;
+
+var entitySet = {};
+var entityLogicalNameList = [];
+var entityAttrLogicalNameSet = {};
+var securedEntityLogicalNameList = [];
+var entityLogicalNameListRowMap = {};
+
+var progressBar;
+var curSubmitEntityIndex = 0;
+var submitEntityCollection = [];
+
+/**
+ * @type {enum}
+ */
+var customDataAttr = {
+    checked: 'data-checked',//values: string true/false
+    show: 'data-show',//values: string true/false
+    expand: 'data-expand',//values: string true/false
+    logicalName: 'data-logical-name',
+    attrInit: 'data-attr-init'//values: string true/false
+};
+
+/**
+ * @type {enum}
+ */
+var constants = {
+    fieldTableDesc: 'Fields available for policy authoring and evaluation',
+    showFields: 'Show fields ...',
+    hideFields: 'Hide fields ...',
+    name: 'nxl_name',
+    datatype: 'nxl_datatype',
+    enabled: 'nxl_enabled',
+    content: 'nxl_content'
+};
+
+var referencedAttributeTypeList = ['Lookup', 'Uniqueidentifier', 'Customer', 'Owner'];
+
+var bShowFieldsFlag = false;
+
+//------------ init -----------------//
+function initListeners(){
+    addListenerForEntityList();
+    addListenerForToolbar();
+}
+
+function initData(){
+    //HiddenCrmRibbonManager();
+    //AdjustCrmContentPanelLocation();
+	AuthWebConsole()
+	.then(loadEntities);
+}
+
+function loadEntities() {
+
+	getAllEntities()
+	.then(successGetAllEntities, errorGetAllEntities)
+	.then(getSecuredEntities, errorGetSecuredEntities)
+	.then(successGetSecuredEntities, errorGetSecuredEntities)
+	.then(renderEntityList);
+}
+
+function addListenerForEntityList(){
+
+    var selectAllCheckboxEl = document.getElementById('select-all-checkbox');
+
+
+    if(selectAllCheckboxEl){
+
+        selectAllCheckboxEl.addEventListener('click', function(evt){
+            selectAllCheckedHandler(evt);
+            evt.stopPropagation();
+        }, false);
+    }
+}
+
+function addListenerForToolbar(){
+
+    var toolbarTopHomeBtn = document.getElementById('toolbar-top-home-btn');
+    var toolbarTopSaveBtn = document.getElementById('toolbar-top-save-btn');
+    var toolbarTopExportBtn = document.getElementById('toolbar-top-export-btn');
+	var toolbarTopHelpBtn = document.getElementById('toolbar-top-help-btn');
+    var toolbarBottomSaveBtn = document.getElementById('toolbar-bottom-save-btn');
+    var toolbarBottomExportBtn = document.getElementById('toolbar-bottom-export-btn');    
+
+
+    if(toolbarTopHomeBtn && 
+        toolbarTopSaveBtn && 
+        toolbarTopExportBtn &&  
+        toolbarTopHelpBtn && 
+        toolbarBottomSaveBtn && 
+        toolbarBottomExportBtn
+    ){
+
+        toolbarTopHomeBtn.addEventListener('click', function(evt){
+            RedirectHomePage();
+            evt.stopPropagation();
+        }, false);
+
+        toolbarTopSaveBtn.addEventListener('click', function(evt){
+            saveClickHandler(evt);
+            evt.stopPropagation();
+        }, false);
+
+        toolbarTopExportBtn.addEventListener('click', function(evt){
+            exportClickHandler(evt);
+            evt.stopPropagation();
+        }, false);
+
+        toolbarTopHelpBtn.addEventListener('click', function(evt){
+            helpClickHandler(evt);
+            evt.stopPropagation();
+        }, false);
+
+        toolbarBottomSaveBtn.addEventListener('click', function(evt){
+            saveClickHandler(evt);
+            evt.stopPropagation();
+        }, false);
+
+        toolbarBottomExportBtn.addEventListener('click', function(evt){
+            exportClickHandler(evt);
+            evt.stopPropagation();
+        }, false);
+    }
+}
+
+
+//------------ promisify -----------------//
+
+function getAllEntities(){
+    return SDK.Metadata.RetrieveAllEntities(SDK.Metadata.EntityFilters.Entity, false);
+}
+
+function getEntityAttributes(entityLogicalName){
+	return SDK.Metadata.RetrieveEntity(SDK.Metadata.EntityFilters.Attributes, entityLogicalName, null, false);
+}
+
+function getSecuredEntities(){
+	var selector = '$select=nxl_name,nxl_datatype,nxl_enabled,nxl_content&$filter=nxl_datatype/Value eq 280240001';
+	return SDK.REST.retrieveMultipleRecords(nxlStorageEntity, selector);
+}
+
+function setupSubmitEnv(){
+
+	return new Promise(function(resolve, reject){
+
+		var submitOverlayEl= document.getElementById('submit-overlay');
+
+		curSubmitEntityIndex = 0;
+
+		var recordName = submitEntityCollection[curSubmitEntityIndex][constants.name];
+		var entity = recordName ? entitySet[recordName] : undefined;
+		var entityDisplayName = entity ? entity.displayName : '';		
+
+		progressBar = new NextlabsProcessBar('Working on it...',
+			"Enabling NextLabs Entitlement Manager for the selected Dynamics CRM Entities. This may take a little while...",
+			"Processing Entity",
+			submitEntityCollection.length
+		);
+		progressBar.SetCurrentIndex(curSubmitEntityIndex);
+		progressBar.SetCurrentMessage(entityDisplayName);
+		progressBar.setCurrentDynamicBar(parseInt(curSubmitEntityIndex / submitEntityCollection.length * 100));
+
+		if(submitOverlayEl){
+
+			submitOverlayEl.classList.remove('hide');
+			progressBar.Show();
+			
+			if(typeof resolve === 'function'){
+				resolve(submitEntityCollection[curSubmitEntityIndex]);
+			}
+		}
+		else{
+			if(typeof reject === 'function'){
+				reject('setupSubmitEnv failed, submit overlay is null');
+			}
+			else{
+				console.log('setupSubmitEnv failed, submit overlay is null');
+			}
+		}
+	});
+}
+
+/**
+ * 
+ * @param {Entity} record 
+ */
+function submitRecord(record){
+	console.log(JSON.stringify(record));
+	return SDK.REST.createRecord(record, nxlStorageEntity);
+}
+
+//------------ callbacks -----------------//
+/**
+ * @param {EntityMetaCollection} results 
+ */
+function successGetAllEntities(results){
+
+	return new Promise(function(resolve, reject){
+
+		var entityMetadataCollection = results ? results.entityMetadataCollection : undefined;
+		var metaDataCount = entityMetadataCollection ? entityMetadataCollection.length : undefined;
+
+		if(metaDataCount && metaDataCount > 0){
+
+			for(var i = 0; i < metaDataCount; i++){
+
+				var curMetaEntity = entityMetadataCollection[i];
+
+				if(isNeeded(curMetaEntity)){
+
+					var entityDisplayName = GetDisplayName(curMetaEntity);
+					var entityPluralName = GetPluralDisplayName(curMetaEntity);
+					var entityDesc = GetEntityDesc(curMetaEntity);
+
+					var entity = new Entity(curMetaEntity.LogicalName, entityDisplayName, entityPluralName, entityDesc);
+					entity.objectTypeCode = curMetaEntity.ObjectTypeCode;
+					entity.primaryIdName = curMetaEntity.PrimaryIdAttribute;
+					
+					entityLogicalNameList.push(curMetaEntity.LogicalName);
+					entitySet[curMetaEntity.LogicalName] = entity;
+				}
+			}
+
+			entityLogicalNameList.sort(function(a, b){
+
+				var entityA = entitySet[a];
+				var entityB = entitySet[b];
+
+				var displayNameA = entityA ? entityA.displayName : '';
+				var displayNameB = entityB ? entityB.displayName : '';
+
+				if(displayNameA.toLowerCase() < displayNameB.toLowerCase()){
+					return -1;
+				}
+				else if(displayNameA.toLowerCase() > displayNameB.toLowerCase()){
+					return 1;
+				}
+				else{
+					return 0;
+				}
+			});
+
+			if(typeof resolve === 'function'){
+				resolve();
+			}
+			else{
+				console.log('resolve failed, resolve is not a function');
+			}
+		}
+		else{
+			if(typeof reject === 'function'){
+				reject('get all entities failed');
+			}
+			else{
+				console.log('reject failed, reject is not a function');
+			}
+		}
+
+	});
+}
+
+function errorGetAllEntities(err){
+	alert('get all entities failed, ' + err);
+}
+
+/**
+ * @param {QueryResult} results 
+ */
+function successGetSecuredEntities(results){
+
+	var records = results.results;
+	var isCompleted = results.isCompleted;
+	var nextQueryOption = results.nextQueryOption;
+
+	if(records && records.length > 0){
+
+        var recordCount = records.length;
+
+        for (var i = 0; i < recordCount; i++) {
+
+            var curSecureEntity = records[i];
+            var entityLogicalName = curSecureEntity[constants.name];
+            var entityEnabled = curSecureEntity[constants.enabled];
+            var entityXmlContent = curSecureEntity[constants.content];
+
+            if(entityEnabled){
+
+                if(entityLogicalName){
+					
+					var curEntity = entitySet[entityLogicalName];
+
+                    if(curEntity){
+
+                        curEntity.secured = true;
+                        curEntity.parseFromString(entityXmlContent);
+
+                        securedEntityLogicalNameList.push(entityLogicalName);
+
+                        if(!entityAttrLogicalNameSet[entityLogicalName]){
+                            entityAttrLogicalNameSet[entityLogicalName] = [];
+                        }
+
+                        for(var attrName in curEntity.attributes){
+
+                            if(curEntity.attributes.hasOwnProperty(attrName)){
+
+                                entityAttrLogicalNameSet[entityLogicalName].push(attrName);
+                            }
+                        }              
+					}
+					else{
+						console.log('secure entity: ' + entityLogicalName + ' failed, not exists in crm metadata.');
+					}
+				}
+				else{
+					console.log('invalid entity: ' + entityLogicalName);
+				}
+            }
+            else{
+                console.log('entity ' + entityLogicalName + ' disabled');
+            }
+        }		
+	}
+
+	if(!isCompleted && nextQueryOption){
+
+		return SDK.REST.retrieveMultipleRecords(nxlStorageEntity, nextQueryOption).then(successGetSecuredEntities);
+	}
+
+	if(isCompleted){
+
+		return new Promise(function(resolve, reject){
+            if(typeof resolve === 'function'){
+                resolve();
+			}	
+		});
+	}
+}
+
+function errorGetSecuredEntities(err){
+	alert('get secured entities failed, ' + err);
+}
+
+/**
+ * @param {EntityMetadata} results 
+ */
+function successGetEntityAttributes(results){
+
+	return new Promise(function(resolve, reject){
+
+		var attrMetadata = results.entityMetadata;
+		var curEntityLogicalName = attrMetadata.LogicalName;
+		var curEntity = entitySet[curEntityLogicalName];    
+		var metaAttributes = attrMetadata.Attributes;
+		
+		if(curEntityLogicalName && metaAttributes && metaAttributes.length > 0){
+
+			var attributeCount = metaAttributes.length;
+			var referencedAttributeLogicalNameList = [];
+
+			if(!entityAttrLogicalNameSet[curEntityLogicalName]){
+				entityAttrLogicalNameSet[curEntityLogicalName] = [];
+			}
+
+			for(var n = 0; n < attributeCount; n++){
+
+				var curMetaAttribute = metaAttributes[n];
+
+				if(referencedAttributeTypeList.indexOf(curMetaAttribute.AttributeType) > -1){
+					referencedAttributeLogicalNameList.push(curMetaAttribute.LogicalName);
+				}
+			}
+
+			for (var i = 0; i < attributeCount; i++) {
+
+				var curMetaAttribute = metaAttributes[i];//json object
+				var attrLogicalName = curMetaAttribute.LogicalName;
+				var attrDisplayName = GetDisplayName(curMetaAttribute);
+				var attrDataType = curMetaAttribute.AttributeType;
+				var attrDisplayDataType = GetAttributrType(curMetaAttribute);
+				var attrRequiredLevel = GetRequiredLevel(curMetaAttribute);
+				var attrDesc = GetEntityDesc(curMetaAttribute);
+
+				if(referencedAttributeLogicalNameList.indexOf(curMetaAttribute.AttributeOf) > -1 || !IsAttributeValid(curMetaAttribute)){
+					continue;
+				}
+
+				var optionList = GetOptionsFromMeta(curMetaAttribute);
+				var attribute = new Attribute(attrLogicalName, attrDisplayName, attrDesc, attrDataType, attrDisplayDataType, attrRequiredLevel, optionList);
+
+				//store the attribute logical name for attribute table rendering
+				if(entityAttrLogicalNameSet[curEntityLogicalName].indexOf(attrLogicalName) < 0){
+					entityAttrLogicalNameSet[curEntityLogicalName].push(attrLogicalName);
+				}
+
+				var curSecureEntityAttribute = curEntity ? curEntity.attributes[attrLogicalName] : undefined;
+				
+				//this attribute has been secured before
+				//this attribute has attribute 'logicalName' & 'secured' property assigned before
+				//only 'displayName', 'dataType', 'requiredLevel' and 'description' need assigned
+				if(curSecureEntityAttribute && curSecureEntityAttribute.secured){
+					curSecureEntityAttribute.displayName = attribute.displayName;
+					curSecureEntityAttribute.dataType = attribute.dataType;
+					curSecureEntityAttribute.displayDataType = attribute.displayDataType;
+					curSecureEntityAttribute.requiredLevel = attribute.requiredLevel;
+					curSecureEntityAttribute.description = attribute.description;
+					curSecureEntityAttribute.options = attribute.options;
+				}
+				//this attribute hasn't been secured yet
+				//just assign the new attribute object to it
+				else{
+					curEntity.attributes[attrLogicalName] = attribute;
+				}
+			}
+	
+			//sort current entity attributes by display name lowercase
+			entityAttrLogicalNameSet[curEntityLogicalName].sort(function(a, b){
+
+				var result = 0;
+
+				var attributeA = curEntity.attributes[a];
+				var attributeB = curEntity.attributes[b];
+
+				if(attributeA && attributeB){
+
+					var displayNameA = attributeA.displayName;
+					var displayNameB = attributeB.displayName;
+
+					if(displayNameA && displayNameB){
+
+						if(displayNameA.trim().toLowerCase() < displayNameB.trim().toLowerCase()){
+							result = -1;
+						}
+						else if(displayNameA.trim().toLowerCase() > displayNameB.trim().toLowerCase()){
+							result = 1;
+						}
+					}
+				}
+
+				return result;
+			});
+
+			if(typeof resolve === 'function'){
+				resolve(curEntityLogicalName);
+			}
+			else{
+				console.log('successGetEntityAttributes -> resolve failed, resolve is not a function');
+			}
+		}
+		else{
+			if(typeof reject === 'function'){
+				reject('successRetrieveEntityAttributes failed, entityLogicalName: ' + curEntityLogicalName);
+			}
+		}
+	});
+
+}
+
+function errorGetEntityAttributes(err){
+	bShowFieldsFlag = false;
+	alert('get attributes failed, ' + err);
+}
+
+function successSubmitRecord(results){
+
+	if(curSubmitEntityIndex < submitEntityCollection.length - 1){
+		setTimeout(function(){
+
+			var recordName = submitEntityCollection[curSubmitEntityIndex][constants.name];
+			var entity = recordName ? entitySet[recordName] : undefined;
+			var entityDisplayName = entity ? entity.displayName : '';
+			
+			progressBar.SetCurrentIndex(curSubmitEntityIndex + 1);
+			progressBar.SetCurrentMessage(entityDisplayName);
+			progressBar.setCurrentDynamicBar(parseInt(curSubmitEntityIndex / submitEntityCollection.length * 100));
+
+			submitRecord(submitEntityCollection[++curSubmitEntityIndex]).then(successSubmitRecord, errorSubmitRecord);
+		}, 100);
+	}
+	else{
+		//progressBar.Hiddlen();
+		exportClickHandler().then(function() {
+		
+    		setTimeout(function(){
+    			window.location.reload(true);
+    		}, 500);				
+		});
+	}
+}
+
+function errorSubmitRecord(err){
+
+	alert('submit record failed, ' + err);
+	setTimeout(function(){
+		if(curSubmitEntityIndex < submitEntityCollection.length - 1){
+			submitRecord(submitEntityCollection[++curSubmitEntityIndex]).then(successSubmitRecord, errorSubmitRecord);
+		}
+	}, 500);
+}
+
+function errorSetupSubmitEnv(err){
+	alert('setup submit env failed, ' + err);
+}
+
+//----------- event handlers --------------//
+
+// save & export
+function saveClickHandler(evt){
+
+    var entityCount = entityLogicalNameList.length;
+
+    submitEntityCollection.length = 0;
+
+    if(entityCount > 0){
+
+        for(var i = 0; i < entityCount; i++){
+
+            var curEntityLogicalName = entityLogicalNameList[i];
+            var curEntity = entitySet[curEntityLogicalName];
+
+            if(curEntity && curEntity.entityState === EntityState.changed){
+
+                //the entity isn't secured & hasn't been secured before
+                //the entity doestn't need submitting
+                if(!curEntity.secured && securedEntityLogicalNameList.indexOf(curEntityLogicalName) < 0){
+                    continue;
+                }
+
+                var entityJSON = {};
+                entityJSON[constants.name] = curEntity.logicalName;
+                entityJSON[constants.enabled] = curEntity.secured;
+                entityJSON[constants.datatype] = { Value: 280240001 };
+                entityJSON[constants.content] = curEntity.serializeToString();
+
+                submitEntityCollection.push(entityJSON);
+            }
+        }
+    }
+
+    if(submitEntityCollection.length > 0){
+
+		setupSubmitEnv()
+		.then(submitRecord, errorSetupSubmitEnv)
+		.then(successSubmitRecord, errorSubmitRecord);
+    }
+	/*
+	var toolbarTopExportBtn = document.getElementById('toolbar-top-export-btn');
+    var exportClickEvt = createEvent('click');
+	toolbarTopExportBtn.dispatchEvent(exportClickEvt);
+	*/
+}
+
+function exportClickHandler(evt){
+
+    return new Promise(function(resolve, reject){
+        var policyModelJSON = '';
+    	
+        submitEntityCollection.length = 0;
+    	curSubmitEntityIndex = 0;
+    	
+    	policyModelJSON = getPolicyModelJSON();
+    
+    	if(policyModelJSON){
+    
+    		//var fileName = 'NextLabs_DynamicsEM_UserDefinition_' + (+new Date()) + '.bin';
+    		//download(policyModelJSON, fileName);
+    
+    		importPolicyModel(policyModelJSON).then(function(){
+                if(typeof resolve === 'function'){
+                    resolve();
+                }
+            });
+    		
+    		//submit entities
+    		//var toolbarTopSaveBtn = document.getElementById('toolbar-top-save-btn');
+    		//var saveClickEvt = createEvent('click');
+    		//toolbarTopSaveBtn.dispatchEvent(saveClickEvt);
+    	}
+    	else{
+    		console.log('export policy model failed');
+            if(typeof resolve === 'function'){
+                resolve();
+            }	
+    	}		
+	});
+
+}
+
+function helpClickHandler(evt){
+	var pageurl = window.location.href;
+	var intsplitedchar = pageurl.lastIndexOf("/");
+
+	if(intsplitedchar < 0){
+		console.log("can not find /");
+		dialogBox.Show("Open help page failed!");
+		return;
+	}
+
+	var headpart = pageurl.substring(0, intsplitedchar);
+	var helpurl = headpart + "/nxl_attributeshelp.html";
+
+	//window.open(helpurl,"_blank");
+	window.open("https://emdcrm-help.pep.cloudaz.com/securing_attributes.html");
+}
+
+// entity list operation
+function selectAllCheckedHandler(evt){
+    
+    var entitySelectAllCheckboxEl = evt.target;
+    var isSelectAllChecked = entitySelectAllCheckboxEl ? entitySelectAllCheckboxEl.getAttribute(customDataAttr.checked) : '';
+    var entityListEl = document.getElementById('entity-list');
+    var curEntityRowEl = entityListEl ? entityListEl.firstElementChild : undefined;
+
+    isSelectAllChecked = isSelectAllChecked ? isSelectAllChecked.trim().toLowerCase() : '';
+
+    if(isSelectAllChecked.trim().toLowerCase() === 'false'){
+        entitySelectAllCheckboxEl.classList.add('checkbox-checked');
+        entitySelectAllCheckboxEl.setAttribute(customDataAttr.checked, 'true');
+    }
+    else{
+        entitySelectAllCheckboxEl.classList.remove('checkbox-checked');
+        entitySelectAllCheckboxEl.setAttribute(customDataAttr.checked, 'false');
+    }    
+
+    while(curEntityRowEl){
+
+        if(curEntityRowEl.classList.contains('main-entity-row') && !curEntityRowEl.classList.contains('hide')){
+
+            var entityTitleWrapper = curEntityRowEl.getElementsByClassName('main-entity-title-wrapper')[0];
+            var entityCheckBoxEl = entityTitleWrapper ? entityTitleWrapper.getElementsByClassName('checkbox')[0] : undefined;
+
+            if(entityCheckBoxEl){
+
+                var entityIsChecked = entityCheckBoxEl ? entityCheckBoxEl.getAttribute(customDataAttr.checked) : '';
+
+                if(isSelectAllChecked === entityIsChecked.trim().toLowerCase()){
+                    var entityClickEvt = createEvent('click');
+                    entityCheckBoxEl.dispatchEvent(entityClickEvt);
+                }
+            }
+        }
+
+        curEntityRowEl = curEntityRowEl.nextElementSibling;
+    }
+}
+
+function entityCheckedHandler(evt){
+
+    var curCheckbox = evt ? evt.target : undefined;
+    var curEntityLogicalName = curCheckbox ? curCheckbox.getAttribute(customDataAttr.logicalName) : '';
+    var curEntity = curEntityLogicalName ? entitySet[curEntityLogicalName] : undefined;
+    var isChecked = curCheckbox ? curCheckbox.getAttribute(customDataAttr.checked) : '';
+    var curEntityRowEl = entityLogicalNameListRowMap[curEntityLogicalName];
+
+    if(curEntity){
+
+        curEntity.entityState = EntityState.changed;
+
+        if(isChecked === 'true'){
+
+            var attrSelectAllSelector = '.main-entity-detail-wrapper > .main-entity-field-table-wrapper > .main-entity-field-table > thead:first-child span[class*=checkbox]:first-child';
+            var attrSelectAllEl = curEntityRowEl.querySelector(attrSelectAllSelector);
+
+            curEntity.secured = false;
+            curCheckbox.classList.remove('checkbox-checked');
+            curCheckbox.setAttribute(customDataAttr.checked, 'false');
+
+
+            if(attrSelectAllEl){
+
+                attrSelectAllEl.setAttribute(customDataAttr.checked, 'true');
+                
+                var attrSelectClickEvt = createEvent('click');
+                attrSelectAllEl.dispatchEvent(attrSelectClickEvt);
+            }
+            else{
+
+                //attributes not retrieved yet, unsecured attributes manually
+                var curEntityAttrLogicalNameList = entityAttrLogicalNameSet[curEntityLogicalName];
+
+                if(curEntityAttrLogicalNameList){
+                    for(var i = 0; i < curEntityAttrLogicalNameList.length; i++){
+                        var curAttribute = curEntity.attributes[curEntityAttrLogicalNameList[i]];
+                        curAttribute.secured = false;
+                    }
+                }
+                else{
+                    console.log('entityCheckedHandler -> unsecured attributes manually failed');
+                }
+            }
+        }
+
+        if(isChecked === 'false'){
+
+            curEntity.secured = true;
+            curCheckbox.classList.add('checkbox-checked');
+            curCheckbox.setAttribute(customDataAttr.checked, 'true');
+        }
+    }
+}
+
+function attributeTableToggleClickHandler(evt){
+    
+    var fieldToggleEl = evt ? evt.target : undefined;
+    var fieldToggleWrapperEl = fieldToggleEl ? fieldToggleEl.parentElement : undefined;
+    var fieldTableWrapperEl = fieldToggleWrapperEl ? fieldToggleWrapperEl.nextElementSibling : undefined;
+
+    var attrTableShowed = fieldToggleEl ? fieldToggleEl.getAttribute(customDataAttr.show) : '';
+    var attrTableinit = fieldTableWrapperEl ? fieldTableWrapperEl.getAttribute(customDataAttr.attrInit) : '';
+    var entityLogicalName = fieldToggleEl ? fieldToggleEl.getAttribute(customDataAttr.logicalName) : '';
+
+    if(fieldTableWrapperEl){
+
+        if(attrTableShowed === 'true'){
+            fieldTableWrapperEl.classList.add('hide');
+            fieldToggleEl.textContent = constants.showFields;
+            fieldToggleEl.setAttribute(customDataAttr.show, 'false');
+			bShowFieldsFlag = false;
+        }
+
+        if(attrTableShowed === 'false' && attrTableinit === 'true'){
+            fieldTableWrapperEl.classList.remove('hide');
+            fieldToggleEl.textContent = constants.hideFields;
+            fieldToggleEl.setAttribute(customDataAttr.show, 'true');
+			bShowFieldsFlag = false;
+        }
+
+        if(attrTableShowed === 'false' && attrTableinit === 'false' && !bShowFieldsFlag){
+
+            fieldTableWrapperEl.textContent = '';
+			bShowFieldsFlag = true;
+            //retrive entity attributes
+            SDK.Metadata.RetrieveEntity(SDK.Metadata.EntityFilters.Attributes, entityLogicalName, null, false)
+            .then(successGetEntityAttributes, errorGetEntityAttributes)
+            .then(renderAttributeTable, function(){
+				console.log("exception in successRetrieveEntityAttributes");
+				bShowFieldsFlag = false;
+			});
+
+            fieldTableWrapperEl.classList.remove('hide');
+            fieldToggleEl.textContent = constants.hideFields;
+            fieldToggleEl.setAttribute(customDataAttr.show, 'true');
+            fieldToggleEl.setAttribute(customDataAttr.attrInit, 'true');
+        }
+    } else{
+		bShowFieldsFlag = false;
+	}
+}
+
+function attributeCheckedHandler(evt){
+
+    var curCheckboxEl = evt.target;
+    var compositeLogicalNames = curCheckboxEl ? curCheckboxEl.getAttribute(customDataAttr.logicalName) : '';
+    var entityLogicalName = compositeLogicalNames.split('-')[0] || '';
+    var attrLogicalName = compositeLogicalNames.split('-')[1] || '';
+    var attrIsChecked = curCheckboxEl ? curCheckboxEl.getAttribute(customDataAttr.checked) : '';
+    var curEntity = entitySet[entityLogicalName] || undefined;
+
+	var entityListRowEl = entityLogicalNameListRowMap[entityLogicalName];
+	
+    if(!entityListRowEl || !entityLogicalName || !attrLogicalName){
+        throw new Error('attributeCheckedHandler failed');
+    }
+
+    if(attrIsChecked.trim().toLowerCase() === 'true'){
+
+        curCheckboxEl.setAttribute(customDataAttr.checked, 'false');
+        curCheckboxEl.classList.remove('checkbox-checked');      
+
+        if(curEntity){
+
+            //assign the secured property of attribute to false
+            curEntity.attributes[attrLogicalName].secured = false;
+        }
+
+    }
+
+    if(attrIsChecked.trim().toLowerCase() === 'false'){
+
+        curCheckboxEl.setAttribute(customDataAttr.checked, 'true');
+        curCheckboxEl.classList.add('checkbox-checked');
+
+        //assign the secured property of attribute to true
+        curEntity.attributes[attrLogicalName].secured = true;        
+
+        var entityTitleWrapper = entityListRowEl.getElementsByClassName('main-entity-title-wrapper')[0];
+        var entityCheckBoxEl = entityTitleWrapper ? entityListRowEl.getElementsByClassName('checkbox')[0] : undefined;
+        var isEntityChecked = entityCheckBoxEl ? entityCheckBoxEl.getAttribute(customDataAttr.checked) : '';
+
+        if(isEntityChecked.trim().toLowerCase() === 'true'){
+            entityCheckBoxEl.setAttribute(customDataAttr.checked, 'false');
+        }
+
+        var entityClickEvt = createEvent('click');
+        entityCheckBoxEl.dispatchEvent(entityClickEvt);
+    }
+}
+
+function attrSelectAllCheckedHandler(evt){
+
+    var curSelectAllCheckboxEl = evt.target;
+    var isAttrSelectAllChecked = curSelectAllCheckboxEl ? curSelectAllCheckboxEl.getAttribute(customDataAttr.checked) : '';
+    var curSelectAllRowEl = curSelectAllCheckboxEl ? curSelectAllCheckboxEl.parentElement.parentElement : undefined;
+    var curAttrTableEl = curSelectAllRowEl ? curSelectAllRowEl.parentElement.parentElement : undefined;
+    var curAttrTableBodyEl = curAttrTableEl ? curAttrTableEl.getElementsByTagName('tbody')[0] : undefined;
+
+    isAttrSelectAllChecked = isAttrSelectAllChecked ? isAttrSelectAllChecked.trim().toLowerCase() : '';
+    
+    if(isAttrSelectAllChecked === 'true'){
+        curSelectAllCheckboxEl.classList.remove('checkbox-checked');
+        curSelectAllCheckboxEl.setAttribute(customDataAttr.checked, 'false');
+    }
+    else{
+        curSelectAllCheckboxEl.classList.add('checkbox-checked');
+        curSelectAllCheckboxEl.setAttribute(customDataAttr.checked, 'true');
+    }
+
+    if(curAttrTableBodyEl){
+
+        var attrCheckboxEls = curAttrTableBodyEl.getElementsByClassName('checkbox');
+        
+        if(attrCheckboxEls){
+
+            var checkboxCount = attrCheckboxEls.length;
+
+            for(var i = 0; i < checkboxCount; i++){
+
+                var attrIsChecked = attrCheckboxEls[i].getAttribute(customDataAttr.checked);
+
+                if(attrIsChecked && (isAttrSelectAllChecked === attrIsChecked.trim().toLowerCase())){
+                    var attrClickEvt = createEvent('click');
+                    attrCheckboxEls[i].dispatchEvent(attrClickEvt);
+                }
+            }
+        }
+
+    }
+}
+
+
+//----------- ui rendering ----------------//
+function renderEntityList() {
+
+    var entityListEl = document.getElementById("entity-list");
+
+    clearEntityList();
+
+    var entityCount = entityLogicalNameList.length;
+
+    for (var i = 0; i < entityCount; i++) {
+
+        var isSecured = false;
+        var curEntityLogicalName = entityLogicalNameList[i];
+        var curEntity = entitySet[curEntityLogicalName];
+
+        if (curEntity) {
+            
+			var entityRowEl = createEntityRow(curEntity);
+
+            //map entity logical name to it's entity list row element
+			entityLogicalNameListRowMap[curEntityLogicalName] = entityRowEl;
+			
+            entityListEl.appendChild(entityRowEl);
+        }
+    }
+}
+
+function createEntityRow(entity) {
+
+    var entityRowEl = document.createElement('div');
+    var entityTitleWrapperEl = document.createElement('div');
+    var entityCheckBoxEl = document.createElement('span');
+    var entityTitleEl = document.createElement('span');
+    
+    var entityDetailWrapperEl = document.createElement('div');
+    var entityDescEl = document.createElement('p');
+    var entityFieldToggleWrapperEl = document.createElement('div');
+    var entityFieldToggleEl = document.createElement('span');
+    var entityFieldTabelWrapperEl = document.createElement('div');
+
+    entityRowEl.className = 'main-entity-row';
+    entityTitleWrapperEl.className = 'main-entity-title-wrapper';
+    entityCheckBoxEl.className = 'checkbox checkbox-md';
+    entityTitleEl.className = 'main-entity-title font-bold font-lg';
+
+    entityDetailWrapperEl.className = 'main-entity-detail-wrapper';
+    entityDescEl.className = 'main-entity-desc font-default font-md';
+    entityFieldToggleWrapperEl.className = 'main-entity-field-toggle-wrapper';
+    entityFieldToggleEl.className = 'main-entity-field-toggle font-default text-link font-md';
+    entityFieldTabelWrapperEl.className = 'main-entity-field-table-wrapper';
+
+    entityFieldTabelWrapperEl.setAttribute(customDataAttr.attrInit, 'false');
+
+    entityCheckBoxEl.setAttribute(customDataAttr.logicalName, entity.logicalName);
+    entityCheckBoxEl.setAttribute(customDataAttr.checked, 'false');
+
+    entityCheckBoxEl.addEventListener('click', function(evt){
+        entityCheckedHandler(evt);
+        evt.stopPropagation();
+    }, false);
+
+    if(entity.secured){
+
+        (function(el){
+            setTimeout(function(){
+                var entityCheckedEvt = createEvent('click');
+                el.dispatchEvent(entityCheckedEvt);                
+            }, 0);
+        })(entityCheckBoxEl);
+    }
+
+    entityRowEl.appendChild(entityTitleWrapperEl);
+    entityRowEl.appendChild(entityDetailWrapperEl);
+
+    entityTitleWrapperEl.appendChild(entityCheckBoxEl);
+    entityTitleWrapperEl.appendChild(entityTitleEl);
+
+    entityDetailWrapperEl.appendChild(entityDescEl);
+    entityDetailWrapperEl.appendChild(entityFieldToggleWrapperEl);
+    entityDetailWrapperEl.appendChild(entityFieldTabelWrapperEl);
+    entityFieldToggleWrapperEl.appendChild(entityFieldToggleEl);
+    
+    entityTitleEl.textContent = entity.pluralName + ' ';
+
+    entityDescEl.textContent = entity.description || '';
+
+    entityFieldToggleEl.textContent = constants.showFields;
+    entityFieldToggleEl.setAttribute(customDataAttr.show, 'false');
+    entityFieldToggleEl.setAttribute(customDataAttr.logicalName, entity.logicalName);
+    entityFieldToggleEl.addEventListener('click', function(evt){
+		if(!bShowFieldsFlag){
+			attributeTableToggleClickHandler(evt);
+			if(evt){
+				evt.stopPropagation();
+			}
+		}
+    }, false);
+
+    return entityRowEl;
+}
+
+function clearEntityList(){
+
+    var entityListEl = document.getElementById('entity-list');
+    
+    if(entityListEl){
+
+        var selectRowEl = entityListEl.firstElementChild;
+		var curEntityRowEl = selectRowEl ? selectRowEl.nextSibling : undefined;
+		
+        while(curEntityRowEl){
+
+            var nextEntityRowEl = curEntityRowEl.nextSibling;
+            entityListEl.removeChild(curEntityRowEl);
+            curEntityRowEl = nextEntityRowEl;
+        }
+    }
+}
+
+function renderAttributeTable(entityLogicalName){
+
+    if(!entityLogicalName){
+		bShowFieldsFlag = false;
+        return;
+    }
+
+    var curEntity = entitySet[entityLogicalName];
+    var curEntityAttributeSet = curEntity ? curEntity.attributes : undefined;
+    var curEntityAttrLogicalNameList = entityAttrLogicalNameSet[entityLogicalName];
+
+    if(!isEmpty(curEntityAttributeSet) && curEntityAttrLogicalNameList && curEntityAttrLogicalNameList.length > 0){
+
+        var curEntityRowEl = entityLogicalNameListRowMap[entityLogicalName];
+        var attrTableWrapperEl = curEntityRowEl ? curEntityRowEl.getElementsByClassName('main-entity-field-table-wrapper')[0] : undefined;
+
+        if(attrTableWrapperEl){
+
+            var attrTableDescEl = createAttributeTableDesc();
+            var attrTableEl = createAttributeTable();
+            var attrTableBodyEl = attrTableEl.getElementsByTagName('tbody')[0];
+            
+            var attrCount = curEntityAttrLogicalNameList.length;
+
+            for(var i = 0; i < attrCount; i++){
+
+                var curAttrLogicalName = curEntityAttrLogicalNameList[i];
+                var curAttribute = curAttrLogicalName ? curEntityAttributeSet[curAttrLogicalName] : undefined;
+
+                if(curAttribute && curAttribute.displayName.indexOf("(Deprecated)") < 0){
+                    var attributeRowEl = createAttributeRow(curEntity.logicalName, curAttribute);
+                    attrTableBodyEl.appendChild(attributeRowEl);
+                }
+            }
+
+            attrTableDescEl.textContent = constants.fieldTableDesc;
+
+            attrTableWrapperEl.appendChild(attrTableDescEl);
+            attrTableWrapperEl.appendChild(attrTableEl);
+        }
+    }
+	bShowFieldsFlag = false;
+}
+
+function createAttributeTable(){
+    
+    var fieldTableEl = document.createElement('table');
+    var fieldTableHeadEl = createAttributeTableHead();
+    var fieldTableBodyEl = document.createElement('tbody');
+
+    fieldTableEl.classList.add('main-entity-field-table');
+    fieldTableEl.appendChild(fieldTableHeadEl);
+    fieldTableEl.appendChild(fieldTableBodyEl);
+
+    return fieldTableEl;
+}
+
+function createAttributeTableDesc(){
+
+    var fieldTableDescEl = document.createElement('p');
+    fieldTableDescEl.className = 'main-entity-field-table-desc font-sm font-blue';
+
+    return fieldTableDescEl;
+}
+
+function createAttributeTableHead(){
+
+    var fieldTableHeadEl = document.createElement('thead');
+    var fieldTableHeadRowEl = document.createElement('tr');
+    var fieldCheckboxTableHeadEl = document.createElement('th');
+    var fieldLogicalNameTableHeadEl = document.createElement('th');
+    var fieldDisplayNameTableHeadEl = document.createElement('th');
+    var fieldDataTypeTableHeadEl = document.createElement('th');
+    var fieldRequiredTableHeadEl = document.createElement('th');
+
+    var fieldCheckboxSpanEl = document.createElement('span');
+    var fieldLogicalNameSpanEl = document.createElement('span');
+    var fieldDisplayNameSpanEl = document.createElement('span');
+    var fieldDataTypeSpanEl = document.createElement('span');
+    var fieldRequiredSpanEl = document.createElement('span');
+
+    fieldCheckboxTableHeadEl.className = 'td-sm';
+    fieldLogicalNameTableHeadEl.className = 'td-lg';
+    fieldDisplayNameTableHeadEl.className = 'td-lg';
+    fieldDataTypeTableHeadEl.className = 'td-lg';
+    fieldRequiredTableHeadEl.className = 'td-lg';
+
+    fieldCheckboxSpanEl.className = 'checkbox checkbox-md';
+    fieldDisplayNameSpanEl.className = 'font-bold font-md';
+    fieldLogicalNameSpanEl.className = 'font-bold font-md';
+    fieldDataTypeSpanEl.className = 'font-bold font-md';
+    fieldRequiredSpanEl.className = 'font-bold font-md';
+
+    fieldLogicalNameSpanEl.textContent = 'Name';
+    fieldDisplayNameSpanEl.textContent = 'Display Name';
+    fieldDataTypeSpanEl.textContent = 'Data Type';
+    fieldRequiredSpanEl.textContent = 'Required / Optional';
+
+    fieldCheckboxSpanEl.setAttribute(customDataAttr.checked, 'false');
+    fieldCheckboxSpanEl.addEventListener('click', function(evt){
+        attrSelectAllCheckedHandler(evt);
+        evt.stopPropagation();
+    }, false);
+
+    fieldCheckboxTableHeadEl.appendChild(fieldCheckboxSpanEl);
+    fieldLogicalNameTableHeadEl.appendChild(fieldLogicalNameSpanEl);
+    fieldDisplayNameTableHeadEl.appendChild(fieldDisplayNameSpanEl);
+    fieldDataTypeTableHeadEl.appendChild(fieldDataTypeSpanEl);
+    fieldRequiredTableHeadEl.appendChild(fieldRequiredSpanEl);
+
+    fieldTableHeadRowEl.appendChild(fieldCheckboxTableHeadEl);
+    fieldTableHeadRowEl.appendChild(fieldDisplayNameTableHeadEl);
+    fieldTableHeadRowEl.appendChild(fieldLogicalNameTableHeadEl);
+    fieldTableHeadRowEl.appendChild(fieldDataTypeTableHeadEl);
+    fieldTableHeadRowEl.appendChild(fieldRequiredTableHeadEl);
+
+    fieldTableHeadEl.appendChild(fieldTableHeadRowEl);
+
+    return fieldTableHeadEl;
+}
+
+function createAttributeRow(entityLogicalName, attribute){
+
+    if(!entityLogicalName || !attribute){
+        return;
+    }
+
+    var compositeLogicalNames = entityLogicalName + '-' + attribute.logicalName;
+    var fieldTableAttrRowEl = document.createElement('tr');
+    var fieldCheckboxTdEl = document.createElement('td');
+    var fieldLogicalNameTdEl = document.createElement('td');
+    var fieldDisplayNameTdEl = document.createElement('td');
+    var fieldDataTypeTableTdEl = document.createElement('td');
+    var fieldRequiredTableTdEl = document.createElement('td');
+
+    var fieldCheckboxSpanEl = document.createElement('span');
+    var fieldLogicalNameSpanEl = document.createElement('span');
+    var fieldDisplayNameSpanEl = document.createElement('span');
+    var fieldDisplayNameDescSpanEl = document.createElement('span');
+    var fieldDataTypeSpanEl = document.createElement('span');
+    var fieldRequiredSpanEl = document.createElement('span');
+
+    fieldCheckboxTdEl.className = 'td-sm';
+    fieldLogicalNameTdEl.className = 'td-lg';
+    fieldDisplayNameTdEl.className = 'td-lg bg-gray-light';
+    fieldDataTypeTableTdEl.className = 'td-lg bg-gray-light';
+    fieldRequiredTableTdEl.className = 'td-lg';
+
+    fieldCheckboxSpanEl.className = 'checkbox checkbox-md font-default font-md';
+    fieldDisplayNameDescSpanEl.className = 'entity-display-name-info font-default';
+    fieldDisplayNameSpanEl.className = 'entity-display-name font-default font-md';
+    fieldLogicalNameSpanEl.className = 'font-default font-md';
+    fieldDataTypeSpanEl.className = 'font-default font-md';
+    fieldRequiredSpanEl.className = 'font-default font-md';
+
+    fieldCheckboxSpanEl.setAttribute(customDataAttr.logicalName, compositeLogicalNames);
+    fieldCheckboxSpanEl.setAttribute(customDataAttr.checked, 'false');
+    fieldCheckboxSpanEl.addEventListener('click', function(evt){
+        attributeCheckedHandler(evt);
+        evt.stopPropagation();
+    }, false);
+
+    if(attribute.secured){
+
+        (function(checkboxEl){
+            setTimeout(function(){
+                var evt = createEvent('click');
+                checkboxEl.dispatchEvent(evt);
+            }, 0);            
+        })(fieldCheckboxSpanEl);
+    }
+    
+    fieldDisplayNameDescSpanEl.title = attribute.description || 'No Description';
+
+    fieldLogicalNameSpanEl.textContent = attribute.logicalName;
+    fieldDisplayNameSpanEl.textContent = attribute.displayName;
+    fieldDataTypeSpanEl.textContent = attribute.displayDataType;
+    fieldRequiredSpanEl.textContent = attribute.requiredLevel;
+
+    fieldCheckboxTdEl.appendChild(fieldCheckboxSpanEl);
+    fieldLogicalNameTdEl.appendChild(fieldLogicalNameSpanEl);
+    fieldDisplayNameTdEl.appendChild(fieldDisplayNameSpanEl);
+    fieldDisplayNameTdEl.appendChild(fieldDisplayNameDescSpanEl);
+    fieldDataTypeTableTdEl.appendChild(fieldDataTypeSpanEl);
+    fieldRequiredTableTdEl.appendChild(fieldRequiredSpanEl);
+
+    fieldTableAttrRowEl.appendChild(fieldCheckboxTdEl);
+    fieldTableAttrRowEl.appendChild(fieldDisplayNameTdEl);
+    fieldTableAttrRowEl.appendChild(fieldLogicalNameTdEl);
+    fieldTableAttrRowEl.appendChild(fieldDataTypeTableTdEl);
+    fieldTableAttrRowEl.appendChild(fieldRequiredTableTdEl);
+
+    return fieldTableAttrRowEl;    
+
+}
+
+//----------- inner tools ----------------//
+
+function isNeeded(metaEntity){
+
+	var neededEntity = ['role', 'systemuser', 'team'];
+	var result = false;
+
+	if(!metaEntity){
+		return false;
+	}
+
+	if(neededEntity.indexOf(metaEntity.LogicalName) > -1){
+		result = true;
+	}
+
+	return result;
+}
+
+/**
+ * @description get secured entities and its attributes policy models in json string
+ * @returns {string}
+ */
+function getPolicyModelJSON(){
+
+    var defaultActionDescrip = "This is a system generated Action component. Deleting the same Action in policy model definition will delete this Action component";
+
+    var result = '';
+
+    var pm = {};
+    pm.policyModels = [];
+    pm.components = [];
+    pm.policyTree = {};
+    pm.importedPolicyIds = [];
+    pm.overrideDuplicates = false;
+    pm.componentToSubCompMap = {};
+
+    var pmId = 90000;
+    var entityCount = entityLogicalNameList.length;
+
+    if(entityCount > 0){
+
+        var userPM = {};
+        userPM.id = pmId;
+        userPM.name = 'User';
+        userPM.shortName = 'user';
+        userPM.description = entitySet['systemuser'].description;
+        userPM.type = 'SUBJECT';
+        userPM.status = 'ACTIVE';
+        userPM.attributes = [];
+        userPM.actions = [];
+        userPM.obligations = [];
+        userPM.tags = [];
+
+        AddTagToPolicyModel(userPM.tags, "EM for Dynamics 365", "EMDCRM");
+
+        for(var i = 0; i < entityCount; i++){
+
+            var curEntityLogicalName = entityLogicalNameList[i];
+            var curEntity = entitySet[curEntityLogicalName];
+
+            if(curEntity && curEntity.secured){
+
+				var attrSortOrder = 0;
+                var curEntityAttrLogicalNameList = entityAttrLogicalNameSet[curEntityLogicalName];
+
+				/**
+				 * the shortname of systemuser entity in cc is 'user'
+				 * change 'systemuser' to 'user' to prevent conflicts
+				 */
+				if(curEntityLogicalName.trim().toLowerCase() === 'systemuser'){
+					curEntityLogicalName = 'user';
+				}                
+
+                if(curEntityAttrLogicalNameList && curEntityAttrLogicalNameList.length > 0){
+
+                    var attrCount = curEntityAttrLogicalNameList.length;
+
+                    for(var j = 0; j < attrCount; j++){
+
+                        var curAttrLogicalName = curEntityAttrLogicalNameList[j];
+                        var curAttr = curEntity.attributes[curAttrLogicalName];
+
+                        if(curAttr && curAttr.secured){
+
+                            var policyAttr = {};
+                            policyAttr.sortOrder = attrSortOrder++;
+							
+							/**
+							 * add prefix only to team & role entity's attributes
+							 */
+							if(curEntityLogicalName === 'user'){
+                                policyAttr.name = curAttr.displayName;
+                                policyAttr.shortName = curAttr.logicalName;
+                                policyAttr.dataType = getAttributeDatatypeForCC(curAttr.dataType);
+
+                                if(policyAttr.dataType === 'NUMBER'){
+                                    policyAttr.operatorConfigs = [
+                                        { key: '=', label: '=', dataType: 'NUMBER'},
+                                        { key: '!=', label: '!=', dataType: 'NUMBER'},
+                                        { key: '>', label: '>', dataType: 'NUMBER'},
+                                        { key: '>=', label: '>=', dataType: 'NUMBER'},
+                                        { key: '<', label: '<', dataType: 'NUMBER'},
+                                        { key: '<=', label: '<=', dataType: 'NUMBER'},                                        
+                                    ];
+                                }
+                                else{
+                                    policyAttr.operatorConfigs = [
+                                        { key: '=', label: 'is', dataType: 'STRING'},
+                                        { key: '!=', label: 'is not', dataType: 'STRING'},
+                                    ];
+                                }
+							}
+							else{
+                                policyAttr.name = curEntityLogicalName + '-' + curAttr.displayName;                                
+                                policyAttr.shortName = curEntityLogicalName + '-' + curAttr.logicalName;
+                                policyAttr.dataType = 'MULTIVAL';
+                                policyAttr.operatorConfigs = [
+                                    {key: 'includes', label: 'includes', dataType: 'MULTIVAL'}
+                                ];                                
+							}
+
+                            userPM.attributes.push(policyAttr);
+                        }
+                    }
+                }
+            }
+        }
+
+        pm.policyModels.push(userPM);        
+
+        try{
+            result = JSON.stringify(pm);
+        }
+        catch(e){
+            console.log('getPolicyModelJSON -> serialize PolicyModel failed, error: ' + e.message);
+        }
+        
+    }
+    else{
+        console.log('no entity secured');
+    }
+
+    return result;
+};
+
+function getAttributeDatatypeForCC(datatype){
+
+    datatype = datatype.trim().toLowerCase();
+
+    if( datatype === 'integer' ||
+        datatype === 'double' ||
+        datatype === 'bigint' ||
+        datatype === 'decimal'){
+
+        return 'NUMBER';
+    }
+    else{
+        return 'STRING';
+    }
+
+}
+
+//application entry point
+(function(){
+    initData();
+    initListeners();
+    resizeWindow();
+})();
+
+})();

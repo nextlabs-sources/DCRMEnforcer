@@ -1,0 +1,211 @@
+﻿
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Control Center</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <link href="nxl_jqueryuithemes.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_axurerppage.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_datastyles.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_controlcenterstyles.css" type="text/css" rel="stylesheet"/>
+
+    <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>    
+    <script src="nxl_sdk.metadata.js" type="text/javascript"></script>
+    <script src="nxl_sdk.rest.js" type="text/javascript"></script>
+    <script src="nxl_es6promise.js" type="text/javascript"></script>    
+    <script src="nxl_common.js" type="text/javascript"></script>
+    <script src="nxl_controlcenter.js" type="text/javascript"></script>
+    <style type="text/css">
+    input.textarea {
+      border-width:0px;
+      position:absolute;
+      left:0px;
+      top:0px;
+      width:473px;
+      height:28px;
+      background:inherit;
+      background-color:rgba(255, 255, 255, 1);
+      box-sizing:border-box;
+      border-width:1px;
+      border-style:solid;
+      border-color:rgba(228, 228, 228, 1);
+      border-radius:0px;
+      -moz-box-shadow:none;
+      -webkit-box-shadow:none;
+      box-shadow:none;  
+      text-align:left;  
+    }    
+    </style>
+    
+  </head>
+  <body onload="HiddenCrmRibbonManager();LoadPolicyControlAddr();">
+    <div id="base" class="">
+      <div id="u426" class="ax_default image">
+        <img id="u426_img" class="img " src="nxl_u9.png"/>
+        <div id="u427" class="text" style="display:none; visibility: hidden">
+          <p><span></span></p>
+        </div>
+      </div>
+      
+      <div id="u424" class="ax_default heading_2">
+        <div id="u424_div" class=""></div>
+        <div id="u425" class="text">
+          <p><span>Policy Controller</span></p>
+        </div>
+      </div>
+      <div id="u450" class="ax_default heading_2">
+        <div id="u450_div" class=""></div>
+        <div id="u451" class="text">
+          <p><span>Configure the host and port for the CloudAz or Control Center Policy Controller REST API</span></p>
+        </div>
+      </div>
+      <div id="u448" class="ax_default line">
+        <img id="u448_img" class="img " src="nxl_u105.png"/>
+        <div id="u449" class="text" style="display:none; visibility: hidden">
+          <p><span></span></p>
+        </div>
+      </div>
+      
+      <div id="u452" class="ax_default heading_2">
+        <div id="u452_div" class=""></div>
+        <div id="u453" class="text">
+          <p><span>Policy Control Server Path</span></p>
+        </div>
+      </div>
+
+      <div id="u459" class="ax_default heading_2">
+        <div id="u459_div" class=""></div>
+        <div id="u460" class="text">
+          <p><span>Host:</span></p>
+        </div>
+      </div>
+      <div id="u456" class="ax_default" data-width="473" data-height="28">
+        <div id="u457" class="ax_default box_1">
+          <input type="text" id="PolicyControlAddrHost" class="textarea"/>
+        </div>
+      </div>      
+      <div id="u464" class="ax_default heading_2">
+        <div id="u464_div" class=""></div>
+        <div id="u465" class="text">
+          <p><span>Port:</span></p>
+        </div>
+      </div>
+      <div id="u461" class="ax_default" data-width="473" data-height="28">
+        <div id="u462" class="ax_default box_1">
+          <input type="text" id="PolicyControlAddrPort" class="textarea"/>
+        </div>
+      </div>      
+      
+      <div id="u471" class="ax_default heading_2">
+        <div id="u471_div" class=""></div>       
+        <div id="u472" class="text">
+          <p><span>Username:</span></p>
+        </div>
+      </div>      
+      <div id="u468" class="ax_default" data-width="473" data-height="28">
+        <div id="u469" class="ax_default box_1">
+        <input type="text" id="JPCUsername" class="textarea">
+        </div>
+      </div>      
+      
+      <div id="u476" class="ax_default heading_2">
+        <div id="u476_div" class=""></div>
+        <div id="u477" class="text">
+          <p><span>Password:</span></p>
+        </div>
+      </div>
+      <div id="u473" class="ax_default" data-width="473" data-height="28">
+        <div id="u474" class="ax_default box_1">
+        <input type="password" id="JPCPassword" class="textarea">
+        </div>
+      </div>
+      
+      <div id="u466" class="ax_default checkbox">
+        <label for="UsingHttps">
+          <div id="u467" class="text">
+            <p><span>&nbsp;Connect using HTTPS</span></p>
+          </div>
+        </label>
+        <input id="UsingHttps" type="checkbox" value="checkbox"/>        
+      </div>
+
+      <div style="border-width:0px;position:absolute;left:400px;top:356px;">
+        <label for="UsingCloudAz">
+          <div id="u467" class="text">
+            <p><span>&nbsp;Using CloudAz</span></p>
+          </div>
+        </label>
+        <input id="UsingCloudAz" type="checkbox" value="checkbox" checked/>        
+      </div>    
+      
+      <div id="u454" class="ax_default html_button">
+        <input id="u454_input" type="submit" value="Save" onclick="SetPolicyControlAddr();location.reload(true)"/>
+      </div>
+
+      <div id="u455" class="ax_default html_button">
+        <input id="u455_input" type="submit" value="Cancel" onclick="location.reload(true);"/>
+      </div>         
+    </div>
+  </body>
+</html>
+
+<!--
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>NextLabs Control Center</title>
+    <meta charset="utf-8" />
+    
+    <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>    
+    <script src="nxl_sdk.metadata.js" type="text/javascript"></script>
+    <script src="nxl_sdk.rest.js" type="text/javascript"></script>
+    <script src="nxl_es6promise.js" type="text/javascript"></script>    
+    <script src="nxl_common.js" type="text/javascript"></script>
+    <script src="nxl_controlcenter.js" type="text/javascript"></script>
+    
+    <style type="text/css">
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #preferences {
+            border: inset;
+            padding: 10px 10px;
+        }
+
+        #output_area {
+            border: inset;
+            background-color: gainsboro;
+            padding: 10px 10px;
+        }
+    </style>
+</head>
+<body onload="LoadPolicyControlAddr()">
+    <h1>Policy Controller</h1>
+    <p>Configure the host and port for the CloudAz or Control Center Policy Controller REST API</p>
+
+    <h4>Policy Control Server Path</h4>
+    <table>
+    <tr><td>Host:</td><td><input type="text" id="PolicyControlAddr" size="60" maxlength="100"/></td></tr>
+    <tr><td>User Name:</td><td><input type="text" id="JPCUsername" size="60" maxlength="100"></td></tr>
+    <tr><td>Password:</td><td><input type="password" id="JPCPassword" size="60" maxlength="100"></td></tr>
+    <tr><td width="20%"></td><td><input type="checkbox" id="IsCloudAz">IsCloudAz</td></tr>
+    <tr height="20%"></tr>    
+    <tr>
+      <table>
+      <tr>
+        <td width="10%"></td>
+        <td><input type="button" id="Submit" name="Submit" value="Submit" onclick="SetPolicyControlAddr();location.reload(true)"></td>
+        <td width="20%"></td>
+        <td><input type="button" id="Cancel" name="Cancel" value="Cancel" onclick="location.reload(true);"></td>
+      </tr>
+      </table>
+    </tr>
+    </table>
+</body>
+</html>
+-->

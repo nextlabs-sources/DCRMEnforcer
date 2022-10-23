@@ -1,0 +1,742 @@
+
+"use strict";
+var Sdk = window.Sdk || {};
+var strArryNotEnforcedAttrType=new Array("Virtual");
+var AttributeDataType = {"Picklist":"Option Set","String":"Single Line of Text","Memo":"Multiple Lines of Text",
+    "Double":"Floating Point Number","Integer":"Whole Number","Money":"Currency","Boolean":"Two Options","Lookup":"Lookup","DateTime":"Date and Time",
+	"EntityName":"EntityName","Status":"Status Reason","State":"Status","BigInt":"Time Stamp","Owner":"Owner","Decimal":"Decimal Number","PartyList":"Party List",
+	"ManagedProperty":"Managed Property"
+	};
+Sdk.getClientUrl = function () {
+    var context;
+    // GetGlobalContext defined by including reference to 
+    // ClientGlobalContext.js.aspx in the HTML page.
+    if (typeof GetGlobalContext != "undefined") {
+        context = GetGlobalContext();
+    } else {
+        if (typeof Xrm != "undefined") {
+            // Xrm.Page.context defined within the Xrm.Page object model for form scripts.
+            context = Xrm.Page.context;
+        } else {
+            throw new Error("Context is not available.");
+        }
+    }
+
+    return context.getClientUrl();
+}
+
+/**
+ * @function request
+ * @description Generic helper function to handle basic XMLHttpRequest calls.
+ * @param {string} action - The request action. String is case-sensitive.
+ * @param {string} uri - An absolute or relative URI. Relative URI starts with a "/".
+ * @param {object} data - An object representing an entity. Required for create and update actions.
+ * @param {object} addHeader - An object with header and value properties to add to the request
+ * @returns {Promise} - A Promise that returns either the request object or an error object.
+ */
+Sdk.request = function (action, uri, data, addHeader) {
+    if (!RegExp(action, "g").test("POST PATCH PUT GET DELETE")) { // Expected action verbs.
+        throw new Error("Sdk.request: action parameter must be one of the following: " +
+            "POST, PATCH, PUT, GET, or DELETE.");
+    }
+    if (!typeof uri === "string") {
+        throw new Error("Sdk.request: uri parameter must be a string.");
+    }
+    if ((RegExp(action, "g").test("POST PATCH PUT")) && (!data)) {
+        throw new Error("Sdk.request: data parameter must not be null for operations that create or modify data.");
+    }
+    if (addHeader) {
+        if (typeof addHeader.header != "string" || typeof addHeader.value != "string") {
+            throw new Error("Sdk.request: addHeader parameter must have header and value properties that are strings.");
+        }
+    }
+
+    // Construct a fully qualified URI if a relative URI is passed in.
+    if (uri.charAt(0) === "/") {
+        uri = clientUrl + webAPIPath + uri;
+    }
+
+    return new Promise(function (resolve, reject) {
+        var request = new XMLHttpRequest();
+        request.open(action, encodeURI(uri), true);
+        request.setRequestHeader("OData-MaxVersion", "4.0");
+        request.setRequestHeader("OData-Version", "4.0");
+        request.setRequestHeader("Accept", "application/json");
+        request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        if (addHeader) {
+            request.setRequestHeader(addHeader.header, addHeader.value);
+        }
+        request.onreadystatechange = function () {
+            if (this.readyState === 4) {
+                request.onreadystatechange = null;
+                switch (this.status) {
+                    case 200: // Success with content returned in response body.
+                    case 204: // Success with no content returned in response body.
+                    case 304: // Success with Not Modified.
+                        resolve(this);
+                        break;
+                    default: // All other statuses are error cases.
+                        var error;
+                        try {
+                            error = JSON.parse(request.response).error;
+                        } catch (e) {
+                            error = new Error("Unexpected Error");
+                        }
+                        reject(error);
+                        break;
+                }
+            }
+        };        
+        request.send(JSON.stringify(data));
+    });
+};
+
+// Global variables.
+var clientUrl = Sdk.getClientUrl();     // e.g.: https://org.crm.dynamics.com
+var webAPIPath = "/api/data/v8.0";      // Path to the web API.
+var nxlStorageEntity = "nxl_storage";
+var SiteMapEntity="SiteMap";
+
+function errorNextLabsStorage(error) {
+    //console.log(error);
+}
+
+// setText and getText mitigate differences in how browsers set or get text content.
+function setText(node, text) {
+    if (typeof (node.innerText) != "undefined") {
+        node.innerText = text;
+    } else {
+        node.textContent = text;
+    }
+}
+
+function getText(node) {
+    if (typeof (node.innerText) != "undefined") {
+        return node.innerText;
+    } else {
+        return node.textContent;
+    }
+}
+
+function RefleshPage() {
+	location.reload(true);
+}
+
+function NxlArraySort(a, b) {
+	if (a < b) {
+		return -1
+	}
+	if (a > b) {
+		return 1
+	}
+	return 0;
+}
+
+function HiddenCrmRibbonManager() {
+	var crmRibbon = window.parent.document.getElementById("crmRibbonManager");
+	//crmRibbon.style["visibility"] = "hidden";
+	crmRibbon.style["display"] = "none";
+}
+
+function  IsMessageBarHidden(){
+	var messageBar = window.parent.document.getElementById("crmAppMessageBar");
+	var bResult = true;
+	if(messageBar!=undefined && messageBar!=null){
+		if(messageBar.style["display"] == "none"){
+			bResult = true;
+		}else{
+			bResult = false;
+		}
+	}
+	return bResult;
+}
+
+function AdjustCrmContentPanelLocation(){
+	var CrmContentPanel = window.parent.document.getElementById("crmContentPanel");
+	if(IsMessageBarHidden()){
+		//console.log("have no message bar");
+	    CrmContentPanel.style["top"] = "50px";
+	}else{
+		//console.log("have message bar");
+		CrmContentPanel.style["top"] = "85px";
+	}
+}
+function showDetail(strTitle,strMsg){
+	//show detail
+	//msgDiv
+	var strContent="<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">"
+						+"<head>"
+							+"<meta charset=\"utf-8\" />"
+							+"<title>"+strTitle+"</title>"
+						+"</head>"
+						+"<body>"
+							+"<div id=\"divMain\" style=\"font-family:'Arial Bold', 'Arial';font-weight:700;height:600px;width:800px;\">"
+								+"<div id=\"divTitle\" style=\"width:600px;height:100px;border:1px solid #dddddd; background-color:rgba(228, 228, 228, 1);\">"
+									+"<p style=\"color:#666666;font-size:18px;text-align:center\">Exported Data</p>"
+									+"<p>Due to Internet Explorer security setting, you can not download exported file. Please copye and save as following contents to \"*.bin\" file</p>"
+								+"</div>"
+								+"<div id=\"divContent\" style=\"width:600px;height:400px;padding-top:25px;border:1px solid #dddddd\">"
+									+" <textarea style=\"height:350px;width:550px;margin-left:20px\">"+strMsg+"</textarea>"
+								+"</div>"
+							+"</div>"
+						+"</body>"
+					+"</html>";
+	var iPageHeight=600;
+	var iPageWidth=630;
+	var iPageTop= (window.screen.availHeight - 30 - iPageHeight) / 2; 
+	var iPageLeft=(window.screen.availWidth - 10 - iPageWidth) / 2; 
+
+	var  docPage=window.open('about:blank','','height='+iPageHeight+', width='+iPageWidth+', top='+iPageTop+', left='+iPageLeft+',toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, status=no')
+	docPage.document.write(strContent);
+}
+function IsNullOrNaNOrUndefined(obj)
+{
+	var bResult=true;
+	if(obj!=undefined&&obj!=null &&obj!=NaN)
+	{
+		bResult=false;
+	}
+	return bResult;
+}
+
+var SiteMap=
+{
+	CreateNew:function()
+	{
+		var SiteMap={};
+		SiteMap.Area=new Array();
+		return SiteMap;
+	}
+	
+};
+var Area=
+{
+	CreateNew:function()
+	{
+		var Area={};
+		Area.Name="";
+		Area.Entites=new Array();
+		return Area;
+	}
+	
+};
+function loadXMLDoc(xml) 
+{
+    var xmlDoc;
+    try //Internet Explorer
+    {
+        xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+        xmlDoc.async = "false";
+        xmlDoc.loadXML(xml);
+    }
+    catch (e) {
+        try //Firefox, Mozilla, Opera, etc.
+        {
+            var parser = new DOMParser();
+            xmlDoc = parser.parseFromString(xml, "text/xml");
+        }
+        catch (e) {
+            alert(e.message);
+        }
+    }
+    return xmlDoc;
+}
+function LoadSiteMap(siteMapXML)
+{
+	var xmlObject=loadXMLDoc(siteMapXML);
+	//Create SiteMap
+	var SiteMapNode=SiteMap.CreateNew();
+	
+	var elementsArea = xmlObject.getElementsByTagName("Area");
+	if(!IsNullOrNaNOrUndefined(elementsArea))
+	{
+		for (var iAreaIndex = 0; iAreaIndex < elementsArea.length; iAreaIndex++) 
+		{
+			var attrAreaResourceId=elementsArea[iAreaIndex].attributes.getNamedItem("ResourceId");
+			if(IsNullOrNaNOrUndefined(attrAreaResourceId))
+			{
+				var id=elementsArea[iAreaIndex].attributes.getNamedItem("Id");
+				if(!IsNullOrNaNOrUndefined(id))
+				{
+					if(id.value=="SI")
+					{
+						var attrAreaResourceId=new Object();
+						attrAreaResourceId.value="Area_Project Service";
+					}
+				}
+			}
+			if(!IsNullOrNaNOrUndefined(attrAreaResourceId))
+			{
+				var AreaNode=Area.CreateNew();
+				AreaNode.Name=attrAreaResourceId.value.replace("Area_","");
+			
+				var elementsGroups=elementsArea[iAreaIndex].getElementsByTagName("Group");
+				if(!IsNullOrNaNOrUndefined(elementsGroups))
+				{
+					for(var iGropsIndex=0;iGropsIndex<elementsGroups.length;iGropsIndex++)
+					{
+						var elementsSubArea= elementsGroups[iGropsIndex].getElementsByTagName("SubArea");
+						if(!IsNullOrNaNOrUndefined(elementsSubArea))
+						{
+							for(var iSubAreaIndex=0;iSubAreaIndex<elementsSubArea.length;iSubAreaIndex++)
+							{
+								var attrEntity=elementsSubArea[iSubAreaIndex].attributes.getNamedItem("Entity");
+								if(!IsNullOrNaNOrUndefined(attrEntity))
+								{
+									AreaNode.Entites.push(attrEntity.value);
+								}
+							}
+						}
+					}
+				}
+				SiteMapNode.Area.push(AreaNode);
+			//alert(attrAreaResourceId.value);
+			}
+			else
+			{
+				
+			}
+		}
+	}
+	return SiteMapNode;
+}
+
+function GetPluralDisplayName(obj){
+	var pluralDisplayName = "";
+	if(obj.DisplayCollectionName.UserLocalizedLabel!=null && obj.DisplayCollectionName.UserLocalizedLabel.Label!=null){
+		pluralDisplayName = obj.DisplayCollectionName.UserLocalizedLabel.Label;
+	}else{
+		pluralDisplayName = obj.SchemaName;
+	}
+	return pluralDisplayName;
+}
+
+function GetDisplayName(obj){
+	var displayName = "";
+	if(obj.DisplayName.UserLocalizedLabel!=null && obj.DisplayName.UserLocalizedLabel.Label!=null){
+		displayName = obj.DisplayName.UserLocalizedLabel.Label;
+	}else{
+		displayName = obj.SchemaName;
+	}
+	return displayName;
+}
+
+function GetAttributrType(obj){
+	var attrType = "";	    
+	if(obj.AttributeType=="Uniqueidentifier" && obj.IsPrimaryId==true){
+		attrType = "Primary Key";
+	}else if(obj.AttributeType=="Uniqueidentifier" && obj.IsPrimaryId==false){
+		attrType = "Unique Identifier";
+	}else{
+		attrType = AttributeDataType[obj.AttributeType];
+	}
+	if(attrType == undefined || attrType ==null || attrType == ""){		
+		attrType = obj.AttributeType;
+	}
+	return attrType;
+}
+
+function GetRequiredLevel(obj){
+	if(-1 != obj.RequiredLevel.Value.toLowerCase().indexOf("required")){
+		return "Required";
+	}else{
+		return "Optional";
+	}
+}
+function RedirectHomePage()
+{
+	window.open("nxl_entitlementmanagement.html","_self");
+}
+
+//Export Policy Model    -- begin
+function AddTagToPolicyModel(tags, tagKey , tagLabel){
+	var tag = new Object();
+	tag.id = 9999;
+	tag.key = tagKey;
+	tag.label = tagLabel;
+	tag.type = "POLICY_MODEL_TAG";
+	tag.status = "ACTIVE";
+	tag.hidden = false;
+	tags.push(tag);
+}
+// Export Policy Model    -- end
+
+//
+function GetCenterAxisTop(controlHeight)
+{
+	var iDisplayTop=0;
+	var iScreenHight=window.screen.height;
+	if(document.documentElement!=undefined&&document.documentElement!=null&&document.documentElement.clientHeight!=undefined&&document.documentElement.clientHeight!=null)
+	{
+		iScreenHight=document.documentElement.clientHeight; 
+	}
+	else if(document.body!=undefined&&document.body!=null&&document.body.clientHeight!=undefined&&document.body.clientHeight!=null)
+	{
+		iScreenHight=document.body.clientHeight; 
+	}
+	var iDialogboxHeight=controlHeight;
+	if(iScreenHight>iDialogboxHeight)
+	{
+		iDisplayTop=(iScreenHight-iDialogboxHeight)/2;
+	}
+	return iDisplayTop;
+}
+function GetCenterAxisLeft(controlWidth)
+{
+	var iDisplayLeft=0;
+	var iScreenWidth=window.screen.width;
+	if(document.documentElement!=undefined&&document.documentElement!=null&&document.documentElement.clientWidth!=undefined&&document.documentElement.clientWidth!=null)
+	{
+		iScreenWidth=document.documentElement.clientWidth; 
+	}
+	else if(document.body!=undefined&&document.body!=null&&document.body.clientWidth!=undefined&&document.body.clientWidth!=null)
+	{
+		iScreenWidth=document.body.clientWidth ; 
+	}
+	var iDialogboxWidth=controlWidth
+	if(iScreenWidth>iDialogboxWidth)
+	{
+		iDisplayLeft=(iScreenWidth-iDialogboxWidth)/2;
+	}
+	return iDisplayLeft;
+}			
+function NextlabsProcessBar(strTitle,strStaticMessage,strDynamicMessageTitle,iTotal)
+	{
+		var strProcessBarID="Nextlabs_ProcessBar_Control";
+		//this nextlabs process bar div
+		var domNextlabsProcessBar=document.createElement("div");
+		domNextlabsProcessBar.setAttribute("id",strProcessBarID)
+		domNextlabsProcessBar.style["position"]="fixed";
+		domNextlabsProcessBar.style["z-index"]="9999";
+		domNextlabsProcessBar.style["width"]="514px";
+		domNextlabsProcessBar.style["height"]="209px";
+		domNextlabsProcessBar.style["background-color"]="rgba(227, 227, 227, 0.498039215686275)";
+		domNextlabsProcessBar.style["border"]="none";
+		domNextlabsProcessBar.style["border-radius"]="5px";
+		domNextlabsProcessBar.style["-moz-box-shadow"]="none";
+		domNextlabsProcessBar.style["-webkit-box-shadow"]="none";
+		domNextlabsProcessBar.style["box-shadow:"]="none";
+		domNextlabsProcessBar.style["font-family"]="Arial";
+		domNextlabsProcessBar.style["font-weight"]="400";
+		domNextlabsProcessBar.style["font-style"]="none";
+		domNextlabsProcessBar.style["font-size"]="14px";
+		domNextlabsProcessBar.style["color"]="#333333";
+		
+		//this is nextlabs main div
+		var domNextlabsProcessBarMain=document.createElement("div");
+		domNextlabsProcessBarMain.style["margin"]="0 auto";
+		domNextlabsProcessBarMain.style["width"]="507px";
+		domNextlabsProcessBarMain.style["height"]="203px";
+		domNextlabsProcessBarMain.style["background-color"]="rgba(255, 255, 255, 1)";
+		domNextlabsProcessBarMain.style["box-sizing"]="border-box";
+		domNextlabsProcessBarMain.style["border-width"]="1px";
+		domNextlabsProcessBarMain.style["border-style"]="solid";
+		domNextlabsProcessBarMain.style["border-color"]="rgba(203, 204, 203, 1)";
+		domNextlabsProcessBarMain.style["border-radius"]="5px";
+		domNextlabsProcessBarMain.style["-moz-box-shadow"]="none";
+		domNextlabsProcessBarMain.style["-webkit-box-shadow"]="none";
+		domNextlabsProcessBarMain.style["box-shadow"]="none";
+		domNextlabsProcessBar.appendChild(domNextlabsProcessBarMain);
+		
+		//start title
+		//this is main title
+		var domNextlabsProcessBarTitle=document.createElement("div");
+		domNextlabsProcessBarTitle.style["width"]="505px";
+		domNextlabsProcessBarTitle.style["height"]="41px";
+		domNextlabsProcessBarTitle.style["background"]="linear-gradient(180deg, rgba(247, 247, 247, 1) 0%, rgba(247, 247, 247, 1) 0%, rgba(234, 234, 234, 1) 100%, rgba(234, 234, 234, 1) 100%)";
+		domNextlabsProcessBarTitle.style["border-bottom"]="1px";
+		domNextlabsProcessBarTitle.style["border-top"]="0px";
+		domNextlabsProcessBarTitle.style["border-left"]="0px";
+		domNextlabsProcessBarTitle.style["border-right"]="0px";
+		domNextlabsProcessBarTitle.style["border-radius"]="5px";
+		domNextlabsProcessBarTitle.style["border-bottom-right-radius"]="0px";
+		domNextlabsProcessBarTitle.style["border-bottom-left-radius"]="0px";
+		domNextlabsProcessBarTitle.style["border-style"]="solid";
+		domNextlabsProcessBarTitle.style["border-color"]="rgba(203, 204, 203, 1)";
+		domNextlabsProcessBarMain.appendChild(domNextlabsProcessBarTitle);
+		//this is title content
+		var domNextlabsProcessBarTitleContent=document.createElement("div");
+		domNextlabsProcessBarTitleContent.style["margin-left"]="28px";
+		domNextlabsProcessBarTitleContent.style["height"]="41px";
+		domNextlabsProcessBarTitleContent.style["line-height"]="41px";
+		domNextlabsProcessBarTitleContent.style["font-weight"]="700";
+		domNextlabsProcessBarTitleContent.style["font-size"]="16px";
+		domNextlabsProcessBarTitleContent.style["color"]="#111111";
+		domNextlabsProcessBarTitleContent.style["text-align"]="left";
+		domNextlabsProcessBarTitle.appendChild(domNextlabsProcessBarTitleContent);
+		//this is title content span
+		var domNextlabsProcessBarTitleContentSpan=document.createElement("span");
+		domNextlabsProcessBarTitleContentSpan.innerHTML=strTitle;
+		domNextlabsProcessBarTitleContent.appendChild(domNextlabsProcessBarTitleContentSpan);
+		//endtitle
+		
+		//start content(middle)
+		//this is content
+		var domNextlabsProcessBarContent=document.createElement("div");
+		domNextlabsProcessBarContent.style["height"]="159px";
+		domNextlabsProcessBarContent.style["width"]="auto";
+		domNextlabsProcessBarMain.appendChild(domNextlabsProcessBarContent);
+		
+		//this is empty div
+		var domNextlabsProcessBarContentEmpty=document.createElement("div");
+		domNextlabsProcessBarContentEmpty.style["height"]="14.5px";
+		domNextlabsProcessBarContentEmpty.style["width"]="505px";
+		domNextlabsProcessBarContent.appendChild(domNextlabsProcessBarContentEmpty);
+		//this is main message div
+		var domNextlabsProcessBarContentStaticMessage=document.createElement("div");
+		domNextlabsProcessBarContentStaticMessage.style["width"]="450px";
+		domNextlabsProcessBarContentStaticMessage.style["height"]="40px";
+		domNextlabsProcessBarContentStaticMessage.style["margin"]="0px auto 0 auto";
+		domNextlabsProcessBarContent.appendChild(domNextlabsProcessBarContentStaticMessage);
+		//this is span for static message
+		var domNextlabsProcessBarContentStaticMessageSpan=document.createElement("span");
+		domNextlabsProcessBarContentStaticMessageSpan.innerHTML=strStaticMessage;
+		domNextlabsProcessBarContentStaticMessage.appendChild(domNextlabsProcessBarContentStaticMessageSpan);
+		
+		//this is for dynamic message
+		var domNextlabsProcessBarContentDynamicMessage=document.createElement("div");
+		domNextlabsProcessBarContentDynamicMessage.style["width"]="450px";
+		domNextlabsProcessBarContentDynamicMessage.style["line-height"]="normal";
+		domNextlabsProcessBarContentDynamicMessage.style["margin"]="20.5px auto 0 auto";
+		domNextlabsProcessBarContent.appendChild(domNextlabsProcessBarContentDynamicMessage);
+		//this is span for dynamic message
+		var domNextlabsProcessBarContentDynamicMessageSpanTitle=document.createElement("span");
+		domNextlabsProcessBarContentDynamicMessageSpanTitle.innerHTML=strDynamicMessageTitle;
+		domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanTitle);
+		
+		var domNextlabsProcessBarContentDynamicMessageSpanIndex=document.createElement("span");
+		domNextlabsProcessBarContentDynamicMessageSpanIndex.innerHTML="0";
+		domNextlabsProcessBarContentDynamicMessageSpanIndex.style["margin-left"]="10px";
+		domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanIndex);
+		
+		var domNextlabsProcessBarContentDynamicMessageSpanSplie=document.createElement("span");
+		domNextlabsProcessBarContentDynamicMessageSpanSplie.innerHTML="/";
+		domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanSplie);
+		
+		var domNextlabsProcessBarContentDynamicMessageSpanTotal=document.createElement("span");
+		domNextlabsProcessBarContentDynamicMessageSpanTotal.innerHTML=iTotal;
+		domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanTotal);
+		
+		var domNextlabsProcessBarContentDynamicMessageSpanSplieSecond=document.createElement("span");
+		domNextlabsProcessBarContentDynamicMessageSpanSplieSecond.innerHTML=" : ";
+		domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanSplieSecond);
+		
+		var domNextlabsProcessBarContentDynamicMessageSpanCurrentTitle=document.createElement("span");
+		domNextlabsProcessBarContentDynamicMessageSpanCurrentTitle.innerHTML="";
+		domNextlabsProcessBarContentDynamicMessage.appendChild(domNextlabsProcessBarContentDynamicMessageSpanCurrentTitle);
+		
+		//this div for process bar
+		var domNextlabsProcessBarMainProcessBar=document.createElement("div");
+		domNextlabsProcessBarMainProcessBar.style["position"]="relative";
+		domNextlabsProcessBarMainProcessBar.style["width"]="450px";
+		domNextlabsProcessBarMainProcessBar.style["height"]="25px";
+		domNextlabsProcessBarMainProcessBar.style["margin"]="6.5px auto 0 auto";
+		domNextlabsProcessBarMainProcessBar.style["border-width"]="1px";
+		domNextlabsProcessBarMainProcessBar.style["background-color"]="rgba(255, 255, 255, 1)";
+		domNextlabsProcessBarMainProcessBar.style["box-sizing"]="border-box";
+		domNextlabsProcessBarMainProcessBar.style["border-style"]="solid";
+		domNextlabsProcessBarMainProcessBar.style["border-color"]="rgba(204, 204, 204, 1)";
+		domNextlabsProcessBarMainProcessBar.style["border-radius"]="0px";
+		domNextlabsProcessBarMainProcessBar.style["-moz-box-shadow"]="none";
+		domNextlabsProcessBarMainProcessBar.style["-webkit-box-shadow"]="none";
+		domNextlabsProcessBarMainProcessBar.style["box-shadow"]="none";
+		domNextlabsProcessBarContent.appendChild(domNextlabsProcessBarMainProcessBar);
+		//this dynamic bar
+		var domNextlabsProcessBarMainProcessBarDynamicBar=document.createElement("div");
+		domNextlabsProcessBarMainProcessBarDynamicBar.style["position"]="absolute";
+		domNextlabsProcessBarMainProcessBarDynamicBar.style["top"]="1px";
+		domNextlabsProcessBarMainProcessBarDynamicBar.style["left"]="1px";
+		domNextlabsProcessBarMainProcessBarDynamicBar.style["max-width"]="446px";
+		domNextlabsProcessBarMainProcessBarDynamicBar.style["width"]="0%";
+		domNextlabsProcessBarMainProcessBarDynamicBar.style["height"]="21px";
+		domNextlabsProcessBarMainProcessBarDynamicBar.style["background"]="linear-gradient(180deg, rgba(0, 124, 192, 1) 0%, rgba(0, 124, 192, 1) 0%, rgba(0, 109, 169, 1) 100%, rgba(0, 109, 169, 1) 100%)";		
+		domNextlabsProcessBarMainProcessBar.appendChild(domNextlabsProcessBarMainProcessBarDynamicBar)
+		
+		var domNextlabsProcessBarMainProcessBarDynamicTitle=document.createElement("div");
+		domNextlabsProcessBarMainProcessBarDynamicTitle.style["position"]="absolute";
+		domNextlabsProcessBarMainProcessBarDynamicTitle.style["left"]="218px";
+		domNextlabsProcessBarMainProcessBarDynamicTitle.style["width"]="40px";
+		domNextlabsProcessBarMainProcessBarDynamicTitle.style["font-size"]="12px";
+		domNextlabsProcessBarMainProcessBarDynamicTitle.style["height"]="23px";
+		domNextlabsProcessBarMainProcessBarDynamicTitle.style["line-height"]="23px";
+		domNextlabsProcessBarMainProcessBar.appendChild(domNextlabsProcessBarMainProcessBarDynamicTitle)
+		
+		var domNextlabsProcessBarMainProcessBarDynamicTitleDynamicSpan=document.createElement("span");
+		domNextlabsProcessBarMainProcessBarDynamicTitleDynamicSpan.innerHTML="0";
+		domNextlabsProcessBarMainProcessBarDynamicTitle.appendChild(domNextlabsProcessBarMainProcessBarDynamicTitleDynamicSpan);
+		
+		var domNextlabsProcessBarMainProcessBarDynamicTitleStaticSpan=document.createElement("span");
+		domNextlabsProcessBarMainProcessBarDynamicTitleStaticSpan.innerHTML="%";
+		domNextlabsProcessBarMainProcessBarDynamicTitle.appendChild(domNextlabsProcessBarMainProcessBarDynamicTitleStaticSpan);
+		this.Show=function()
+		{
+			var iDisplayTop=0;
+			var iDisplayLeft=0;
+			iDisplayTop=GetCenterAxisTop(209);
+			iDisplayLeft=GetCenterAxisLeft(514);
+			domNextlabsProcessBar.style["top"]=iDisplayTop+"px";
+			domNextlabsProcessBar.style["left"]=iDisplayLeft+"px";
+			
+			if(document.getElementById(strProcessBarID)==null)
+			{
+				document.documentElement.appendChild(domNextlabsProcessBar);
+			}
+		};
+		this.Hiddlen=function()
+		{
+			if(document.getElementById(strProcessBarID)!=null)
+			{
+				document.documentElement.removeChild(domNextlabsProcessBar);
+			}
+		}
+		this.SetCurrentIndex=function(index)
+		{
+			domNextlabsProcessBarContentDynamicMessageSpanIndex.innerHTML=index;
+		};
+		this.SetCurrentMessage=function(strMessage)
+		{
+			domNextlabsProcessBarContentDynamicMessageSpanCurrentTitle.innerHTML=strMessage;
+		};
+		this.setCurrentDynamicBar=function(iCurrect)
+		{
+			domNextlabsProcessBarMainProcessBarDynamicTitleDynamicSpan.innerHTML=iCurrect;
+			domNextlabsProcessBarMainProcessBarDynamicBar.style["width"]=iCurrect+"%";
+		};
+	}
+	
+	function NextlabsAlertMessage(strTitle)
+	{
+		var strAlertMessageDialogBoxId="Nextlabs_AlertMessageDialogBox_Control";
+		//Create Main Div
+		var domDivMain=document.createElement("div");
+		domDivMain.setAttribute("id",strAlertMessageDialogBoxId);
+		domDivMain.style["width"]=screen.width+"px"
+		domDivMain.style["height"]=screen.height+"px";
+		domDivMain.style["position"]="fixed";
+		domDivMain.style["z-index"]="10000";
+		domDivMain.style["left"]="0px";
+		domDivMain.style["top"]="0px";
+
+		
+		var domDivBackgroundMain=document.createElement("div");
+		domDivBackgroundMain.style["width"]=screen.width+"px"
+		domDivBackgroundMain.style["height"]=screen.height+"px";
+		domDivBackgroundMain.style["position"]="fixed";
+		domDivBackgroundMain.style["z-index"]="10000";
+		domDivBackgroundMain.style["left"]="0px";
+		domDivBackgroundMain.style["top"]="0px";
+		domDivBackgroundMain.style["background-color"]="rgb(47, 79, 79)";
+		domDivBackgroundMain.style["opacity"]="0.607843";
+		domDivMain.appendChild(domDivBackgroundMain);
+		
+		var domDivDialogBoxMain=document.createElement("div");
+		domDivDialogBoxMain.style["position"]="fixed";
+		domDivDialogBoxMain.style["opacity"]="1";
+		domDivDialogBoxMain.style["visibility"]="visible";
+		domDivDialogBoxMain.style["display"]="block";
+		domDivDialogBoxMain.style["z-index"]="10000";
+		domDivDialogBoxMain.style["width"]="400px";
+		domDivDialogBoxMain.style["height"]="200px";
+		domDivDialogBoxMain.style["border-width"]="1px";
+		domDivDialogBoxMain.style["border-style"]="solid";
+		domDivDialogBoxMain.style["border-color"]="rgb(221, 221, 221)";
+		domDivDialogBoxMain.style["border-image"]="initial";
+		domDivDialogBoxMain.style["background"]="white";
+		domDivDialogBoxMain.style["font-family"]="Arial";
+		domDivDialogBoxMain.style["font-weight"]="400";
+		domDivDialogBoxMain.style["font-style"]="normal";
+		domDivDialogBoxMain.style["font-size"]="13px";
+		domDivDialogBoxMain.style["color"]="rgb(51, 51, 51)";
+		domDivDialogBoxMain.style["text-align"]="center";
+		domDivDialogBoxMain.style["line-height"]="normal";
+		domDivMain.appendChild(domDivDialogBoxMain);
+		
+		
+		var domDivDialogBoxMainTitle=document.createElement("div");
+		domDivDialogBoxMainTitle.style["position"]="absolute";
+		domDivDialogBoxMainTitle.style["left"]="0px";
+		domDivDialogBoxMainTitle.style["top"]="0px";
+		domDivDialogBoxMainTitle.style["width"]="400px";
+		domDivDialogBoxMainTitle.style["height"]="40px";
+		domDivDialogBoxMainTitle.style["text-align"]="left";
+		domDivDialogBoxMainTitle.style["background"]="rgb(221, 221, 221)";
+		domDivDialogBoxMain.appendChild(domDivDialogBoxMainTitle);
+		
+		var domDivDialogBoxMainTitleSpan=document.createElement("span");
+		domDivDialogBoxMainTitleSpan.innerText=strTitle;
+		domDivDialogBoxMainTitleSpan.style["position"]="absolute";
+		domDivDialogBoxMainTitleSpan.style["left"]="20px";
+		domDivDialogBoxMainTitleSpan.style["top"]="15px";
+		domDivDialogBoxMainTitleSpan.style["font-family"]="'Arial Bold', Arial";
+		domDivDialogBoxMainTitleSpan.style["font-weight"]="700";
+		domDivDialogBoxMainTitleSpan.style["color"]="rgb(17, 17, 17)";
+		domDivDialogBoxMain.appendChild(domDivDialogBoxMainTitleSpan);
+		
+		var domDivDialogBoxMainContent=document.createElement("div");
+		domDivDialogBoxMainContent.style["position"]="absolute";
+		domDivDialogBoxMainContent.style["top"]="60px";
+		domDivDialogBoxMainContent.style["visibility"]="visible";
+		domDivDialogBoxMainContent.style["display"]="block";
+		domDivDialogBoxMain.appendChild(domDivDialogBoxMainContent);
+		
+		var domDivDialogBoxMainContentSpan=document.createElement("span");
+		domDivDialogBoxMainContentSpan.style["word-wrap"]="break-word";
+		domDivDialogBoxMainContentSpan.style["color"]="rgb(102, 102, 102)";
+		domDivDialogBoxMainContentSpan.style["line-height"]="20px";
+		domDivDialogBoxMainContentSpan.style["left"]="0px";
+		domDivDialogBoxMainContentSpan.style["position"]="absolute";
+		domDivDialogBoxMainContentSpan.style["width"]="380px";
+		domDivDialogBoxMainContentSpan.style["margin-left"]="10px";
+		domDivDialogBoxMainContentSpan.style["text-align"]="left";
+		domDivDialogBoxMainContentSpan.style["font-size"]="12px";
+		domDivDialogBoxMainContent.appendChild(domDivDialogBoxMainContentSpan);
+		
+		var domDivDialogBoxMainClose=document.createElement("div");
+		domDivDialogBoxMainClose.style["position"]="absolute";
+		domDivDialogBoxMainClose.style["left"]="0px";
+		domDivDialogBoxMainClose.style["top"]="140px";
+		domDivDialogBoxMainClose.style["width"]="400px";
+		domDivDialogBoxMainClose.style["height"]="60px";
+		domDivDialogBoxMainClose.style["text-align"]="left";
+		domDivDialogBoxMainClose.style["background"]="rgb(221, 221, 221)";
+		domDivDialogBoxMain.appendChild(domDivDialogBoxMainClose);
+		
+		
+		var domDivDialogBoxMainCloseButton=document.createElement("input");
+		domDivDialogBoxMainCloseButton.type="button";
+		domDivDialogBoxMainCloseButton.value="close";
+		domDivDialogBoxMainCloseButton.onclick=function()
+		{
+			if(document.getElementById(strAlertMessageDialogBoxId)!=null)
+			{
+				document.documentElement.removeChild(domDivMain);
+			}
+		}
+		domDivDialogBoxMainCloseButton.style["left"]="250px";
+		domDivDialogBoxMainCloseButton.style["position"]="absolute";
+		domDivDialogBoxMainCloseButton.style["top"]="20px";
+		domDivDialogBoxMainCloseButton.style["width"]="129px";
+		domDivDialogBoxMainCloseButton.style["height"]="30px";
+		domDivDialogBoxMainCloseButton.style["font-family"]="Arial";
+		domDivDialogBoxMainCloseButton.style["font-weight"]="400";
+		domDivDialogBoxMainCloseButton.style["font-style"]="normal";
+		domDivDialogBoxMainCloseButton.style["font-size"]="13px";
+		domDivDialogBoxMainCloseButton.style["text-decoration"]="none";
+		domDivDialogBoxMainClose.appendChild(domDivDialogBoxMainCloseButton);
+		
+		
+		this.Show=function(strMessage)
+		{
+			var iDisplayTop=0;
+			var iDisplayLeft=0;
+			iDisplayTop=GetCenterAxisTop(200);
+			iDisplayLeft=GetCenterAxisLeft(400);
+			domDivDialogBoxMain.style["top"]=iDisplayTop+"px";
+			domDivDialogBoxMain.style["left"]=iDisplayLeft+"px";
+			domDivDialogBoxMainContentSpan.innerHTML=strMessage;
+			if(document.getElementById(strAlertMessageDialogBoxId)==null)
+			{
+				document.documentElement.appendChild(domDivMain);
+			}
+		};
+	}

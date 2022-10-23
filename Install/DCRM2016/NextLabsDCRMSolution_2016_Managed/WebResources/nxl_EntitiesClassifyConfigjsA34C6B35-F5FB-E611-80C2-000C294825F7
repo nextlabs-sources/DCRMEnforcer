@@ -1,0 +1,15 @@
+
+var entitiedsClassifyConfig ={"entitiesClassifies":[
+ {"classifyName":"Administration and security entities", "contain":["businessunit","organization","systemform","systemuser","systemuserlicenses",
+  "systemuserprofiles","systemuserroles","team","teammembership","teamprofiles","teamroles","teamtemplate","role",
+  "roleprivileges","fieldpermission","fieldsecurityprofile","principalobjectattributeaccess","position"]},
+ {"classifyName":"Activity feeds entities","contain":["activitymimeattachment","activityparty", "activitypointer","msdyn_postalbum",
+  "msdyn_postconfig","msdyn_postruleconfig","post","postcomment","postfollow","postlike"]},
+ {"classifyName":"Customer entities", "contain":["account","contact","customeraddress","contactinvoices","contactleads","contactorders",
+  "contactquotes","customcontrol","customcontroldefaultconfig","customcontrolresource","customeropportunityrole",
+   "customerrelationship"]},
+ {"classifyName":"Business management entities", "contain":["azureserviceconnection","connection","connectionrole","connectionroleassociation",
+  "connectionroleobjecttypecode","customeropportunityrole ","customerrelationship","calendar","territory","queue",
+  "queueitem","queuemembership","sharepointsite","site","sitemap","subject"]},
+  ]
+};

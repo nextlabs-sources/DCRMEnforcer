@@ -1,0 +1,969 @@
+//===========================================================================
+//
+//  File Name:    Setup.rul
+//
+//  Description:  Blank setup main script file
+//
+//  Comments:     Blank setup is an empty setup project. If you want to
+//				  create a new project via. step-by step instructions use the
+//				  Project Assistant.
+//
+//===========================================================================
+
+// Included header files ----------------------------------------------------
+#include "ifx.h"
+
+
+export prototype ChangeConfig(STRING, STRING);
+export prototype UploadApp(STRING, STRING);
+export prototype EnableNextButton(INT,INT,BYREF STRING,BYREF STRING,BYREF STRING);
+export prototype AddSPOEHKey();			//add HKey
+export prototype CheckPC_KMC_Key();  	//check whether PC and KMC have been installed already
+export prototype SetSPOAppInfo();   	//read the config file to get the app info and intput it in Editor
+export prototype LIST ReadInfoFromRegistry(STRING, LIST);  //get list of the info from Register Editor
+export prototype WriteInfoToRegistry(STRING, LIST, LIST); //set the info into Regedit
+export prototype RestartService(STRING); // restart the running service or start stopped service which is existed
+
+#define RES_EDITCLIENTID 1302
+#define RES_EDITCLIENTSECRET 1305
+#define RES_EDITHOSTEDAPPDOMAIN 1307
+#define RES_EDITWEBURL 1308
+#define RES_REGISTERBUTTON 10002
+#define RES_DETECTEDXMLFILEEXISTS 10003
+#define RES_CLICKHERE 10004
+
+#define INSTALLFAILED "The wizard was interrupted before Entitlement Manager for Microsoft SharePoint Online could be completely installed.\n\n\nFail install: To complete install this program, please run the installation again at a later time."
+#define UNINSTALLFAILED "The wizard was interrupted before Entitlement Manager for Microsoft SharePoint Online could be completely uninstalled.\n\n\nFail uninstall: To complete uninstall this program, please run the uninstallation again at a later time."
+
+STRING 	clientId, clientSecret, hostedAppDomain, sharepointwebURL;
+BOOL 	DCSNotInstalled; // use for ensuring that the DCS hasn't been installed -[2016-1-24] Luke
+
+// Note: In order to have your InstallScript function executed as a custom
+// action by the Windows Installer, it must be prototyped as an 
+// entry-point function.
+
+// The keyword export identifies MyFunction() as an entry-point function.
+// The argument it accepts must be a handle to the Installer database.
+    
+/* export prototype MyFunction(HWND); */
+
+//---------------------------------------------------------------------------
+// OnMaintUIAfter
+//
+// The OnMaintUIAfter event called by the framework after the file transfer
+// of the setup when the setup is running in maintenance mode. By default
+// this event displays UI that informs the end user that the maintenance setup
+// has been completed successfully.
+//---------------------------------------------------------------------------
+function OnMaintUIAfter()
+    STRING szTitle, szMsg1, szMsg2, szOpt1, szOpt2;
+    NUMBER bOpt1, bOpt2;
+begin
+	Disable(STATUSEX);
+    
+    if( REMOVEALLMODE ) then
+        szTitle = SdLoadString(IFX_SDFINISH_REMOVE_TITLE);
+        szMsg1 	= SdLoadString(IFX_SDFINISH_REMOVE_MSG1);
+    else
+        szTitle = SdLoadString(IFX_SDFINISH_MAINT_TITLE);
+        szMsg1  = SdLoadString(IFX_SDFINISH_MAINT_MSG1);
+    endif;
+
+	bOpt1   = FALSE;
+    bOpt2   = FALSE;    
+
+    if ( BATCH_INSTALL ) then
+    	SdFinishReboot ( szTitle , szMsg1 , SYS_BOOTMACHINE , szMsg2 , 0 );
+    else    
+       	SdFinish ( szTitle , szMsg1 , szMsg2 , szOpt1 , szOpt2 , bOpt1 , bOpt2 );
+    endif;
+end;
+
+
+function ChangeConfig(szTitle, szMsg) 
+    string  szDlg, szDialogName, szAppRegisterInfo, szWordPadPath, szSPOEAppKey, szRMSAppKey, svValue;
+    number  nId, hwndParent, nResult, nMessage, nvType, nvSize;
+    HWND    hwndDlg, hwndItem_Label;  
+    BOOL   	bDone;    
+begin 
+    // Specify a name to identify the custom dialog in this installation. 
+	//   szDlg     = "ChangeConfig";     
+    // ensure general initialization is complete
+    if( !bSdInit ) then
+        SdInit();
+    endif;  
+    
+    szDialogName 		= "ChangeConfig";
+    szAppRegisterInfo 	= SUPPORTDIR ^ "AppRegisterInfo.exe";
+    szSPOEAppKey		= "SOFTWARE\\Nextlabs\\SPOE";
+    szRMSAppKey			= "SOFTWARE\\Nextlabs\\RMS";
+ //   hInstance  = 0;
+    hwndParent = 0;
+
+	nResult = EzDefineDialog(szDialogName, "", "", 12099);
+	
+    // Initialize the indicator used to control the while loop. 
+    bDone = FALSE;
+
+    // Loop until done. 
+    while (!bDone)
+
+        // Display the dialog and return the next dialog event. 
+		nId = WaitOnDialog(szDialogName);  
+			
+        // Respond to the event. 
+        switch(nId) 
+            case DLG_INIT:
+				hwndDlg = CmdGetHwndDlg(szDialogName);
+				hwndItem_Label = CtrlGetDlgItem("", hwndDlg, RES_DETECTEDXMLFILEEXISTS);
+				// set root key to HKEY_CURRENT_USER
+				RegDBSetDefaultRoot(HKEY_CURRENT_USER);				
+				// check wether the xml file already exists
+				if RegDBGetKeyValueEx(szSPOEAppKey, "ClientId", nvType, svValue,nvSize) = 0 then 
+					// show the Label to tell user the App Info has been detected
+					ShowWindow(hwndItem_Label, SW_SHOW);
+					SetSPOAppInfo();
+				else
+					ShowWindow(hwndItem_Label, SW_HIDE);
+				endif;
+                 // No initialization is required for this example.
+				CtrlGetText(szDialogName, RES_EDITCLIENTID, 		clientId);
+				CtrlGetText(szDialogName, RES_EDITCLIENTSECRET, 	clientSecret);
+				CtrlGetText(szDialogName, RES_EDITHOSTEDAPPDOMAIN, 	hostedAppDomain);
+				SdGeneralInit(szDialogName, hwndDlg, STYLE_BOLD,szSdProduct);
+				SdSetDlgTitle(szDialogName, hwndDlg, szTitle);
+				EnableNextButton(hwndDlg, NEXT, clientId, clientSecret,hostedAppDomain);
+            case NEXT: 
+                CtrlGetText(szDialogName, RES_EDITCLIENTID, 		clientId);
+                CtrlGetText(szDialogName, RES_EDITCLIENTSECRET, 	clientSecret);
+                CtrlGetText(szDialogName, RES_EDITHOSTEDAPPDOMAIN, 	hostedAppDomain);
+                LaunchAppAndWait(szAppRegisterInfo, 
+								 clientId + " " + clientSecret + " " + hostedAppDomain, 
+								 LAAW_OPTION_HIDDEN);                
+                nId   = NEXT;
+                bDone = TRUE; 
+            case BACK: 
+                nId    = BACK;
+                bDone = TRUE;  
+            case DLG_ERR: 
+                SdError( -1, "Errrrrrrr" );
+                nId    = -1; 
+                bDone  = TRUE;   
+            case DLG_CLOSE:   
+                SdCloseDlg( hwndDlg, nId, bDone );    
+            case RES_EDITCLIENTID:
+				nMessage = CtrlGetSubCommand(szDialogName);
+				if(nMessage = EDITBOX_CHANGE) then
+					CtrlGetText(szDialogName, RES_EDITCLIENTID, 		clientId);
+					CtrlGetText(szDialogName, RES_EDITCLIENTSECRET, 	clientSecret);
+					CtrlGetText(szDialogName, RES_EDITHOSTEDAPPDOMAIN, 	hostedAppDomain);
+				endif;
+				EnableNextButton( hwndDlg, NEXT, clientId, clientSecret, hostedAppDomain);
+			case RES_EDITCLIENTSECRET:
+				nMessage = CtrlGetSubCommand(szDialogName);
+				if(nMessage = EDITBOX_CHANGE) then
+					CtrlGetText(szDialogName, RES_EDITCLIENTID, 		clientId);
+					CtrlGetText(szDialogName, RES_EDITCLIENTSECRET, 	clientSecret);
+					CtrlGetText(szDialogName, RES_EDITHOSTEDAPPDOMAIN, 	hostedAppDomain);
+				endif;
+				EnableNextButton( hwndDlg, NEXT, clientId, clientSecret, hostedAppDomain);
+            case RES_EDITHOSTEDAPPDOMAIN:
+				nMessage = CtrlGetSubCommand(szDialogName);
+				if(nMessage = EDITBOX_CHANGE) then
+					CtrlGetText(szDialogName, RES_EDITCLIENTID, 		clientId);
+					CtrlGetText(szDialogName, RES_EDITCLIENTSECRET, 	clientSecret);
+					CtrlGetText(szDialogName, RES_EDITHOSTEDAPPDOMAIN, 	hostedAppDomain);
+				endif;
+				EnableNextButton( hwndDlg, NEXT, clientId, clientSecret, hostedAppDomain);
+			case RES_REGISTERBUTTON:
+				// hide the Label while user want to register new App Info
+				ShowWindow(hwndItem_Label, SW_HIDE);
+				//LaunchApp(szIE, szIECmdLine);
+				//LaunchApp(szWordPad,szWordPadCmdLine);
+				LaunchAppAndWait(szAppRegisterInfo, sharepointwebURL, LAAW_OPTION_HIDDEN); // run AppRegisterInfo to start BrowserWindow and do not show console
+			case RES_CLICKHERE:
+				SetSPOAppInfo();
+            default: 
+                // check standard handling
+				if(SdIsStdButton( nId ) && SdDoStdButton( nId )) then
+                 bDone = TRUE;
+			endif;
+		endswitch; 
+	endwhile;
+
+    // Cleanup Dialog
+    EndDialog( szDialogName );
+    ReleaseDialog( szDialogName );
+    SdUnInit();
+    // record data produced by this dialog
+    if( MODE = RECORDMODE ) then
+    endif;
+    return nId;
+end;
+
+
+
+function UploadApp(szTitle, szMsg) 
+    string  szDialogName, szCommand, szCmdLine;
+    number  nId, hwndParent, nResult,nMessage;
+    HWND    hwndDlg,hwndItem;  
+    BOOL   	bDone;    
+begin 
+
+    if( !bSdInit ) then
+        SdInit();
+    endif;  
+    
+    szDialogName = "UploadApp";
+	//   hInstance  = 0;
+    hwndParent = 0;
+
+	nResult = EzDefineDialog(szDialogName, "", "", 12098);
+
+    // Initialize the indicator used to control the while loop. 
+    bDone = FALSE;
+
+    // Loop until done. 
+    while (!bDone)
+
+        // Display the dialog and return the next dialog event. 
+        nId = WaitOnDialog(szDialogName);  
+
+        // Respond to the event. 
+        switch(nId) 
+            case DLG_INIT:
+                 // No initialization is required for this example.
+                 
+               hwndItem = CtrlGetDlgItem("", hwndDlg, 1321 );
+               
+               CtrlGetText(szDialogName, RES_EDITWEBURL, sharepointwebURL);
+               hwndDlg = CmdGetHwndDlg(szDialogName);
+               SdGeneralInit(szDialogName,hwndDlg,STYLE_BOLD,szSdProduct);
+               SdSetDlgTitle(szDialogName,hwndDlg,szTitle);
+               EnableNextButton( hwndDlg, NEXT, sharepointwebURL,sharepointwebURL,sharepointwebURL);
+            case NEXT: 
+                CtrlGetText(szDialogName, RES_EDITWEBURL, sharepointwebURL);           
+                nId   = NEXT;
+                bDone = TRUE; 
+            case BACK: 
+                nId    = BACK;
+                bDone = TRUE;  
+            case DLG_ERR: 
+                SdError( -1, "Errrrrrrr" );
+                nId    = -1; 
+                bDone  = TRUE;   
+            case DLG_CLOSE:   
+                SdCloseDlg( hwndDlg, nId, bDone );    
+            case RES_EDITWEBURL:
+                nMessage = CtrlGetSubCommand(szDialogName);
+                if(nMessage = EDITBOX_CHANGE) then
+                     CtrlGetText(szDialogName, RES_EDITWEBURL, sharepointwebURL);    
+				endif;
+				EnableNextButton( hwndDlg, NEXT, sharepointwebURL,sharepointwebURL,sharepointwebURL);   
+            default: 
+                // check standard handling
+			if(SdIsStdButton( nId ) && SdDoStdButton( nId )) then
+					bDone = TRUE;
+			endif;
+		endswitch; 
+	endwhile;
+
+    // Cleanup Dialog
+    EndDialog( szDialogName );
+    ReleaseDialog( szDialogName );
+    SdUnInit();
+    // record data produced by this dialog
+    if( MODE = RECORDMODE ) then
+    endif;
+    return nId;
+end;
+
+
+
+
+//---------------------------------------------------------------------------
+// OnFirstUIBefore
+//
+// The OnFirstUIBefore event is called by the framework when the setup is
+// running in first install mode. By default this event displays UI allowing
+// the end user to specify installation parameters.
+//---------------------------------------------------------------------------
+function OnFirstUIBefore()
+    NUMBER 	nResult, nSetupType, nvSize, nUser;
+    STRING 	szTitle, szMsg, szOpt1, szOpt2, szLicenseFile;
+	BOOL 	bLicenseAccepted;
+begin 
+    // TO DO: if you want to enable background, window title, and caption bar title                                                                   
+    // SetTitle( @PRODUCT_NAME, 24, WHITE );                                        
+    SetTitle( @PRODUCT_NAME, 0, BACKGROUNDCAPTION ); //[2016-1-22]set default title -[2016-1-22] Luke                 
+    // Enable( FULLWINDOWMODE );						   
+    // Enable( BACKGROUND );							  
+    // SetColor(BACKGROUND,RGB (0, 128, 128));
+
+    // Added in InstallShield 15 - Show an appropriate error message if
+    // -removeonly is specified and the product is not installed.
+    if( REMOVEONLY ) then
+        Disable( DIALOGCACHE );
+		szMsg = SdLoadString( IDS_IFX_ERROR_PRODUCT_NOT_INSTALLED_UNINST );
+   		SdSubstituteProductInfo( szMsg );
+		MessageBox( szMsg, SEVERE );
+		abort;
+    endif;
+    
+	nSetupType			= TYPICAL;
+	bLicenseAccepted 	= FALSE;					   
+    szTitle 			= @PRODUCT_NAME; //assigned szTitle as a local variable in OnFirstUIBefore() -[2016-1-22] Luke
+
+//Dlg_Start:
+//    nResult = 0;
+
+Dlg_SdWelcome:
+    //szTitle = "NextLabs Entitlement Management - InstallShield Wizard"; // Delete the assignment -[2016-1-22] Luke
+    szMsg   	= "";
+    // Use Default SdWelcome szTitle but not local variable szTitle -[2016-1-22] Luke
+    nResult 	= SdWelcome("", szMsg); 
+    if (nResult = BACK) goto Dlg_SdWelcome;
+
+  
+/*Dlg_SetupType:
+    szTitle = "";
+    szMsg   = "";
+    nResult = SetupType2(szTitle, szMsg, "", nSetupType, 0);
+    if (nResult = BACK) then
+        goto Dlg_SdWelcome;
+    else
+	    nSetupType = nResult;
+        if (nSetupType != CUSTOM) then
+	        nvSize = 0;
+	        FeatureCompareSizeRequired(MEDIA, INSTALLDIR, nvSize);
+	        if (nvSize != 0) then      
+            	MessageBox(szSdStr_NotEnoughSpace, WARNING);
+	            goto Dlg_SetupType;
+            endif;
+			bCustom = FALSE;
+			goto Dlg_SQL;
+		else
+			bCustom = TRUE;
+        endif;
+    endif;    */
+
+/*Dlg_SdAskDestPath:    	
+    nResult = SdAskDestPath(szTitle, szMsg, INSTALLDIR, 0);
+    if (nResult = BACK) goto Dlg_SetupType;*/
+
+/*Dlg_SdFeatureTree: 
+    szTitle    = "";
+    szMsg      = "";
+    if (nSetupType = CUSTOM) then
+		nResult = SdFeatureTree(szTitle, szMsg, INSTALLDIR, "", 2);
+		if (nResult = BACK) goto Dlg_SdAskDestPath;  
+    endif;
+*/
+
+/*Dlg_SQL:
+    nResult = OnSQLLogin( nResult );
+    if( nResult = BACK ) then
+    	if (!bCustom) then
+    		goto Dlg_SetupType;    
+    	else
+    		goto Dlg_SdFeatureTree;
+    	endif;
+    endif;
+   
+*/
+
+Dlg_SdLicense2:
+    //szTitle = ""; 
+    szOpt1 = "";
+    szOpt2 = "";
+    //{{IS_SCRIPT_TAG(License_File_Path)
+     szLicenseFile =SUPPORTDIR ^ "NextLabs Clickwrap Agreement v5-07 (2).rtf";   
+    //}}IS_SCRIPT_TAG(License_File_Path)
+    //{{IS_SCRIPT_TAG(Dlg_SdLicense2)
+    // Use Default SdLicense2Rtf szTitle but not local variable szTitle -[2016-1-22] Luke
+    nResult = SdLicense2Rtf("", szOpt1, szOpt2, szLicenseFile, bLicenseAccepted );
+    //}}IS_SCRIPT_TAG(Dlg_SdLicense2)
+    if (nResult = BACK) then
+        goto Dlg_SdWelcome;
+    else
+        bLicenseAccepted = TRUE;
+    endif;
+
+
+  Dlg_UploadApp:   
+	// Use local variable szTitle -[2016-1-22] Luke
+    nResult = UploadApp(szTitle, "" );
+    if(nResult = BACK) then
+		goto Dlg_SdLicense2;
+    endif;
+  
+  
+  Dlg_ChangeConfig:
+	// Use local variable szTitle -[2016-1-22] Luke
+    nResult = ChangeConfig(szTitle, "" );
+    if( nResult = BACK ) then
+		goto Dlg_UploadApp;
+    endif;
+
+  Dlg_SdStartCopy:
+    //szTitle = ""; // delete -[2016-1-22] Luke
+    szMsg   = "";
+    // Use Default SdStartCopy2 szTitle but not local variable szTitle -[2016-1-22] Luke
+    nResult = SdStartCopy2( szTitle, szMsg );				
+    if (nResult = BACK) then
+       goto Dlg_ChangeConfig;
+    endif;
+    // Added in IS 2009 - Set appropriate StatusEx static text.
+    SetStatusExStaticText( SdLoadString( IDS_IFX_STATUSEX_STATICTEXT_FIRSTUI ) );
+    // setup default status
+    Enable(STATUSEX);
+ 
+    return 0;
+    
+end;
+
+
+//---------------------------------------------------------------------------
+// OnUninstall
+//
+// The OnUninstall event is called when the setup is run with the -uninst
+// switch, in this case this is the only event that will be called.
+//---------------------------------------------------------------------------
+function OnUninstall()
+	BOOL   bOpt1, bOpt2;
+	int    nReturn;
+	string szTitle, szMsg1, szMsg2, szOpt1, szOpt2, svResult, szCaption;
+begin
+	
+    // Added in InstallShield 15 - Show an appropriate error message if
+    // -uninst is specified and the product is not installed.
+    if( !MAINTENANCE ) then
+		szMsg1 = SdLoadString( IDS_IFX_ERROR_PRODUCT_NOT_INSTALLED_UNINST );
+   		SdSubstituteProductInfo( szMsg1 );
+		MessageBox( szMsg1, SEVERE );
+		abort;
+    endif;
+
+    svResult 	= SdLoadString(ISWI_IS5_UNINST_MSG);
+	szCaption 	= SdLoadString(IFX_ONMAINTUI_CAPTION);
+	Sprintf (svResult, svResult, @PRODUCT_NAME);
+	if (IDCANCEL = SprintfBox(MB_OKCANCEL, szCaption, svResult)) then
+		abort; 
+	endif;
+
+	// Added in IS 2009 - Set appropriate StatusEx static text.
+    SetStatusExStaticText( SdLoadString( IDS_IFX_STATUSEX_STATICTEXT_MAINTUI_REMOVEALL ) );
+
+    // Uninstall the application
+	Enable(STATUSEX);
+    ComponentRemoveAll();
+    ComponentTransferData(MEDIA);
+	Disable(STATUSEX);
+
+	bOpt1 = FALSE;
+	bOpt2 = FALSE;
+
+    // Show final dialog.
+    if ( BATCH_INSTALL ) then
+        SdFinishReboot( SdLoadString(IFX_SDFINISH_REMOVE_TITLE), SdLoadString(IFX_SDFINISH_REMOVE_MSG2), SYS_BOOTMACHINE, "", 0 );
+    else    
+        SdFinish( SdLoadString(IFX_SDFINISH_REMOVE_TITLE), SdLoadString(IFX_SDFINISH_REMOVE_MSG1), "", "" , "", bOpt1 , bOpt2 );
+    endif;
+
+end;
+
+
+//---------------------------------------------------------------------------
+// OnMaintUIBefore
+//
+// The OnMaintUIBefore event is called by the framework when the setup is
+// running in maintenance mode. By default this event displays UI that
+// allows the end user to add or remove features, repair currently
+// installed features or uninstall the application.
+//---------------------------------------------------------------------------
+function OnMaintUIBefore()
+	NUMBER nResult, nType;
+	STRING szTitle, szMsg, svDir, svResult, szCaption;
+begin
+	// TO DO: if you want to enable background, window title, and caption bar title   								
+	// SetTitle( @PRODUCT_NAME, 24, WHITE );					
+	// SetTitle( @PRODUCT_NAME, 0, BACKGROUNDCAPTION );  			
+	// SetColor(BACKGROUND,RGB (0, 128, 128));					
+	// Enable( FULLWINDOWMODE );						
+	// Enable( BACKGROUND );							
+	
+Dlg_Start:
+
+    // Added in Version 9.5 - Support for REMOVEONLY option.
+    if( !REMOVEONLY ) then
+		// In standard mode show maintenance dialog
+		Disable(BACKBUTTON);
+		nType = SdWelcomeMaint(szTitle, szMsg, MODIFY);
+		Enable(BACKBUTTON);
+	else
+        // Hide the initial progress dialog as otherwise the user can
+        // click on it, and hide the MessageBox.
+        Disable( DIALOGCACHE );
+
+        // In RemoveOnly mode, set to remove.
+        nType = REMOVEALL;
+    endif;
+	
+	// Show Uninstall Confirmation Dialog
+    if ( nType = REMOVEALL ) then
+		nResult = MessageBox( SdLoadString( IFX_MAINTUI_MSG ), MB_YESNO );
+		if (nResult != IDYES ) then
+            
+            if( REMOVEONLY ) then
+                // In REMOVEONLY mode, abort the setup.
+                abort;
+            else
+                // In non-REMOVEONLY mode, redisplay the previous dialog.
+			    goto Dlg_Start;
+            endif;
+
+		endif;
+	endif;
+
+	nResult = NEXT;
+
+Dlg_SdFeatureTree:
+	if (nType = MODIFY) then
+		szTitle = "";
+		szMsg 	= "";
+		nResult = SdFeatureTree(szTitle, szMsg, INSTALLDIR, "", 2);
+		if (nResult = BACK) goto Dlg_Start;
+	endif;
+
+	switch(nType)
+        case REMOVEALL: 
+        
+            ComponentRemoveAll();
+
+            // Added in IS 2009 - Set appropriate StatusEx static text.
+            SetStatusExStaticText( SdLoadString( IDS_IFX_STATUSEX_STATICTEXT_MAINTUI_REMOVEALL ) );
+
+        case REPAIR:
+        
+            ComponentReinstall();
+
+            // Added in IS 2009 - Set appropriate StatusEx static text.
+            SetStatusExStaticText( SdLoadString( IDS_IFX_STATUSEX_STATICTEXT_MAINTUI_REPAIR ) );
+
+
+        case MODIFY:
+
+            // Added in IS 2009 - Set appropriate StatusEx static text.
+            SetStatusExStaticText( SdLoadString( IDS_IFX_STATUSEX_STATICTEXT_MAINTUI_MODIFY ) );
+
+    endswitch;
+    
+	Enable(STATUSEX);
+
+end;
+
+
+
+//---------------------------------------------------------------------------
+// OnFirstUIAfter
+//
+// The OnFirstUIAfter event called by the framework after the file transfer
+// of the setup when the setup is running in first install mode. By default
+// this event displays UI that informs the end user that the setup has been
+// completed successfully.
+//---------------------------------------------------------------------------
+function OnFirstUIAfter()
+    STRING szTitle, szMsg1, szMsg2, szOpt1, szOpt2, szRegisterAADAppExe, szRegisterAADAppCmd, szInstallDCSBat, szChangeIdSecretExe, szChangeSPOECmd, szChangeRMSCmd, szUploadExe, szUploadCmd;
+    STRING szInstallInfo, svName, svValue, svResultAtLast;
+    NUMBER bOpt1, bOpt2, nResult, nListResult;
+    LIST   lvKeyNames, lvKeyValues;
+begin
+	szInstallInfo = "SOFTWARE\\Nextlabs\\InstallInfo";
+	Disable(STATUSEX);
+	
+	szRegisterAADAppExe = SUPPORTDIR ^ "AzureADAppRegister.exe";
+	szRegisterAADAppCmd = "Nextlabs" 
+						+ " " + "http://localhost:22224";
+						
+	szInstallDCSBat 	= SUPPORTDIR ^ "AutoInstallDCS.bat";
+	
+	szChangeIdSecretExe = SUPPORTDIR ^ "ChangeClientIDAndSecureNumber.exe";
+	szChangeSPOECmd 	= IISROOTFOLDER ^ "NLSPOLEventHandlerApp.app"
+						+ " " + IISROOTFOLDER ^ "NLSPOERER"
+						+ " " + "spoe";
+						
+	szChangeRMSCmd		= IISROOTFOLDER ^ "SPOE.RMS.app"
+						+ " " + IISROOTFOLDER ^ "NLSPOERER"
+						+ " " + "rms";
+						
+	szUploadExe 		= SUPPORTDIR ^ "UploadFileToSharePoint.exe";
+	szUploadCmd 		= sharepointwebURL
+						+ " " + "\"Apps for SharePoint\""
+						+ " " + IISROOTFOLDER ^ "NLSPOLEventHandlerApp.app"
+						+ " " + IISROOTFOLDER ^ "SPOE.RMS.app";
+	lvKeyNames 	= ListCreate(STRINGLIST);
+	//ListAddString(lvKeyNames, "RegisterAzureADApp", AFTER);
+	ListAddString(lvKeyNames, "ChangeSPOEApp", 		AFTER);
+	ListAddString(lvKeyNames, "ChangeRMSApp", 		AFTER);
+	ListAddString(lvKeyNames, "UploadApps", 		AFTER);
+	
+	lvKeyValues = ListCreate(STRINGLIST);
+	//ListAddString(lvKeyValues, "failed", AFTER);
+	ListAddString(lvKeyValues, "failed", AFTER);
+	ListAddString(lvKeyValues, "failed", AFTER);
+	ListAddString(lvKeyValues, "failed", AFTER);
+						
+	// set every tools running result to failed				
+	RegDBSetDefaultRoot(HKEY_CURRENT_USER);					
+	WriteInfoToRegistry(szInstallInfo, lvKeyNames, lvKeyValues);
+	// delete lvKeyValues for using again
+	ListDeleteAll(lvKeyValues);	
+						
+	//if LaunchAppAndWait(szRegisterAADAppExe, szRegisterAADAppCmd, WAIT) < 0 then
+		//MessageBox("failed", SEVERE);
+	//endif;
+	
+	if(DCSNotInstalled) then
+		// Add for installing DCS by cmd -[2016-1-22] Luke
+		if (LaunchAppAndWait(szInstallDCSBat, "", WAIT) < 0) then 
+			MessageBox ("failed", SEVERE);
+		endif;
+	endif;
+	
+	if (LaunchAppAndWait(szChangeIdSecretExe, szChangeSPOECmd, WAIT) < 0) then
+		MessageBox ("failed", SEVERE);                     
+	endif;
+	
+	if (LaunchAppAndWait(szChangeIdSecretExe, szChangeRMSCmd, WAIT) < 0) then
+		MessageBox ("failed", SEVERE);                     
+	endif;
+
+	if (LaunchAppAndWait(szUploadExe, szUploadCmd, WAIT) < 0) then 
+		MessageBox ("failed", SEVERE);                    
+	endif;
+	
+	// get the result in Regeditor
+	lvKeyValues = ReadInfoFromRegistry(szInstallInfo, lvKeyNames);
+	nListResult = ListGetFirstString(lvKeyValues, svValue);
+	ListGetFirstString(lvKeyNames, svName);
+	
+	nResult = TRUE;
+	while (nListResult != END_OF_LIST)
+		if svValue == "failed" then
+			svResultAtLast = svResultAtLast + "The Operation: " + svName + " is failed, please check it\n";
+			nResult = FALSE;
+		endif;
+		nListResult = ListGetNextString(lvKeyValues, svValue);
+		ListGetNextString(lvKeyNames, svName);
+	endwhile;
+	
+	// finally restart 'rms' service
+	RestartService("rms");
+	
+	bOpt1 = FALSE;
+    bOpt2 = FALSE;    
+    if ( BATCH_INSTALL ) then
+    	SdFinishReboot ( szTitle , szMsg1 , SYS_BOOTMACHINE , szMsg2 , 0 );
+    else
+		if(nResult = FALSE) then
+			SdFinish(szTitle,
+					 INSTALLFAILED,//"Something Wrong in installing Nextlabs Entitlement Manager for Microsoft SharePoint Online.\n" + svResultAtLast,
+					 szMsg2 , szOpt1 , szOpt2 , bOpt1 , bOpt2);
+		else
+			SdFinish ( szTitle , szMsg1 , szMsg2 , szOpt1 , szOpt2 , bOpt1 , bOpt2 );
+		endif;
+	endif;
+end;
+
+function EnableNextButton(hwndDlg,nControlID, str1,str2, str3)
+	HWND 	hwndItem; 
+	NUMBER 	nVar;
+	BOOL 	bsuccess;
+begin 
+	hwndItem = CtrlGetDlgItem("", hwndDlg, nControlID );
+
+	if (!IsWindow(hwndItem)) then return FALSE; endif;
+
+	// trim trailing spaces from each field
+	StrTrim(str1);
+	StrTrim(str3);
+	StrTrim(str2);
+	bsuccess=TRUE;
+	// if any of the fields are empty, disable the Next button
+	if(str1 = "" || str2 = ""||str3 = "") then
+		bsuccess = FALSE;
+	endif;
+	EnableWindow( hwndItem, bsuccess ); 
+end;
+ 
+//---------------------------------------------------------------------------
+// AddSPOEHKey  add by EmilyLv
+//
+// The AddSPOEHKey function called by OnInstallFilesActionAfter().
+// This function creats HKEY_LOCAL_MACHINE\SOFTWARE\NextLabs\SPOE registry.
+// And add new key : InstallDir and InstallDirRER.
+//---------------------------------------------------------------------------
+function AddSPOEHKey() 
+    number nRootKey,nType;  
+    string szKey,szClass; 
+begin
+	// Add by Luke [2016-1-13]: check wether the system is 64-bit or 32-bit
+	// if it's 64-bit OS, change the value of REGDB_OPTIONS to REGDB_OPTION_WOW64_64KEY
+	if  (SYSINFO.bIsWow64) then 
+		REGDB_OPTIONS = REGDB_OPTION_WOW64_64KEY ;
+	endif;
+	
+	nRootKey = HKEY_LOCAL_MACHINE;  
+	RegDBSetDefaultRoot (nRootKey); 
+	szKey = "SOFTWARE\\NextLabs\\SPOE";  
+	if RegDBKeyExist(szKey) < 0 then 
+		RegDBCreateKeyEx(szKey,""); 
+	endif;  
+	nType = REGDB_STRING;     
+	if (RegDBSetKeyValueEx(szKey,"InstallDir",nType,IISROOTFOLDER,-1) < 0) then
+		MessageBox ("Config Registry Key failed", SEVERE); 
+	endif;
+	if(RegDBSetKeyValueEx(szKey,"InstallDirRER",nType,IISROOTFOLDER^"NLSPOERER",-1)< 0)then
+		MessageBox ("Config Registry Key failed", SEVERE); 
+	endif;
+end; 
+
+ 
+//---------------------------------------------------------------------------
+// OnInstallFilesActionAfter
+//
+// The InstallFilesActionAfter event is called just after the standard MSI
+// action 'InstallFiles' is executed.
+//---------------------------------------------------------------------------
+function OnInstallFilesActionAfter()
+	LIST lvKeyNames, lvKeyValues;
+begin
+	AddSPOEHKey();
+	lvKeyNames 	= ListCreate(STRINGLIST);
+	ListAddString(lvKeyNames, "PolicyDefaultBehavior", AFTER);
+	lvKeyValues = ListCreate(STRINGLIST);
+	ListAddString(lvKeyValues, "Deny", AFTER);
+	
+	RegDBSetDefaultRoot(HKEY_CURRENT_USER);
+	WriteInfoToRegistry("SOFTWARE\\Nextlabs\\SPOE", lvKeyNames, lvKeyValues);
+end;
+
+//---------------------------------------------------------------------------
+// OnFilterComponents
+//
+// The OnFilterComponents event is called by the framework to filter out
+// components in each feature by language and platform, override this
+// event to perform custom filtering.
+//
+// Note: This event will not be called automatically in a
+// program...endprogram style setup.
+//---------------------------------------------------------------------------
+function OnFilterComponents()
+begin
+    // Filter file groups by current platform.
+    FeatureFilterOS(MEDIA, 0, ISOSL_ALL, TRUE);
+    FeatureFilterOS(MEDIA, 0, SYSINFO.nISOSL, FALSE);
+ 
+    // Filter file groups by current language.
+    FeatureFilterLanguage(MEDIA, ISLANG_ALL, TRUE);
+    FeatureFilterLanguage(MEDIA, STANDARD_SELECTED_LANGUAGE, FALSE);
+end;
+
+//---------------------------------------------------------------------------
+// [2016-1-24] Modify by Luke
+// add steps to check wether DCS has been installed, if it has been installed,
+// then not run the BAT file to install DCS again.
+//
+// CheckPC_KMC_Key  -[2016-1-22] Luke
+//
+// The CheckPC_KMC_Key function called by OnBegin().
+// This function check HKEY_LOCAL_MACHINE\SOFTWARE\NextLabs\Compliant Enterprise registry.
+// And add new key : InstallDir and InstallDirRER.
+//---------------------------------------------------------------------------
+function CheckPC_KMC_Key()
+	NUMBER nRootKEY, nvType, nvSize;
+	STRING szPCKey, szKMCKey, szDCSKey, szIISKey, svValue;
+begin
+	// Check wether the system is 64-bit or 32-bit
+	if(SYSINFO.bIsWow64) then
+		REGDB_OPTIONS = REGDB_OPTION_WOW64_64KEY;
+	endif;
+	
+	nRootKEY = HKEY_LOCAL_MACHINE;
+	RegDBSetDefaultRoot(nRootKEY);
+	
+	szPCKey  = "SOFTWARE\\Nextlabs\\Compliant Enterprise\\Policy Controller";
+	szKMCKey = "SOFTWARE\\Nextlabs\\Enterprise DLP\\KeyManagementClient";
+	szDCSKey = "SOFTWARE\\Nextlabs\\Compliant Enterprise\\RMS";
+	szIISKey = "SYSTEM\\CurrentControlSet\\Services\\W3SVC\\Parameters";
+	// check wether IIS has been installed
+	if (RegDBGetKeyValueEx(szIISKey, "InstallPath", nvType, svValue,nvSize) < 0) || (RegDBGetKeyValueEx(szIISKey, "MajorVersion", nvType, svValue,nvSize) < 0) then
+		MessageBox("Detected that IIS has not been installed.\nPlease Install IIS first at all, then try again.", SEVERE);
+		abort;
+	endif;
+	if RegDBKeyExist(szPCKey) < 0 then
+		MessageBox("Detected that Nextlabs Policy Controller has not been installed.\nPlease Install Policy Controller and Key Management Client, then try again.", SEVERE);
+		abort;
+	endif;
+	if RegDBKeyExist(szKMCKey) < 0 then
+		MessageBox("Detected that Key Management Client has not been installed.\nPlease Install Key Management Client, then try again.", SEVERE);
+		abort;
+	endif;
+	if RegDBKeyExist(szDCSKey) < 0 then
+		DCSNotInstalled = TRUE;
+	endif;
+end;
+
+//---------------------------------------------------------------------------
+//
+// SetSPOAppInfo  -[2016-2-24] Luke
+//
+// The SetSPOAppInfo function called by ChanegConfig().
+// This function get the app info from Register Editor.
+// And set those values into the Dialog named "ChangeConfig"
+//---------------------------------------------------------------------------	
+function SetSPOAppInfo()
+	STRING szDialogName, svStringInList;
+	NUMBER nFileResult, nHandleResult, nvControlId;
+	LIST   lvHandleList, lvValues, lvNames;
+begin
+	// used for the dialog named "ChangeConfig"
+	szDialogName = "ChangeConfig";
+	
+	lvNames = ListCreate(STRINGLIST);
+	ListAddString(lvNames, "ClientId", 		AFTER);
+	ListAddString(lvNames, "ClientSecret", 	AFTER);
+	ListAddString(lvNames, "AppDomain", 	AFTER);
+	
+	RegDBSetDefaultRoot(HKEY_CURRENT_USER);
+	lvValues = ReadInfoFromRegistry("SOFTWARE\\Nextlabs\\SPOE", lvNames);
+	
+	lvHandleList = ListCreate(NUMBERLIST);
+	ListAddItem(lvHandleList, RES_EDITCLIENTID, 		AFTER);
+	ListAddItem(lvHandleList, RES_EDITCLIENTSECRET, 	AFTER);		
+	ListAddItem(lvHandleList, RES_EDITHOSTEDAPPDOMAIN, 	AFTER);		
+		
+	OpenFileMode(FILE_MODE_BINARY);
+	
+	//read fileList from first Item
+	nFileResult		= ListGetFirstString(lvValues, svStringInList);
+	nHandleResult 	= ListGetFirstItem(lvHandleList, nvControlId);
+	
+	//Loop all items
+	while(nFileResult != END_OF_LIST || nHandleResult != END_OF_LIST)
+		CtrlSetText(szDialogName, nvControlId, svStringInList);
+		// clear the STRING svStringInList before next assignment
+		svStringInList = "";
+		
+		//find the next item
+		nFileResult		= ListGetNextString(lvValues, svStringInList);
+		nHandleResult 	= ListGetNextItem(lvHandleList, nvControlId);
+	endwhile;
+
+	//destroy Lists
+	ListDestroy(lvNames);
+	ListDestroy(lvValues);
+
+end;
+
+//---------------------------------------------------------------------------
+//
+// ReadInfoFromRegistry  -[2016-2-27] Luke
+//
+// The ReadInfoFromRegistry function called by OnFirstUIAfter().
+// This function get the info from Register Editor.
+// And return the list of those values
+// Please set the default root Registry Key before calling this method
+//---------------------------------------------------------------------------	
+function LIST ReadInfoFromRegistry(sKey, lNames)
+	LIST lvValues;
+	NUMBER nFileResult, nvType, nvSize;
+	STRING svValue, svNameInList;
+begin
+	// set root key to HKEY_CURRENT_USER
+	//nRootKEY = HKEY_CURRENT_USER;  
+	//RegDBSetDefaultRoot(nRootKEY); //please set the default root before calling this method
+	
+	lvValues = ListCreate(STRINGLIST);
+	//read fileList from first Item
+	nFileResult  = ListGetFirstString(lNames, svNameInList);
+	
+	//Loop all items
+	while (nFileResult != END_OF_LIST)
+		if RegDBGetKeyValueEx(sKey, svNameInList, nvType, svValue, nvSize) < 0 then
+			MessageBox("Cannot find the " + svNameInList, WARNING);
+			svValue = "";
+		endif;
+		ListAddString(lvValues, svValue, AFTER);
+		nFileResult = ListGetNextString(lNames, svNameInList);
+	endwhile;
+	return lvValues;
+end;
+
+//---------------------------------------------------------------------------
+//
+// WriteInfoToRegistry  -[2016-3-3] Luke
+//
+// The WriteInfoToRegistry function.
+// This function set the info into Register Editor.
+// Please set the default root Registry Key before calling this method
+//---------------------------------------------------------------------------	
+function WriteInfoToRegistry(sKey, lKeyNames, lKeyValues)
+	STRING svName, svValue;
+	NUMBER nKeyResult;
+begin
+	if RegDBKeyExist(sKey) < 0 then 
+		RegDBCreateKeyEx(sKey,""); 
+	endif; 
+	
+	nKeyResult = ListGetFirstString(lKeyNames, svName);
+	ListGetFirstString(lKeyValues, svValue);
+	
+	while (nKeyResult != END_OF_LIST)
+		if RegDBSetKeyValueEx(sKey, svName, REGDB_STRING, svValue, -1) < 0 then
+			MessageBox("Cannot create set the key: " + svName, WARNING);
+		endif;
+		nKeyResult = ListGetNextString(lKeyNames, svName);
+		ListGetNextString(lKeyValues, svValue);
+	endwhile;
+end;
+
+//---------------------------------------------------------------------------
+//
+// RestartService  -[2016-3-4] Luke
+//
+// The RestartService function.
+// This function restart the specific service.
+//---------------------------------------------------------------------------	
+function RestartService(szServiceName)
+	NUMBER nvServiceState;
+begin
+	if ServiceExistsService(szServiceName) > 0 then
+		ServiceGetServiceState(szServiceName, nvServiceState);
+		if nvServiceState == SERVICE_RUNNING then
+			ServiceStopService(szServiceName);
+			ServiceStartService(szServiceName, "");
+		elseif nvServiceState == SERVICE_STOPPED then
+			ServiceStartService(szServiceName, "");
+		endif;
+	else
+		MessageBox("The Service: [" 
+					+ szServiceName 
+					+ "] is not existed, please check the environment!"
+					, SEVERE);
+	endif;
+end;
+
+//---------------------------------------------------------------------------
+// OnBegin
+//
+// The OnBegin event is called directly by the framework after the setup
+// initializes.
+//---------------------------------------------------------------------------
+function OnBegin()
+begin
+	// TO DO: you may change default non-UI setting, for example
+	//
+	// You may also perform your custom initialization steps, check requirements, etc.
+	CheckPC_KMC_Key();
+end;

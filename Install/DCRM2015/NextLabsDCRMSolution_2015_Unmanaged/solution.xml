@@ -1,0 +1,259 @@
+<ImportExportXml version="7.0.0000.3543" SolutionPackageVersion="7.0" languagecode="1033" generatedBy="OnPremise" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SolutionManifest>
+    <UniqueName>NextLabs_Entitlement_Management</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="NextLabs Entitlement Management" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+		<Description description="Microsoft Dynamics CRM (DCRM) is a multifaceted platform where everything crucial to developing,improving, and retaining your customer relationships is stored. It has centralized customer information, business intelligence, ability to track sales opportunities, and more. Unfortunately, the ease with which DCRM enables collaborators to share data and manage their own fine-tuned access controls results in serious risks in terms of inappropriate data access, distribution, and loss.To address this challenge, the NextLabs Entitlement Manager for Microsoft DCRM is designed to enhance compliance and security for the Microsoft Dynamics CRM application. It enforces policies on the application across different DCRM entities such as business unit, contact, account, etc. Based on policies, the Enforcer filters entity records based on the user attributes and the entity attributes. For example, the application can enforce policies to allow account executives to view only those accounts for which the industry matches their Business Unit. The Enforcer resides on the Microsoft DCRM Server and works on On-Premise and Online DCRM applications." languagecode="1033"/>
+	</Descriptions>
+    <Version>1.0.0.0</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>NextLabs</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="NextLabs, Inc." languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions>
+        <Description description="NextLabs provides data-centric security software to protect business-critical data and applications. Our patented dynamic authorization technology and industry-leading attribute-based policy platform helps enterprises identify and protect data, monitor, and control access to sensitive data and prevent regulatory violations—whether in the cloud or on premise." languagecode="1033" />
+      </Descriptions>
+      <EMailAddress>support@nextlabs.com</EMailAddress>
+      <SupportingWebsiteUrl>http://www.nextlabs.com</SupportingWebsiteUrl>
+      <CustomizationPrefix>nxl</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>28024</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City>San Mateo</City>
+          <County xsi:nil="true"></County>
+          <Country>USA</Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1>2121 S. El Camino Real</Line1>
+          <Line2>Tower Plaza, Suite 600</Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode>94403</PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince>CA</StateOrProvince>
+          <Telephone1>650-356-4800</Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="account" />
+      <RootComponent type="1" schemaName="activitypointer" />
+      <RootComponent type="1" schemaName="contact" />
+      <RootComponent type="1" schemaName="entitlement" />
+      <RootComponent type="1" schemaName="incident" />
+      <RootComponent type="1" schemaName="nxl_logs" />
+      <RootComponent type="1" schemaName="nxl_nxlnotices" />
+      <RootComponent type="1" schemaName="nxl_storage" />
+      <RootComponent type="1" schemaName="opportunity" />
+      <RootComponent type="1" schemaName="service" />
+      <RootComponent type="1" schemaName="transactioncurrency" />
+      <RootComponent type="61" schemaName="msdyn_/ActivityFeeds.Form.js" />
+      <RootComponent type="61" schemaName="msdyn_/RecordWall.htm" />
+      <RootComponent type="61" schemaName="nxl_attributesstyles.css" />
+      <RootComponent type="61" schemaName="nxl_axurerppage.css" />
+      <RootComponent type="61" schemaName="nxl_calendar.js" />
+      <RootComponent type="61" schemaName="nxl_collapseall.JPG" />
+      <RootComponent type="61" schemaName="nxl_common.js" />
+      <RootComponent type="61" schemaName="nxl_controlcenter.html" />
+      <RootComponent type="61" schemaName="nxl_controlcenter.js" />
+      <RootComponent type="61" schemaName="nxl_controlcenterstyles.css" />
+      <RootComponent type="61" schemaName="nxl_datastyles.css" />
+      <RootComponent type="61" schemaName="nxl_discardchange.png" />
+      <RootComponent type="61" schemaName="nxl_divider.png" />
+      <RootComponent type="61" schemaName="nxl_EntitiesClassifyConfig.js" />
+      <RootComponent type="61" schemaName="nxl_entitlemententities.html" />
+      <RootComponent type="61" schemaName="nxl_entitlemententities.js" />
+      <RootComponent type="61" schemaName="nxl_entitlemententitiesstyles.css" />
+      <RootComponent type="61" schemaName="nxl_entitlementmanagement.html" />
+      <RootComponent type="61" schemaName="nxl_entitlementmanagement.png" />
+      <RootComponent type="61" schemaName="nxl_errorimg.png" />
+      <RootComponent type="61" schemaName="nxl_es6promise.js" />
+      <RootComponent type="61" schemaName="nxl_expandallimg.jpg" />
+      <RootComponent type="61" schemaName="nxl_exportimg.png" />
+      <RootComponent type="61" schemaName="nxl_generalsetting.html" />
+      <RootComponent type="61" schemaName="nxl_generalsetting.js" />
+      <RootComponent type="61" schemaName="nxl_img1000.png" />
+      <RootComponent type="61" schemaName="nxl_img1001.png" />
+      <RootComponent type="61" schemaName="nxl_img1002.png" />
+      <RootComponent type="61" schemaName="nxl_img1003.png" />
+      <RootComponent type="61" schemaName="nxl_img1004.png" />
+      <RootComponent type="61" schemaName="nxl_img1005.png" />
+      <RootComponent type="61" schemaName="nxl_img1006.png" />
+      <RootComponent type="61" schemaName="nxl_img1007.png" />
+      <RootComponent type="61" schemaName="nxl_importimg.png" />
+      <RootComponent type="61" schemaName="nxl_infoimg.png" />
+      <RootComponent type="61" schemaName="nxl_jqueryuithemes.css" />
+      <RootComponent type="61" schemaName="nxl_logs.html" />
+      <RootComponent type="61" schemaName="nxl_logs.js" />
+      <RootComponent type="61" schemaName="nxl_logstyles.css" />
+      <RootComponent type="61" schemaName="nxl_saveimg.png" />
+      <RootComponent type="61" schemaName="nxl_sdk.metadata.js" />
+      <RootComponent type="61" schemaName="nxl_sdk.rest.js" />
+      <RootComponent type="61" schemaName="nxl_settingstyles.css" />
+      <RootComponent type="61" schemaName="nxl_styles.css" />
+      <RootComponent type="61" schemaName="nxl_successimg.png" />
+      <RootComponent type="61" schemaName="nxl_testconnectionfail.png" />
+      <RootComponent type="61" schemaName="nxl_testconnectionsuccess.png" />
+      <RootComponent type="61" schemaName="nxl_triangle.png" />
+      <RootComponent type="61" schemaName="nxl_u105.png" />
+      <RootComponent type="61" schemaName="nxl_u11.png" />
+      <RootComponent type="61" schemaName="nxl_u134.png" />
+      <RootComponent type="61" schemaName="nxl_u143.png" />
+      <RootComponent type="61" schemaName="nxl_u15.png" />
+      <RootComponent type="61" schemaName="nxl_u156.png" />
+      <RootComponent type="61" schemaName="nxl_u169.png" />
+      <RootComponent type="61" schemaName="nxl_u171.png" />
+      <RootComponent type="61" schemaName="nxl_u1871.png" />
+      <RootComponent type="61" schemaName="nxl_u21.png" />
+      <RootComponent type="61" schemaName="nxl_u3.png" />
+      <RootComponent type="61" schemaName="nxl_u323.png" />
+      <RootComponent type="61" schemaName="nxl_u354.png" />
+      <RootComponent type="61" schemaName="nxl_u356.png" />
+      <RootComponent type="61" schemaName="nxl_u361.png" />
+      <RootComponent type="61" schemaName="nxl_u47.png" />
+      <RootComponent type="61" schemaName="nxl_u578.png" />
+      <RootComponent type="61" schemaName="nxl_u5894.png" />
+      <RootComponent type="61" schemaName="nxl_u602.png" />
+      <RootComponent type="61" schemaName="nxl_u61.png" />
+      <RootComponent type="61" schemaName="nxl_u6146.png" />
+      <RootComponent type="61" schemaName="nxl_u6151.png" />
+      <RootComponent type="61" schemaName="nxl_u69.png" />
+      <RootComponent type="61" schemaName="nxl_u72.png" />
+      <RootComponent type="61" schemaName="nxl_u74.png" />
+      <RootComponent type="61" schemaName="nxl_u76.png" />
+      <RootComponent type="61" schemaName="nxl_u78.png" />
+      <RootComponent type="61" schemaName="nxl_u9.png" />
+      <RootComponent type="61" schemaName="nxl_u911.png" />
+      <RootComponent type="61" schemaName="nxl_u912.png" />
+      <RootComponent type="61" schemaName="nxl_userproperties.html" />
+      <RootComponent type="61" schemaName="nxl_userproperties.js" />
+      <RootComponent type="61" schemaName="nxl_warningonload.js" />
+      <RootComponent type="62" />
+      <RootComponent type="91" schemaName="NextLabs.CRMEnforcer2015, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a87a3da2a099b875" />
+      <RootComponent type="92" id="{745c1b42-d4f8-e611-80bf-000c29e6686e}" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required key="0" type="1" schemaName="msdyn_postconfig" displayName="Post Configuration" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="1" type="62" id="{85daa511-13f8-e611-80be-000c29e6686e}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="2" type="1" schemaName="msdyn_postruleconfig" displayName="Post Rule Configuration" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="1" type="62" id="{85daa511-13f8-e611-80be-000c29e6686e}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="3" type="26" schemaName="Opportunity Product Inline Edit View" displayName="Opportunity Product Inline Edit View" parentSchemaName="opportunityproduct" parentDisplayName="Opportunity Product" solution="System" id="{01010de7-749e-4fe6-8037-aca560a4fcbe}" />
+        <Dependent key="4" type="60" displayName="Information" parentDisplayName="Opportunity" id="{a2a56263-ec37-4991-a3b0-e7b37a71d818}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="5" type="26" schemaName="Contract Line With Allotments" displayName="Contract Line With Allotments" parentSchemaName="contractdetail" parentDisplayName="Contract Line" solution="System" id="{8fa2705c-7e4c-4c0e-b611-4593b35a4c9e}" />
+        <Dependent key="6" type="60" displayName="Information" parentDisplayName="Case" id="{f658c846-f74c-459b-b591-b97558958106}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="7" type="26" schemaName="Active Contracts" displayName="Active Contracts" parentSchemaName="contract" parentDisplayName="Contract" solution="System" id="{646de3ee-ebfb-4d19-8a44-4a619505e188}" />
+        <Dependent key="6" type="60" displayName="Information" parentDisplayName="Case" id="{f658c846-f74c-459b-b591-b97558958106}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="8" type="26" schemaName="Quote Associated View" displayName="Quote Associated View" parentSchemaName="quote" parentDisplayName="Quote" solution="System" id="{642095db-91dd-4813-bb31-665a3a2bae61}" />
+        <Dependent key="4" type="60" displayName="Information" parentDisplayName="Opportunity" id="{a2a56263-ec37-4991-a3b0-e7b37a71d818}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="9" type="26" schemaName="Active Products Lookup View" displayName="Active Products Lookup View" parentSchemaName="product" parentDisplayName="Product" solution="System" id="{58afc3c5-8add-4552-98cb-473bc8f75619}" />
+        <Dependent key="6" type="60" displayName="Information" parentDisplayName="Case" id="{f658c846-f74c-459b-b591-b97558958106}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="10" type="61" schemaName="msdyn_/ActivityFeeds.Form.js" displayName="msdyn_/ActivityFeeds.Form.js" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="11" type="60" displayName="Information" parentDisplayName="Account" id="{b053a39a-041a-4356-acef-ddf00182762b}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="10" type="61" schemaName="msdyn_/ActivityFeeds.Form.js" displayName="msdyn_/ActivityFeeds.Form.js" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="4" type="60" displayName="Information" parentDisplayName="Opportunity" id="{a2a56263-ec37-4991-a3b0-e7b37a71d818}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="10" type="61" schemaName="msdyn_/ActivityFeeds.Form.js" displayName="msdyn_/ActivityFeeds.Form.js" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="12" type="60" displayName="Information" parentDisplayName="Contact" id="{894cc46a-b0cb-4ab0-8bf6-200544e46a2d}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="10" type="61" schemaName="msdyn_/ActivityFeeds.Form.js" displayName="msdyn_/ActivityFeeds.Form.js" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="6" type="60" displayName="Information" parentDisplayName="Case" id="{f658c846-f74c-459b-b591-b97558958106}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="13" type="61" schemaName="msdyn_/RecordWall.htm" displayName="msdyn_/RecordWall.htm" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="4" type="60" displayName="Information" parentDisplayName="Opportunity" id="{a2a56263-ec37-4991-a3b0-e7b37a71d818}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="13" type="61" schemaName="msdyn_/RecordWall.htm" displayName="msdyn_/RecordWall.htm" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="11" type="60" displayName="Information" parentDisplayName="Account" id="{b053a39a-041a-4356-acef-ddf00182762b}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="13" type="61" schemaName="msdyn_/RecordWall.htm" displayName="msdyn_/RecordWall.htm" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="6" type="60" displayName="Information" parentDisplayName="Case" id="{f658c846-f74c-459b-b591-b97558958106}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="13" type="61" schemaName="msdyn_/RecordWall.htm" displayName="msdyn_/RecordWall.htm" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="12" type="60" displayName="Information" parentDisplayName="Contact" id="{894cc46a-b0cb-4ab0-8bf6-200544e46a2d}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="14" type="61" schemaName="msdyn_/PersonalWall.htm" displayName="msdyn_/PersonalWall.htm" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="1" type="62" id="{85daa511-13f8-e611-80be-000c29e6686e}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="13" type="61" schemaName="msdyn_/RecordWall.htm" displayName="msdyn_/RecordWall.htm" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="13" type="61" schemaName="msdyn_/RecordWall.htm" displayName="msdyn_/RecordWall.htm" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="10" type="61" schemaName="msdyn_/ActivityFeeds.Form.js" displayName="msdyn_/ActivityFeeds.Form.js" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="10" type="61" schemaName="msdyn_/ActivityFeeds.Form.js" displayName="msdyn_/ActivityFeeds.Form.js" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required key="15" type="61" schemaName="msdyn_/Images/Wall_16.png" displayName="msdyn_/Images/Wall_16.png" solution="ActivityFeedsCore (7.0.0.3543)" />
+        <Dependent key="1" type="62" id="{85daa511-13f8-e611-80be-000c29e6686e}" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>

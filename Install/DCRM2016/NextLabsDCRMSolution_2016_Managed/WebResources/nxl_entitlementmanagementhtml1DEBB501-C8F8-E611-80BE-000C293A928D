@@ -1,0 +1,382 @@
+﻿
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NextLabs Entitlement Manager</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    
+    <link href="nxl_jqueryuithemes.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_axurerppage.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_datastyles.css" type="text/css" rel="stylesheet"/>
+    <link href="nxl_styles.css" type="text/css" rel="stylesheet"/>
+    
+    <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>    
+    <script src="nxl_sdk.metadata.js" type="text/javascript"></script>
+    <script src="nxl_sdk.rest.js" type="text/javascript"></script>    
+    <script src="nxl_es6promise.js" type="text/javascript"></script>    
+    <script src="nxl_common.js" type="text/javascript"></script>
+	<script type="text/javascript">
+    	//function isParentAccessible() {
+        //    try {
+        //            window.parent.location;
+        //            return true;
+        //        }
+        //        catch (err) {
+        //            return false;
+        //        }
+        //}
+		//function HiddenCrmRibbonManager()
+		//{
+		//	var canAccess = isParentAccessible();
+        //    
+		//	if (canAccess){
+		//		var crmRibbon = window.parent.document.getElementById("crmTopBar");
+		//	    //crmRibbon.style["visibility"] = "hidden";
+		//	    crmRibbon.style["display"] = "none";
+		//	}
+		//	else {
+		//	    alert("window.parent is not accessible");
+		//	}
+		//}
+		//function ShowCrmRibbonManager()
+		//{
+		//	var canAccess = isParentAccessible();
+        //
+		//	if (canAccess){
+		//	    var crmRibbon = window.parent.document.getElementById("crmTopBar");
+		//	    //crmRibbon.style["visibility"] = "visible";
+		//	    crmRibbon.style["display"] = "block";
+		//	}
+		//	else {
+		//	    alert("window.parent is not accessible");
+		//	}			
+		//}
+	</script>
+
+    <style type="text/css">
+
+        .export_import_cardboard-list{
+            list-style-type: none;
+            position: absolute;
+            top: 162px;
+            left: 838px;
+        }
+		
+		.manage_active_cardboard-list{
+            list-style-type: none;
+            position: absolute;
+            top: 321px;
+            left: 838px;
+        }
+
+        .cardboard{
+            width: 360px;
+            height: 110px;
+            font-size: 0;
+            display: inline-block;
+            vertical-align: top;
+            border: 1px solid #ddd;
+            background:-webkit-linear-gradient(30deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 0%, rgba(242, 242, 242, 1) 100%, rgba(242, 242, 242, 1) 100%);
+            background:-moz-linear-gradient(60deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 0%, rgba(242, 242, 242, 1) 100%, rgba(242, 242, 242, 1) 100%);
+            background:linear-gradient(60deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 0%, rgba(242, 242, 242, 1) 100%, rgba(242, 242, 242, 1) 100%);
+        }
+
+        .cardboard-avatar{
+            display: inline-block;
+            width: 64px;
+            height: 64px;
+            vertical-align: top;
+            margin: 10px 10px 0 10px;
+        }
+
+        .cardboard-avatar > img{
+            width: 64px;
+            height: 64px;
+            padding: 0;
+            margin: 13px 0px 0px 3px;
+        }
+
+        .cardboard-profile{
+            display: inline-block;
+            vertical-align: top;
+            width: calc(100% - 94px);
+            height: 100%;
+            margin-left: 10px;
+            font-size: 16px;
+        }
+
+        .cardboard-title{
+            position: relative;
+            font-family: 'Arial Bold', 'Arial';
+            font-weight: 700;
+            font-style: normal;
+            font-size: 16px;
+        }
+
+        .cardboard-title::after{
+            content: '';
+            position: absolute;
+            display: block;
+            width: calc(100% - 20px);
+            height: 1px;
+            background-color: #ddd;
+            bottom: -10px;
+            left: 0;
+        }
+
+        .cardboard-desc{
+            font-family: 'Arial';
+            font-weight: 400;
+            font-size: 13px;
+            color: #666;
+            width: 100%;
+        }
+
+    </style>
+
+  </head>
+  <body onload="HiddenCrmRibbonManager();" onunload="ShowCrmRibbonManager();" style="margin: 20px 0 0 0;">
+    <div id="base" class="">
+      <div id="u83" class="ax_default heading_2">
+        <div id="divLeftPanel">
+			<img id="nxl_u72" class="img " src="nxl_u72.png"/>
+		</div>
+		<div id="divRightPanel">
+			<div id="divRightPanleTopIcon">
+				<img id="nxl_u69" class="img " src="nxl_icon_nextlabs_sm.png"/>
+			</div>
+			<div id="divRightPanelBottomText" class="text">
+				<p><span>Entitlement Manager</span></p>
+			</div>
+		</div>
+      </div>
+      <div id="u45" class="ax_default heading_2">
+        <div id="u45_div" class=""></div>
+        <div id="u46" class="text">
+          <p><span><b style="font-size: 14px;">What would you like to do?</b></span></p>
+        </div>
+      </div>
+      <div id="u47" class="ax_default line">
+        <img id="u47_img" class="img " src="nxl_u47.png"/>
+        <div id="u48" class="text" style="display:none; visibility: hidden">
+          <p><span></span></p>
+        </div>
+      </div>
+      
+      <a href="nxl_entitlemententities.html">
+      <div id="u14" class="ax_default" data-width="360" data-height="111">
+        <div id="u15" class="ax_default box_1">           
+           <img id="u15_img" class="img " src="nxl_u15.png"/>           
+          <div id="u16" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+
+        <div id="u17" class="ax_default heading_2">
+          <div id="u17_div" class=""></div>
+          <div id="u18" class="text">
+            <p><span>Secure Entities</span></p>
+          </div>
+        </div>
+        <div id="u23" class="ax_default line">
+          <img id="u23_img" class="img " src="nxl_u11.png"/>
+          <div id="u24" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+        
+        <div id="u19" class="ax_default heading_2">
+          <div id="u19_div" class=""></div>
+          <div id="u20" class="text">
+            <p><span>Configure entities secured by </span></p><p><span>NextLabs Entitlement Manager</span></p>
+          </div>
+        </div>
+
+        <div id="u21" class="ax_default image">
+          <img id="u21_img" class="img " src="./nxl_icon_secure_entities.png"/>
+          <div id="u22" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+      </div>
+      </a>
+      
+      <a href="nxl_userproperties.html">
+      <div id="u49" class="ax_default" data-width="360" data-height="111">
+        <div id="u50" class="ax_default box_1">
+          <div id="u50_div" class=""></div>
+          <div id="u51" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+
+        <div id="u52" class="ax_default heading_2">
+          <div id="u52_div" class=""></div>
+          <div id="u53" class="text">
+            <p><span>User Attributes</span></p>
+          </div>
+        </div>
+        
+        <div id="u56" class="ax_default line">
+          <img id="u56_img" class="img " src="nxl_u11.png"/>
+          <div id="u57" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+        
+        <div id="u54" class="ax_default heading_2">
+          <div id="u54_div" class=""></div>
+          <div id="u55" class="text">
+            <p><span>Configure user attributes available for policy </span></p><p><span>authoring and evaluation</span></p>
+          </div>
+        </div>        
+       
+        <div id="u58" class="ax_default image">
+          <img id="u58_img" class="img " src="nxl_u74.png"/>
+          <div id="u59" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+      </div>
+      </a>
+            
+      <a href="nxl_controlcenter.html">            
+      <div id="u2" class="ax_default" style="visibility:hidden; display:none" data-width="360" data-height="111">        
+        <div id="u3" class="ax_default box_1">
+          <img id="u3_img" class="img " src="nxl_u3.png"/>
+          <div id="u4" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+        
+        <div id="u5" class="ax_default heading_2">
+          <div id="u5_div" class=""></div>
+          <div id="u6" class="text">
+            <p><span>Policy Controller</span></p>
+          </div>
+        </div>
+        <div id="u11" class="ax_default line">
+          <img id="u11_img" class="img " src="nxl_u11.png"/>          
+          <div id="u12" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+        
+        <div id="u7" class="ax_default heading_2">
+          <div id="u7_div" class=""></div>
+          <div id="u8" class="text">
+            <p><span>Configure the host and port for the CloudAz </span></p><p><span>or Control Center Policy Controller REST API</span></p>
+          </div>
+        </div>        
+
+        <div id="u9" class="ax_default image">
+          <img id="u9_img" class="img " src="nxl_u9.png"/>
+          <div id="u10" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+      </div>
+      </a>
+     
+      <a href="nxl_logs.html">
+      <div id="u71" class="ax_default" data-width="360" data-height="111">        
+        <div id="u72" class="ax_default box_1">
+          <img id="u61_img" class="img " src="nxl_u61.png"/>         
+          <div id="u62" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+               
+        <div id="u74" class="ax_default heading_2">
+          <div id="u63_div" class=""></div>
+          <div id="u64" class="text">
+            <p><span>Logs</span></p>
+          </div>
+        </div>
+
+        <div id="u76" class="ax_default heading_2">
+          <div id="u65_div" class=""></div>
+          <div id="u66" class="text">
+            <p><span>Entitlement Manager logs</span></p>
+          </div>
+        </div>
+
+        <div id="u78" class="ax_default line">          
+          <img id="u67_img" class="img " src="nxl_u11.png"/>
+          <div id="u68" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+
+        <div id="u80" class="ax_default image">
+          <img id="u69_img" class="img " src="nxl_u78.png"/>
+          <div id="u70" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+      </div>
+      </a>
+
+      <a href="nxl_generalsetting.html">
+      <div id="u60" class="ax_default" data-width="360" data-height="111">
+        <div id="u61" class="ax_default box_1">
+          <img id="u72_img" class="img " src="nxl_u61.png"/>
+          <div id="u73" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+        
+        <div id="u63" class="ax_default heading_2">
+          <div id="u74_div" class=""></div>
+          <div id="u75" class="text">
+            <p><span>General Settings</span></p>
+          </div>
+        </div>
+
+        <div id="u65" class="ax_default heading_2">
+          <div id="u76_div" class=""></div>
+          <div id="u77" class="text">
+            <p><span>Policy Server and other Entitlement</span></p><p><span>Manager settings</span></p>
+          </div>
+        </div>
+
+        <div id="u67" class="ax_default line">
+          <img id="u78_img" class="img " src="nxl_u11.png"/>
+          <div id="u79" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+
+        <div id="u69" class="ax_default image">
+          <img id="u80_img" class="img " src="nxl_u76.png"/>
+          <div id="u81" class="text" style="display:none; visibility: hidden">
+            <p><span></span></p>
+          </div>
+        </div>
+      </div>
+      </a>
+
+    </div>
+    <div class="export_import_cardboard-list">
+        <a class="cardboard" href="nxl_export_import_page.html">
+            <div class="cardboard-avatar"><img src="./nxl_u9.png" alt="avatar for export &amp; import"></div>
+            <div class="cardboard-profile">
+                <h4 class="cardboard-title">Export &amp; Import</h4>
+                <p class="cardboard-desc">Export/Import NextLabs Entitlement Manager settings</p>
+            </div>
+        </a>
+    </div>
+	<div class="manage_active_cardboard-list">
+        <a class="cardboard" href="nxl_manage_active_page.html">
+            <div class="cardboard-avatar"><img src="nxl_manage_active.png" alt="avatar for export &amp; import"></div>
+            <div class="cardboard-profile">
+                <h4 class="cardboard-title">Manage</h4>
+                <p class="cardboard-desc">Manage the policies used by</p>
+				<p class="cardboard-desc">NextLabs Entitlement Manager</p>
+            </div>
+        </a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1076 @@
+/* OData Query: https://msdn.microsoft.com/en-us/library/gg309461(v=crm.7).aspx */
+var RetrievedLogs = new Array();
+var AnalyzedLogs = new Array();
+var CurrentViewLogs = new Array();
+var NameOrderBy = "time";
+var BOrderBy = true;
+var LogsEntity = "nxl_logs";
+var QueryTopNumber = 50;
+var BasicQuery = "$select=nxl_user,nxl_messagelv,nxl_event,nxl_entity,nxl_time,nxl_message&$orderby=nxl_time desc&$top=" + QueryTopNumber.toString();
+var CurrentQueryOption = BasicQuery;
+var SeletedUserName = "";
+var SkipNumber = 0;
+var RetriveLogsIndex = 0;
+var BSetPageNumber = true;
+var OnePageNumber = 30;
+function InitLogpanelAndSeachPanle()
+{
+	var divLogTitle=document.getElementById("u5044");
+	var divLogContect=document.getElementById("logsblock");
+	var divSearchPanel=document.getElementById("u5071");
+	var base = document.getElementById("base");
+	divSearchPanel.style.top="10px";
+	divLogTitle.style.top="300px";
+	divLogContect.style.top="400px";
+	base.style["height"] = "1100px";
+}
+
+function LoadLogSetting(){
+	SDK.REST.retrieveMultipleRecords(nxlStorageEntity, "$select=nxl_name,nxl_value&$filter=startswith(nxl_name, 'setting_')", 
+		successRetrieveLogSetting, errorNextLabsStorage, onCompleteLogSetting);	
+}
+
+function successRetrieveLogSetting(results){
+    for (var i = 0; i < results.length; i++) {
+		if (results[i].nxl_name == "setting_loglevel") 
+		{
+			if(results[i].nxl_value!="None")
+			{
+				EnableLog();
+				var loglevel = document.getElementById("setting_loglevel");
+				loglevel.value = results[i].nxl_value;
+			}
+			else
+			{
+				DisableLog();
+			}
+			break;
+		}
+    }
+}
+
+function onCompleteLogSetting(){
+	
+}
+
+function SaveLogSetting(){
+	var iDisplayTop=GetCenterAxisTop(200);
+	var iDisplayLeft=GetCenterAxisLeft(400);
+	var popupDialog = document.getElementById("popupDialog");
+	popupDialog.style["visibility"] = "visible";
+	popupDialog.style["display"] = "block";
+	var workonDiv = document.getElementById("workingon");
+	workonDiv.style["top"]=iDisplayTop+"px";
+	workonDiv.style["left"]=iDisplayLeft+"px";
+	workonDiv.style["visibility"] = "visible";
+	workonDiv.style["display"] = "block";
+	var record = {};
+	var loglevel = document.getElementById("setting_loglevel");
+	record.nxl_name = "setting_loglevel";
+	if(getLogChecked())
+	{
+		record.nxl_value = loglevel.value;
+		EnableLog();
+	}
+	else
+	{
+		record.nxl_value = "None";
+		DisableLog();
+	}
+    SDK.REST.createRecord(record, nxlStorageEntity, true, 
+	    function (record) 
+		{
+			var workonDiv = document.getElementById("workingon");
+			workonDiv.style["visibility"] = "hidden";
+			workonDiv.style["display"] = "none";	
+			var AlertDiv = document.getElementById("saveAlert");
+			AlertDiv.style["visibility"] = "visible";
+			AlertDiv.style["display"] = "block";
+			AlertDiv.style["top"]=iDisplayTop+"px";
+			AlertDiv.style["left"]=iDisplayLeft+"px";
+			var successAlertContent = document.getElementById("alertsuccessContent");
+			successAlertContent.style["visibility"] = "visible";
+			successAlertContent.style["display"] = "block";
+		}, 	
+		function(error)
+		{
+			var workonDiv = document.getElementById("workingon");
+			workonDiv.style["visibility"] = "hidden";
+			workonDiv.style["display"] = "none";	
+			var AlertDiv = document.getElementById("saveAlert");
+			AlertDiv.style["visibility"] = "visible";
+			AlertDiv.style["display"] = "block";
+			AlertDiv.style["top"]=iDisplayTop+"px";
+			AlertDiv.style["left"]=iDisplayLeft+"px";
+			var errorAlertContent = document.getElementById("alertErrorContent");
+			errorAlertContent.style["visibility"] = "visible";
+			errorAlertContent.style["display"] = "block";
+		}); 
+}
+
+// Page Load. 
+function LoadLogs() {
+	InitLogpanelAndSeachPanle();
+	RetrieveMultipleRecords(LogsEntity, BasicQuery);
+}
+
+function RetrieveMultipleRecords(type, options)
+{
+	RetrievedLogs = new Array();
+	RetriveLogsIndex = 0;
+	SDK.REST.retrieveMultipleRecords(type, options, successRetrieveLogs, errorNextLabsStorage, onCompleteRetrieveLogs);
+}
+
+function successRetrieveLogs(results) {
+	RetrievedLogs = results;
+}
+
+function onCompleteRetrieveLogs() {
+	var bDraw = true;
+	if(RetrievedLogs.length > 0)
+	{	
+		AnalyseLogs(RetrievedLogs);
+		if(CurrentViewLogs.length < OnePageNumber && RetrievedLogs.length == QueryTopNumber) // Get more logs from OData.
+		{	
+			bDraw = false;
+			ReGetRetrieveLogs();
+		}	
+	}
+	if(bDraw)
+	{
+		DrawLogs(CurrentViewLogs);
+	}
+}
+
+function errorNextLabsStorage(error) {
+	
+	DrawLogs(CurrentViewLogs);
+}
+
+function ReGetRetrieveLogs() {	
+	var newSkipNum = SkipNumber + QueryTopNumber;	
+	if(-1 != CurrentQueryOption.indexOf("&$skip=" + SkipNumber))
+	{
+		CurrentQueryOption = CurrentQueryOption.replace("&$skip=" + SkipNumber, "&$skip=" + newSkipNum);
+	}
+	else
+	{
+		CurrentQueryOption = CurrentQueryOption + "&$skip=" + newSkipNum;
+	}
+	SkipNumber = newSkipNum;
+	RetrieveMultipleRecords(LogsEntity, CurrentQueryOption);		
+}	
+
+function AnalyseLogs(sourceLogs) {
+	var logsNum = CurrentViewLogs.length;
+	for (var i = RetriveLogsIndex; i < sourceLogs.length; i++) {
+		var time = sourceLogs[i].nxl_time;
+		var level = sourceLogs[i].nxl_messagelv;
+		var message = sourceLogs[i].nxl_message;
+
+		if(level == "Debug" || level == "Information" || level == "Warning" || level == "Error")
+		{
+			var log = new Object();
+			log.event = sourceLogs[i].nxl_event;
+			log.entity = sourceLogs[i].nxl_entity;
+			log.time = time;
+			log.username = sourceLogs[i].nxl_user;
+			log.level = level;
+			log.message = message;				
+			AnalyzedLogs.push(log);
+			CurrentViewLogs.push(log);
+			logsNum++;
+			if(logsNum >= OnePageNumber)
+			{
+				RetriveLogsIndex = i;
+				return;
+			}			
+		}							
+	}
+}
+
+// Turning page to view.
+function OnPrePage() {
+	BSetPageNumber = false;	
+	var prePage = document.getElementById("PrePage");	
+	var nextPage = document.getElementById("NextPage");
+	prePage.disabled = true;
+	nextPage.disabled = true;
+	var pageNumber = document.getElementById("u5133");
+	var numbers = pageNumber.innerText.split("-");
+	var begin = new Number(numbers[0]);
+	var end = new Number(numbers[1]);
+	end = begin - 1;
+	begin = begin - OnePageNumber;
+	if(begin < 1)
+	{
+		begin = 1;
+	}	
+	CurrentViewLogs = AnalyzedLogs.slice(begin - 1, end);
+	pageNumber.innerText = begin.toString() + "-" + end.toString();
+	DrawLogs(CurrentViewLogs);
+	if(begin == 1)
+	{
+		prePage.disabled = true;
+	}
+	else
+	{
+		prePage.disabled = false;
+	}
+	nextPage.disabled = false;
+	BSetPageNumber = true;
+}
+
+function OnNextPage() {	
+	CurrentViewLogs = new Array(); 
+	var prePage = document.getElementById("PrePage");	
+	var nextPage = document.getElementById("NextPage");
+	prePage.disabled = true;
+	nextPage.disabled = true;
+	var pageNumber = document.getElementById("u5133");
+	var numbers = pageNumber.innerText.split("-");
+	var begin = new Number(numbers[0]);
+	var end = new Number(numbers[1]);
+	begin = end + 1;
+	
+	if(AnalyzedLogs.length <= begin - 1)
+	{
+		onCompleteRetrieveLogs();
+	}
+	else
+	{
+		if(AnalyzedLogs.length - begin + 1 < OnePageNumber)
+		{
+			CurrentViewLogs = AnalyzedLogs.slice(begin - 1);			
+		}
+		else
+		{
+			CurrentViewLogs = AnalyzedLogs.slice(begin - 1, begin - 1 + OnePageNumber);
+		}
+		DrawLogs(CurrentViewLogs);
+	}	
+}
+
+function SetPageNumber() {
+	var prePage = document.getElementById("PrePage");
+	var nextPage = document.getElementById("NextPage");
+	var pageNumber = document.getElementById("u5133");
+	var numbers = pageNumber.innerText.split("-");
+	var begin = new Number(numbers[0]);
+	var end = new Number(numbers[1]);
+	if(begin == 0)
+	{
+		begin = 1;
+		prePage.disabled = true;
+	}
+	else
+	{
+		begin = end + 1;
+		prePage.disabled = false;
+	}
+	
+	if(CurrentViewLogs.length < OnePageNumber)
+	{
+		nextPage.disabled = true;
+	}
+	else
+	{
+		nextPage.disabled = false;
+	}
+	
+	if(CurrentViewLogs.length > 0)
+	{
+		end = end + CurrentViewLogs.length;
+		pageNumber.innerText = begin.toString() + "-" + end.toString();		
+	}
+	else if(begin > OnePageNumber)
+	{
+		nextPage.disabled = true;
+		end = begin;
+		pageNumber.innerText = begin.toString() + "-" + end.toString();
+	}
+}
+	
+/* MouseOver and MouseOut event */
+function AdvancedSearchMouseOver() {
+	var advancedSearch = document.getElementById("Advanced Search");
+	advancedSearch.style.cssText  = "cursor: pointer; color:rgba(196, 85, 0, 1); border:none; background-color:white; text-decoration:underline";
+}
+
+function AdvancedSearchMouseOut() {
+	var advancedSearch = document.getElementById("Advanced Search");
+	advancedSearch.style.cssText = "cursor: pointer; color:rgb(0, 102, 192); border:none; background-color:white;";
+}
+
+function BasicSearchMouseOver() {
+	var basicSearch = document.getElementById("Basic Search");
+	basicSearch.style.cssText = "cursor: pointer; color:rgba(196, 85, 0, 1); border:none; background-color:white; text-decoration:underline";
+}
+
+function BasicSearchMouseOut() {
+	var basicSearch = document.getElementById("Basic Search");
+	basicSearch.style.cssText = "cursor: pointer; color:rgb(0, 102, 192); border:none; background-color:white;";
+}
+
+// Basic Search for "message search" and "view options".
+function BasicSearchLogs() {
+	BasicSearchRetrieve();
+}
+
+//function ChangeView() {
+//	BasicSearchRetrieve();
+//}
+
+function BasicSearchRetrieve() {
+	CurrentQueryOption = BasicQuery;
+	ResetBeforeSearch();
+	SetBasicSearchFilter();	
+	RetrieveMultipleRecords(LogsEntity, CurrentQueryOption);
+}
+
+function FormatUTCTime(time) {
+    var format = new Array();
+    format.push(time.getUTCMonth() + 1);
+	format.push(time.getUTCDate());
+	format.push(time.getUTCHours());
+	format.push(time.getUTCMinutes());
+	format.push(time.getUTCSeconds());
+  
+	var fmtStr = new Array();
+    for (var i = 0; i < format.length; i++)
+    {
+		var keyStr = format[i].toString();
+		if(keyStr.length == 1)
+		{
+			keyStr = "0" + keyStr;
+		}
+		fmtStr.push(keyStr);
+	}
+	
+	var fmt = time.getUTCFullYear().toString() + "-" + fmtStr[0] + "-" + fmtStr[1] + "T" + fmtStr[2] + ":" + fmtStr[3] + ":" + fmtStr[4];
+    return fmt;
+}
+
+function SetBasicSearchFilter() {
+	var viewTime = document.getElementById("u5073_input");	
+	var date = new Date();	
+	var optionInd = viewTime.options.selectedIndex;
+	var optionValue = viewTime.options[optionInd].value;
+	var timeMs = 0;
+	
+	if (optionValue == "Last 5 min")
+	{
+		timeMs = date.getTime() - 5 * 60 *1000;
+	}
+	else if(optionValue == "Last 1 hour")
+	{
+		timeMs = date.getTime() - 60 * 60 *1000;	
+	}
+	else if(optionValue == "Last 10 hours")
+	{
+		timeMs = date.getTime() - 10 * 60 * 60 *1000;		
+	}
+	else if(optionValue == "Last 1 day")
+	{
+		timeMs = date.getTime() -  24 * 60 * 60 *1000;		
+	}
+	else if(optionValue == "Last 7 days")
+	{
+		timeMs = date.getTime() -  7 * 24 * 60 * 60 *1000;		
+	}
+	var queryOption = "";
+	if(timeMs != 0)
+	{
+		var beginTime = new Date(timeMs);
+		var fmt = FormatUTCTime(beginTime);
+		queryOption = "nxl_time gt datetime'" + fmt + "'";
+	}
+	
+	var searchInput = document.getElementById("SearchBasicInput");
+	var searchString = searchInput.value;
+	if(searchString != "")
+	{
+		SeletedMessage = searchString;
+		if(queryOption != "")
+		{
+			queryOption = queryOption + " and ";
+		}
+		queryOption = queryOption + "substringof('" + searchString + "', nxl_message)";
+	}
+	if(queryOption != "")
+	{
+		CurrentQueryOption = CurrentQueryOption + "&$filter=" + queryOption;
+	}
+}
+
+function ResetBeforeSearch() {
+	var pageNumber = document.getElementById("u5133");
+	pageNumber.innerText = "0-0";
+	var prePage = document.getElementById("PrePage");
+	var nextPage = document.getElementById("NextPage");
+	prePage.disabled = true;
+	nextPage.disabled = true;
+	
+	AnalyzedLogs = new Array();
+	CurrentViewLogs = new Array();
+	
+	SeletedUserName	= "";
+	NameOrderBy = "time";
+	BOrderBy = true;
+	SkipNumber = 0;
+	RetriveLogsIndex = 0;
+}
+
+/* Swap basic search and advanced search */
+function AdvancedSearchClick(){
+	var basicSearch = document.getElementById("u5071_state0");
+	var advancedSearch = document.getElementById("u5071_state1");
+	advancedSearch.style.cssText = "";
+	advancedSearch.style["visibility"] = "visible";
+	advancedSearch.style["display"] = "block";
+	basicSearch.style["visibility"] = "hidden";
+	basicSearch.style["display"] = "none";
+	var divLogTitle=document.getElementById("u5044");
+	var divLogContect=document.getElementById("logsblock");
+	var divSearchPanel=document.getElementById("u5071");
+	var base = document.getElementById("base");
+	divSearchPanel.style.top="225px";
+	divLogTitle.style.top="502px";
+	divLogContect.style.top="604px";
+	base.style["height"] = "1300px";
+}
+
+function BasicSearchClick(){
+	var basicSearch = document.getElementById("u5071_state0");
+	var advancedSearch = document.getElementById("u5071_state1");
+	advancedSearch.style["visibility"] = "hidden";
+	advancedSearch.style["display"] = "none";
+	basicSearch.style.cssText = "";
+	basicSearch.style["visibility"] = "visible";
+	basicSearch.style["display"] = "block";
+	SeletedUserName = "";
+	
+	InitLogpanelAndSeachPanle();
+}
+
+function SearchReset(){
+	//var time = document.getElementById("u5071_state0");
+	var level = document.getElementById("u5100_input");
+	var event = document.getElementById("u5111_input");
+	var user = document.getElementById("SearchUser");	
+	var entity = document.getElementById("SearchEntity");
+	var message = document.getElementById("SearchMessage");
+	var beginDate = document.getElementById("BeginDate");
+	var beginTime = document.getElementById("BeginTime");
+	var endDate = document.getElementById("EndDate");
+	var endTime = document.getElementById("EndTime");
+	level.options[0].selected = true;
+	event.options[0].selected = true;
+	beginTime.options[0].selected = true;
+	endTime.options[0].selected = true;
+	user.value = "";
+	entity.value = "";
+	message.value = "";
+	beginDate.value = "";
+	endDate.value = "";
+}
+
+function AdvancedSearchTime(queryOption)
+{
+	var beginDate = document.getElementById("BeginDate");
+	var beginTime = document.getElementById("BeginTime");
+	var endDate = document.getElementById("EndDate");
+	var endTime = document.getElementById("EndTime");
+	var fmt = "";
+	if(beginDate.value != "")
+	{
+		var hours = beginTime.options[beginTime.selectedIndex].value;
+		fmt = beginDate.value + "T" + hours + ":00:00";
+		if(queryOption != "")
+		{
+			queryOption += " and ";
+		}
+		queryOption += "nxl_time gt datetime'" + fmt + "'";
+	}
+	if(endDate.value != "")
+	{
+		var hours = endTime.options[endTime.selectedIndex].value;
+		fmt = endDate.value + "T" + hours + ":00:00";
+		if(queryOption != "")
+		{
+			queryOption += " and ";
+		}
+		queryOption += "nxl_time lt datetime'" + fmt + "'";
+	}
+	return queryOption; 
+}
+
+function AdvancedSearchLogs(){
+	ResetBeforeSearch();	
+	SetAdvancedSearchFilter();
+	RetrieveMultipleRecords(LogsEntity, CurrentQueryOption);
+}
+
+function GetStringFilterOption(options, filterName, filterValue) {
+	var filterOptions = options;
+	if(filterOptions == "")
+	{
+		filterOptions = filterName + " eq '" + filterValue + "'";
+	}
+	else
+	{
+		filterOptions = filterOptions + " and " + filterName +  " eq '" + filterValue + "'";
+	}
+	
+	return filterOptions;
+}
+
+function SetAdvancedSearchFilter() {
+	CurrentQueryOption = BasicQuery;
+	var level = document.getElementById("u5100_input");
+	var event = document.getElementById("u5111_input");
+	var user = document.getElementById("SearchUser");	
+	var entity = document.getElementById("SearchEntity");
+	var message = document.getElementById("SearchMessage");
+	
+	var levelInd = level.options.selectedIndex;
+	var eventInd = event.options.selectedIndex;	
+	var levelValue= level.options[levelInd].value;
+	var eventValue = event.options[eventInd].value;
+	var userValue = user.value;
+	var entityValue = entity.value;
+	var messageValue = message.value;
+	SeletedUserName = userValue;
+	
+	var filterOptions = "";		
+	if(messageValue != "")
+	{
+		filterOptions = "substringof('" + messageValue + "', nxl_message)";		
+	}
+	
+	if(levelValue != "Any")
+	{
+		filterOptions = GetStringFilterOption(filterOptions, "nxl_messagelv", levelValue);		
+	}	
+	if(eventValue != "Any")
+	{
+		filterOptions = GetStringFilterOption(filterOptions, "nxl_event", eventValue);	
+	}
+	if(userValue != "")
+	{
+		filterOptions = GetStringFilterOption(filterOptions, "nxl_user", userValue);		
+	}	
+	if(entityValue != "")
+	{
+		filterOptions = GetStringFilterOption(filterOptions, "nxl_entity", entityValue);		
+	}
+	
+	filterOptions = AdvancedSearchTime(filterOptions);
+	if(filterOptions != "")
+	{
+		CurrentQueryOption = CurrentQueryOption + "&$filter=" + filterOptions;
+	}	
+}
+
+/* Logs OrderBy */
+function OrderByTime(){
+	SearchOrderby("time", "nxl_time");
+}
+
+function OrderByLevel(){
+	SearchOrderby("level", "nxl_messagelv");
+}
+
+function OrderByEvent(){
+	SearchOrderby("event", "nxl_event");
+}
+
+function OrderByUser(){
+	SearchOrderby("user", "nxl_user");
+}
+
+function OrderByEntity(){
+	SearchOrderby("entity", "nxl_entity");
+}
+
+function OrderByMessage(){
+	SearchOrderby("message", "nxl_message");
+}
+
+function ResetBeforeOrderby() {
+	var pageNumber = document.getElementById("u5133");
+	pageNumber.innerText = "0-0";
+	
+	AnalyzedLogs = new Array();
+	CurrentViewLogs = new Array();
+	
+	SkipNumber = 0;
+	RetriveLogsIndex = 0;
+	
+	var endInd = CurrentQueryOption.indexOf("&$skip=");
+	if(-1 != endInd)
+	{
+		CurrentQueryOption = CurrentQueryOption.substring(0, endInd);
+	}
+}
+
+function SearchOrderby(name, orderObj) {
+	if(NameOrderBy == name)
+	{
+		BOrderBy = !BOrderBy;
+	}
+	else
+	{
+		BOrderBy = true; 
+		NameOrderBy = name;
+	}
+	var orderby = "&$orderby=" + orderObj;
+	if(!BOrderBy)
+	{
+		orderby = orderby + " desc";
+	}
+	var beginInd = CurrentQueryOption.indexOf("&$orderby");
+	var endInd = CurrentQueryOption.indexOf("&$", beginInd + 2);
+	var oldOrderby = CurrentQueryOption.substring(beginInd, endInd);
+	
+	ResetBeforeOrderby();
+	CurrentQueryOption = CurrentQueryOption.replace(oldOrderby, orderby);
+	RetrieveMultipleRecords(LogsEntity, CurrentQueryOption);
+}
+
+/* Draw logs */
+function DrawLogs(logs) {
+	var root = document.getElementById("logsblock");
+	root.innerHTML = "";			
+	
+	var logsRecord = document.getElementById("u5046");
+	if(logs.length == 0)
+	{
+		logsRecord.innerText = "No records found";
+	}
+	else
+	{
+		if(SeletedUserName != "")
+		{
+			//logsRecord.innerText = logs.length + " entries found for \"" + SeletedUserName + "\"";
+			logsRecord.innerText="";
+		}
+		else
+		{
+			//logsRecord.innerText = logs.length + " entries found for \"All Users\"";
+			logsRecord.innerText="";
+		}
+	}
+	
+	if(BSetPageNumber)
+	{
+		SetPageNumber();
+	}
+	
+	var flag;
+	for (var i = 0; i < logs.length; i++) {
+		DrawOneLine(root, i, logs[i]);		
+	}		
+}
+	
+function DrawOneLine(root, index, log) {
+	DrawTime(root, index, log.time.toUTCString());	
+	DrawMessageLevel(root, index, log.level);
+	DrawEvent(root, index, log.event);
+	DrawUsername(root, index, log.username);
+	DrawEntity(root, index, log.entity);
+	DrawMessage(root, index, log.message);
+}
+
+function DrawTime(root, index, time) {
+	var div1 = document.createElement("div");
+	div1.style["border-width"] = "0px";
+	div1.style["position"] = "absolute";
+	div1.style["left"] = "0px";
+	var topv = index * 63;
+	div1.style["top"] = topv + "px";
+	div1.style["width"] = "173px";
+	div1.style["height"] = "63px";
+	div1.style["text-align"] = "left";		
+	div1.className = "ax_default shape2";
+	
+	var div11 = document.createElement("div");
+	div11.style["border-width"] = "0px";
+	div11.style["position"] = "absolute";
+	div11.style["left"] = "0px";	
+	div11.style["top"] = "0px";	
+	div11.style["width"] = "173px";
+	div11.style["height"] = "63px";	
+	div11.style["background"] = "inherit";
+	div11.style["background-color"] = "rgba(246, 246, 246, 1)";
+	div11.style["box-sizing"] = "border-box";	
+	div11.style["border-width"] = "1px";	
+	div11.style["border-style"] = "solid";
+	div11.style["border-color"] = "rgba(234, 234, 234, 1)";
+	div11.style["border-radius"] = "0px";
+	div11.style["-moz-box-shadow"] = "none";	
+	div11.style["-webkit-box-shadow"] = "none";		
+	div11.style["box-shadow"] = "none";	
+	div11.style["text-align"] = "left";	
+
+	var div12 = document.createElement("div");
+	div12.style["border-width"] = "0px";
+	div12.style["position"] = "absolute";
+	div12.style["left"] = "14px";	
+	div12.style["top"] = "24px";
+	div12.style["width"] = "130px";
+	div12.style["word-break"] = "keep-all";		
+	div12.style["vertical-align"] = "middle";				
+	div12.className = "text";	
+  
+  	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = time;
+	
+	p.appendChild(span);
+	div12.appendChild(p);
+	div1.appendChild(div11);
+	div1.appendChild(div12);
+	root.appendChild(div1);		
+}
+
+function DrawMessageLevel(root, index, level) {	
+	var div1 = document.createElement("div");
+	div1.style["border-width"] = "0px";
+	div1.style["position"] = "absolute";
+	div1.style["left"] = "172px";
+	var topv = index * 63;
+	div1.style["top"] = topv + "px";
+	div1.style["width"] = "154px";
+	div1.style["height"] = "63px";
+	if (level == "Warning") {
+		div1.style["color"] = "#FF9900";
+	} else if (level == "Error") {
+		div1.style["color"] = "#FF0000";
+	} else {
+		div1.style["color"] = "#000000";
+	}		
+	div1.style["text-align"] = "left";		
+	div1.className = "ax_default shape2";	
+	
+	var div11 = document.createElement("div");
+	div11.style["border-width"] = "0px";
+	div11.style["position"] = "absolute";
+	div11.style["left"] = "0px";	
+	div11.style["top"] = "0px";	
+	div11.style["width"] = "154px";
+	div11.style["height"] = "63px";	
+	div11.style["background"] = "inherit";
+	div11.style["background-color"] = "rgba(254, 255, 254, 1)";
+	div11.style["box-sizing"] = "border-box";	
+	div11.style["border-width"] = "1px";	
+	div11.style["border-style"] = "solid";
+	div11.style["border-color"] = "rgba(234, 234, 234, 1)";
+	div11.style["border-radius"] = "0px";
+	div11.style["-moz-box-shadow"] = "none";	
+	div11.style["-webkit-box-shadow"] = "none";		
+	div11.style["box-shadow"] = "none";	
+	if (level == "Warning") {
+		div11.style["color"] = "#FF9900";
+	} else if (level == "Error") {
+		div11.style["color"] = "#FF0000";
+	} else {
+		div11.style["color"] = "#000000";
+	}	
+	div11.style["text-align"] = "left";	
+	
+	var div12 = document.createElement("div");
+	div12.style["border-width"] = "0px";
+	div12.style["position"] = "absolute";
+	div12.style["left"] = "14px";	
+	div12.style["top"] = "24px";
+	div12.style["width"] = "130px";
+	div12.style["word-wrap"] = "break-word";		
+	div12.className = "text";	
+  
+  	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = level;
+	
+	p.appendChild(span);
+	div12.appendChild(p);
+	div1.appendChild(div11);
+	div1.appendChild(div12);
+	root.appendChild(div1);	
+}
+
+function DrawEvent(root, index, evt) {
+	var div1 = document.createElement("div");
+	div1.style["border-width"] = "0px";
+	div1.style["position"] = "absolute";
+	div1.style["left"] = "325px";
+	var topv = index * 63;
+	div1.style["top"] = topv + "px";
+	div1.style["width"] = "154px";
+	div1.style["height"] = "63px";
+	div1.style["text-align"] = "left";		
+	div1.className = "ax_default shape2";	
+  
+	var div11 = document.createElement("div");
+	div11.style["border-width"] = "0px";
+	div11.style["position"] = "absolute";
+	div11.style["left"] = "0px";	
+	div11.style["top"] = "0px";	
+	div11.style["width"] = "154px";
+	div11.style["height"] = "63px";	
+	div11.style["background"] = "inherit";
+	div11.style["background-color"] = "rgba(246, 246, 246, 1)";
+	div11.style["box-sizing"] = "border-box";	
+	div11.style["border-width"] = "1px";	
+	div11.style["border-style"] = "solid";
+	div11.style["border-color"] = "rgba(234, 234, 234, 1)";
+	div11.style["border-radius"] = "0px";
+	div11.style["-moz-box-shadow"] = "none";	
+	div11.style["-webkit-box-shadow"] = "none";		
+	div11.style["box-shadow"] = "none";	
+	div11.style["text-align"] = "left";	
+  
+	var div12 = document.createElement("div");
+	div12.style["border-width"] = "0px";
+	div12.style["position"] = "absolute";
+	div12.style["left"] = "14px";	
+	div12.style["top"] = "24px";
+	div12.style["width"] = "130px";
+	div12.style["word-wrap"] = "break-word";		
+	div12.className = "text";	
+
+  	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = evt;
+	
+	p.appendChild(span);
+	div12.appendChild(p);
+	div1.appendChild(div11);
+	div1.appendChild(div12);
+	root.appendChild(div1);		
+}
+
+function DrawUsername(root, index, name) {
+	var div1 = document.createElement("div");
+	div1.style["border-width"] = "0px";
+	div1.style["position"] = "absolute";
+	div1.style["left"] = "478px";
+	var topv = index * 63;
+	div1.style["top"] = topv + "px";
+	div1.style["width"] = "154px";
+	div1.style["height"] = "63px";
+	div1.style["text-align"] = "left";		
+	div1.className = "ax_default shape2";
+	
+	var div11 = document.createElement("div");
+	div11.style["border-width"] = "0px";
+	div11.style["position"] = "absolute";
+	div11.style["left"] = "0px";	
+	div11.style["top"] = "0px";	
+	div11.style["width"] = "154px";
+	div11.style["height"] = "63px";	
+	div11.style["background"] = "inherit";
+	div11.style["background-color"] = "rgba(246, 246, 246, 1)";
+	div11.style["box-sizing"] = "border-box";	
+	div11.style["border-width"] = "1px";	
+	div11.style["border-style"] = "solid";
+	div11.style["border-color"] = "rgba(234, 234, 234, 1)";
+	div11.style["border-radius"] = "0px";
+	div11.style["-moz-box-shadow"] = "none";	
+	div11.style["-webkit-box-shadow"] = "none";		
+	div11.style["box-shadow"] = "none";	
+	div11.style["text-align"] = "left";	
+	
+	var div12 = document.createElement("div");
+	div12.style["border-width"] = "0px";
+	div12.style["position"] = "absolute";
+	div12.style["left"] = "14px";	
+	div12.style["top"] = "24px";
+	div12.style["width"] = "130px";
+	div12.style["word-wrap"] = "break-word";		
+	div12.className = "text";	
+  
+  	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = name;
+	
+	p.appendChild(span);
+	div12.appendChild(p);
+	div1.appendChild(div11);
+	div1.appendChild(div12);
+	root.appendChild(div1);	
+}
+
+function DrawEntity(root, index, entity) {
+	var div1 = document.createElement("div");
+	div1.style["border-width"] = "0px";
+	div1.style["position"] = "absolute";
+	div1.style["left"] = "631px";
+	var topv = index * 63;
+	div1.style["top"] = topv + "px";
+	div1.style["width"] = "135px";
+	div1.style["height"] = "63px";
+	div1.style["text-align"] = "left";		
+	div1.className = "ax_default shape2";	
+
+	var div11 = document.createElement("div");
+	div11.style["border-width"] = "0px";
+	div11.style["position"] = "absolute";
+	div11.style["left"] = "0px";	
+	div11.style["top"] = "0px";	
+	div11.style["width"] = "135px";
+	div11.style["height"] = "63px";	
+	div11.style["background"] = "inherit";
+	div11.style["background-color"] = "rgba(254, 255, 254, 1)";
+	div11.style["box-sizing"] = "border-box";	
+	div11.style["border-width"] = "1px";	
+	div11.style["border-style"] = "solid";
+	div11.style["border-color"] = "rgba(234, 234, 234, 1)";
+	div11.style["border-radius"] = "0px";
+	div11.style["-moz-box-shadow"] = "none";	
+	div11.style["-webkit-box-shadow"] = "none";		
+	div11.style["box-shadow"] = "none";		
+	div11.style["text-align"] = "left";	
+	
+	var div12 = document.createElement("div");
+	div12.style["border-width"] = "0px";
+	div12.style["position"] = "absolute";
+	div12.style["left"] = "14px";	
+	div12.style["top"] = "24px";
+	div12.style["width"] = "111px";
+	div12.style["word-wrap"] = "break-word";		
+	div12.className = "text";	
+  
+  	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = entity;
+	
+	p.appendChild(span);
+	div12.appendChild(p);
+	div1.appendChild(div11);
+	div1.appendChild(div12);
+	root.appendChild(div1);		
+}
+
+function DrawMessage(root, index, message) {
+	var div1 = document.createElement("div");
+	div1.style["border-width"] = "0px";
+	div1.style["position"] = "absolute";
+	div1.style["left"] = "765px";
+	var topv = index * 63;
+	div1.style["top"] = topv + "px";
+	div1.style["width"] = "349px";
+	div1.style["height"] = "63px";
+	div1.style["text-align"] = "left";		
+	div1.className = "ax_default shape2";	
+
+	var div11 = document.createElement("div");
+	div11.style["border-width"] = "0px";
+	div11.style["position"] = "absolute";
+	div11.style["left"] = "0px";	
+	div11.style["top"] = "0px";	
+	div11.style["width"] = "349px";
+	div11.style["height"] = "63px";	
+	div11.style["background"] = "inherit";
+	div11.style["background-color"] = "rgba(254, 255, 254, 1)";
+	div11.style["box-sizing"] = "border-box";	
+	div11.style["border-width"] = "1px";	
+	div11.style["border-style"] = "solid";
+	div11.style["border-color"] = "rgba(234, 234, 234, 1)";
+	div11.style["border-radius"] = "0px";
+	div11.style["-moz-box-shadow"] = "none";	
+	div11.style["-webkit-box-shadow"] = "none";		
+	div11.style["box-shadow"] = "none";		
+	div11.style["text-align"] = "left";	
+	
+	var div12 = document.createElement("div");
+	div12.style["border-width"] = "0px";
+	div12.style["position"] = "absolute";
+	div12.style["left"] = "14px";	
+	div12.style["top"] = "0px";	
+	div12.style["width"] = "310px";
+	div12.style["height"] = "63px";
+	div12.style["word-wrap"] = "break-word";		
+	div12.style["vertical-align"] = "middle";	
+	div12.className = "text";	
+
+  	var p = document.createElement("p");
+	var span = document.createElement("span");
+	span.innerHTML = message;
+	
+	p.appendChild(span);
+	div12.appendChild(p);
+	div1.appendChild(div11);
+	div1.appendChild(div12);
+	root.appendChild(div1);		
+}
+function getLogChecked()
+{
+	var result=false;
+	var enabledState = document.getElementById("enabledState");
+	var disaledState = document.getElementById("disaledState");
+	if(enabledState.style["visibility"] == "visible"&&disaledState.style["visibility"] == "hidden")
+	{
+		result=true;
+	}
+	return result;
+}
+function DisableLog()
+{
+	var enabledState = document.getElementById("enabledState");
+	var disaledState = document.getElementById("disaledState");
+	var disabledDiv = document.getElementById("disabledDiv");
+	enabledState.style["visibility"] = "hidden";
+	enabledState.style["display"] = "none";
+	disaledState.style["visibility"] = "visible";
+	disaledState.style["display"] = "block";
+	disabledDiv.style["visibility"] = "visible";
+	disabledDiv.style["display"] = "block";
+}
+function EnableLog()
+{
+	var enabledState = document.getElementById("enabledState");
+	var disaledState = document.getElementById("disaledState");
+	var disabledDiv = document.getElementById("disabledDiv");
+	enabledState.style["visibility"] = "visible";
+	enabledState.style["display"] = "block";
+	disaledState.style["visibility"] = "hidden";
+	disaledState.style["display"] = "none";
+	disabledDiv.style["visibility"] = "hidden";
+	disabledDiv.style["display"] = "none";
+}
+function changeState(obj){
+	var enabledState = document.getElementById("enabledState");
+	var disaledState = document.getElementById("disaledState");
+	var disabledDiv = document.getElementById("disabledDiv");
+	if(enabledState.style["visibility"] == "hidden"){
+		enabledState.style["visibility"] = "visible";
+		enabledState.style["display"] = "block";
+		disaledState.style["visibility"] = "hidden";
+		disaledState.style["display"] = "none";
+		disabledDiv.style["visibility"] = "hidden";
+		disabledDiv.style["display"] = "none";
+	}else{
+		enabledState.style["visibility"] = "hidden";
+		enabledState.style["display"] = "none";
+		disaledState.style["visibility"] = "visible";
+		disaledState.style["display"] = "block";
+		disabledDiv.style["visibility"] = "visible";
+		disabledDiv.style["display"] = "block";
+	}
+}
+
+function closeAlert(){
+	var popupDialog = document.getElementById("popupDialog");
+	popupDialog.style["visibility"] = "hidden";
+	popupDialog.style["display"] = "none";
+	var AlertDiv = document.getElementById("saveAlert");
+	AlertDiv.style["visibility"] = "hidden";
+	AlertDiv.style["display"] = "none";
+	var errorAlertContent = document.getElementById("alertErrorContent");
+	errorAlertContent.style["visibility"] = "hidden";
+	errorAlertContent.style["display"] = "none";
+	var successAlertContent = document.getElementById("alertsuccessContent");
+	successAlertContent.style["visibility"] = "hidden";
+	successAlertContent.style["display"] = "none";
+}

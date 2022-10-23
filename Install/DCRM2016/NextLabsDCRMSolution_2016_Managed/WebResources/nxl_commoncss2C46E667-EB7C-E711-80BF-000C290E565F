@@ -1,0 +1,379 @@
+/*---------  base rules  ---------*/
+
+button{
+    border: 0;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    margin: 4px;
+}
+select{
+    border: 1px solid #999;
+}
+input[type='text']{
+    border: 1px solid #999;
+    padding: 2px 4px;
+}
+input[type=text][disabled] {
+    cursor: not-allowed;
+}
+/*---------  layouts  ---------*/
+.toolbar-top{
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 1024px;
+    height: 50px;
+}
+.toolbar-top::after{
+    /* top toolbar separator line */
+    content: '';
+    position: absolute;
+    display: inline-block;
+    width: 100%;
+    height: 1px;
+    bottom: 0;
+    left: 0;
+    background-color: #ddd;
+}
+.toolbar-bottom{
+    position: relative;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+}
+.toolbar-bottom::after{
+    content: '';
+    position: absolute;
+    width: 800px;
+    height: 50px;
+    top: 0;
+    left: 0;
+    background-image: url('./nxl_entity_sep.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    z-index: -1;    
+}
+.toobar-bottom-btnbar{
+    position: absolute;
+    left: 130px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: auto;
+}
+
+/* title */
+.toolbar-top-title-container{
+    width: 200px;
+    height: 100%;
+    display: inline-block;
+    position: relative;
+    margin-left: 20px;
+}
+.toolbar-top-title-img{
+    background-image: url('./nxl_icon_nextlabs_sm.png');
+    display: inline-block;
+    width: 100%;
+    height: 15px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 0;
+    top: 10px;
+}
+.toolbar-top-title-text{
+    display: inline-block;
+    width: 100%;
+    height: 15px;
+    position: absolute;
+    top: 30px;
+}
+/* save */
+.toolbar-top-save-container{
+    width: 250px;
+    height: 100%;
+    position: relative;
+    display: inline-block;
+}
+.toolbar-top-save-container::after{
+    content: '';
+    display: inline-block;
+    position: absolute;
+    width: 1px;
+    height: 30px;
+    background-color: #ddd;
+    top: 50%;
+    right: 25px;
+    transform: translateY(-50%);
+}
+.toolbar-top-save-img{
+    background-image: url('./nxl_icon_save.png');
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+}
+.toolbar-top-save-text{
+    display: inline-block;
+    width: calc(100% -75px);
+    height: 15px;
+    position: absolute;
+    top: 50%;
+    left: 45px;
+    transform: translateY(-50%);
+}
+/* export */
+.toolbar-top-export-container{
+    width: 300px;
+    height: 100%;
+    position: relative;
+    display: inline-block;
+}
+.toolbar-top-export-img{
+    background-image: url('./nxl_icon_export.png');
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+}
+.toolbar-top-export-text{
+    display: inline-block;
+    width: calc(100% -75px);
+    height: 15px;
+    position: absolute;
+    top: 50%;
+    left: 45px;
+    transform: translateY(-50%);    
+}
+.toolbar-top-help-container{
+    width: 300px;
+    height: 100%;
+    position: relative;
+    display: inline-block;
+}
+.toolbar-top-help-img{
+    background-image: url('./nxl_userhelp.png');
+    display: inline-block;
+    width: 28px;
+    height: 32px;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+}
+.toolbar-top-help-text{
+    display: inline-block;
+    width: calc(100% -75px);
+    height: 15px;
+    position: absolute;
+    top: 50%;
+    left: 45px;
+    transform: translateY(-50%);    
+}
+/*---------  status  ---------*/
+.toolbar-top-title-container:hover{
+    cursor: pointer;
+}
+.toolbar-top-save-container:hover{
+    cursor: pointer;
+}
+.toolbar-top-export-container:hover{
+    cursor: pointer;
+}
+.toolbar-top-help-container:hover{
+    cursor: pointer;
+}
+.btn:hover::after{
+    visibility: visible;
+    opacity: 1;
+}
+.checkbox:hover::after{
+    opacity: 1;
+    visibility: visible;
+}
+.text-link:hover{
+    cursor: pointer;
+}
+
+/*---------  themes  ---------*/
+
+/* background colors */
+.bg-black{
+    background-color: #000;
+    color: #fff;
+}
+.bg-white{
+    background-color: #fff;
+    color: #333;
+}
+.bg-gray{
+    background-color: #eee;
+    color: #333;
+}
+.bg-gray-light{
+    background-color: rgba(200, 200, 200, 0.1);
+    color: #333;
+}
+.bg-transparent{
+    background-color: transparent;
+    color: #333;
+}
+/* buttons */
+.btn{
+    cursor: pointer;
+    position: relative;
+}
+.btn::after{
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, .1);
+    visibility: hidden;
+    opacity: 0;
+    display: inline-block;
+}
+.btn-default{
+    background-color: #efefef;
+    color: #333;
+}
+.btn-primary{
+    background-color: #337ab7;
+    color: #fff;
+}
+.btn-danger{
+    background-color: #d9534f;
+    color: #fff;
+}
+.btn-success{
+    background-color: #5cb85c;
+    color: #fff;
+}
+.btn-sm{
+    width: 100px;
+    height: 40px;
+}
+.btn-md{
+    width: 150px;
+    height: 40px;
+}
+.btn-lg{
+    width: 200px;
+    height: 40px;
+}
+.btn-lg-ex{
+    width: 220px;
+    height: 40px;
+}
+/* selects */
+.select-sm{
+    width: 100px;
+    height: 30px;
+}
+.select-md{
+    width: 150px;
+    height: 30px;
+}
+.select-lg{
+    width: 200px;
+    height: 30px;
+}
+/* input text */
+.input-sm{
+    width: 100px;
+    height: 30px;
+}
+.input-md{
+    width: 150px;
+    height: 30px;
+}
+.input-lg{
+    width: 200px;
+    height: 30px;
+}
+
+/* checkbox */
+.input-checkbox{
+    display: none;
+}
+.input-checkbox:checked + label::before{
+    background-image: url('./nxl_icon_checked.png');
+}
+.checkbox{
+    display: inline-block;
+    background-image: url('./nxl_icon_unchecked.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: relative;
+}
+.checkbox::after{
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    display: inline-block;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, .1);
+    opacity: 0;
+    visibility: hidden;
+}
+.checkbox-checked{
+    background-image: url('./nxl_icon_checked.png');
+    background-size: contain;
+    background-repeat: no-repeat;    
+}
+.checkbox-sm{
+    width: 14px;
+    height: 14px;
+}
+.checkbox-md{
+    width: 24px;
+    height: 24px;
+}
+.checkbox-lg{
+    width: 34px;
+    height: 34px;
+}
+
+/* font */
+.font-default{
+    font-family: 'Arial';
+    font-weight: 400;
+    font-style: normal;
+    color: #333333;
+}
+.font-bold{
+    font-family: 'Arial Bold', 'Arial';
+    font-weight: 700;
+    font-style: normal;
+    color: #333333;
+}
+.font-sm{
+    font-size: 11px;
+}
+.font-md{
+    font-size: 13px;
+}
+.font-lg{
+    font-size: 16px;
+}
+.font-red{
+    color: #d9534f;
+}
+.font-blue{
+    color: #2E7B9A;
+}
+/* link */
+.text-link{
+    color: #09f;    
+}

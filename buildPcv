@@ -1,0 +1,129 @@
+#!/bin/bash
+#
+# DESCRIPTION
+#	Invoke PCV build
+#
+# USAGE:
+#	Steps to invoke this script.
+#		export NLEXTERNALDIR=<path>
+#		export BUILD_NUMBER=<#>
+#		source setEnv
+#		./buildPcv
+#
+# HUDSON BUILD:
+#	cd $WORKSPACE
+#	export NLEXTERNALDIR=c:/hudson/jobs/external_latest/workspace
+#	source setEnv
+#	./buildPcv
+#
+# Build Options:
+#	make -f build/Makefile.compile || exit $?
+#	make -f build/Makefile.compile compile install || exit $?
+#
+# Publish Options:
+#	make -f build/Makefile.publish TYPE=pcv || exit $?
+#	make -f build/Makefile.publish TYPE=pcv spe archive || exit $
+
+
+LOG_FILE=buildPcv.log
+BUILD_MANIFEST_FILE=build.manifest
+
+(
+set -x
+# Extract Perforce Workspace and Hudson info (only if running on Hudson)
+if [ "X${JENKINS_HOME}" != "X" -a -f ${JENKINS_HOME}/jobs/${JOB_NAME}/config.xml ]; then
+	build/getGitWorkspaceInfo.pl ${JENKINS_HOME}/jobs/${JOB_NAME}/config.xml
+fi
+
+# Prepare environment
+./configure --type=pcv_smdc || exit $?
+source build.config
+
+# Prepare dependencies
+make -f build/Makefile.xlib
+
+# Compile SPOE code
+make -f build/Makefile.compile compile || exit $?
+
+# Unzip the contents of NLSPOLEventHandlerApp_PCV.web.zip from the build-output directory
+if [ -f ${WORKSPACE}/bin/release_win_x64/NLSPOLEventHandlerApp_PCV.web.zip ]
+then
+	TMPDIR=`mktemp -d -p $PWD`
+	rm -rf ${TMPDIR}/
+	unzip ${WORKSPACE}/bin/release_win_x64/NLSPOLEventHandlerApp_PCV.web.zip -d ${TMPDIR}/
+	cd ${TMPDIR}/
+	WEBCONFIG_LOC=`find . -type f -name Web.config`
+	WEBCONFIG_DIR=`dirname ${WEBCONFIG_LOC}`
+	mkdir -p ${WORKSPACE}/bin/release_win_x64/NLSPOERER/NLSPOERER/
+	cd ${WEBCONFIG_DIR} ; tar cf - . | ( cd ${WORKSPACE}/bin/release_win_x64/NLSPOERER/NLSPOERER/ && tar xf - )
+else
+	echo "ERROR: NLSPOLEventHandlerApp_PCV.web.zip was NOT found - probably build failed. Please check the build log" && exit -1
+fi
+
+##
+# Let's do some code-signing for files going into the final SPOE package
+# Since this is a PCV build - we will be signing using the NextLabs debug certificate
+# Code-signing can be turned off from shell if we define a shell variable NOCODESIGN
+##
+if [ "X${NOCODESIGN}" = "X"  ] ; then
+	# Check for the availability of the NextLabs debug certificate
+	if [ -f "C:/release/bin/NextLabsDebug.pfx" ] ; then
+		export NEXTLABS_DEBUG_CERT_FILE="c:/release/bin/NextLabsDebug.pfx"
+	elif [ -f "${WORKSPACE}/build/NextLabsDebug.pfx" ] ; then
+		export NEXTLABS_DEBUG_CERT_FILE="${WORKSPACE}/build/NextLabsDebug.pfx"
+	else
+		echo "ERROR: Unable to find NextLabsDebug.pfx certificate for code-signing. If you want to turn off code-signing, define a shell variable NOCODESIGN."
+		exit -1
+	fi
+
+	# Check for the availability of Win8SDK's signtool
+	if [ -f "C:/PROGRA~2/Windows Kits/8.0/bin/x64/signtool.exe" ] ; then
+		SIGNTOOL_OFFICIAL_TOOL="C:/PROGRA~2/Windows Kits/8.0/bin/x64/signtool.exe"
+	else
+		echo "ERROR: Unable to find signtool command required for code-signing. If you want to turn off code-signing, define a shell variable NOCODESIGN."
+		exit -1
+	fi
+
+	##
+	# Find all signable files and send them for signing
+	# Currently supported formats: exe, dll
+	##
+	cd ${WORKSPACE}
+	"${SIGNTOOL_OFFICIAL_TOOL}" sign \
+		/f "${NEXTLABS_DEBUG_CERT_FILE}" \
+		/p '123blue!' \
+		/n "Nextlabs Debug" \
+		/fd sha256 \
+		`find ${PWD}/bin -type f | egrep -e '\.(exe|dll)$' | xargs cygpath --mixed`
+fi
+
+cd ${WORKSPACE}/
+
+# Create SPOE installer
+make -f build/Makefile.compile install || exit $?
+
+# Publish packages and artifacts to BODA only if PUBLISH_TO_BODA environment variable is set
+if [ "X${PUBLISH_TO_BODA}" = "XYes" -o "X${PUBLISH_TO_BODA}" = "Xyes" -o "X${PUBLISH_TO_BODA}" = "XYES" -o "X${PUBLISH_TO_BODA}" = "X1" ]
+then
+	# Publish installers and artifacts
+	make -f build/Makefile.publish TYPE=pcv || exit $?
+fi
+
+# Create and publish build manifest
+build/createBuildManifest.pl $LOG_FILE > $BUILD_MANIFEST_FILE || exit $?
+# Publish packages and artifacts to BODA only if PUBLISH_TO_BODA environment variable is set
+if [ "X${PUBLISH_TO_BODA}" = "XYes" -o "X${PUBLISH_TO_BODA}" = "Xyes" -o "X${PUBLISH_TO_BODA}" = "XYES" -o "X${PUBLISH_TO_BODA}" = "X1" ]
+then
+	make -f build/Makefile.publish TYPE=pcv manifest || exit $?
+fi
+
+set +x
+
+echo
+echo
+echo "####################### BUILD MANIFEST CONTENTS ########################"
+cat ${WORKSPACE}/${BUILD_MANIFEST_FILE}
+echo "########################################################################"
+) 2>&1 | tee $LOG_FILE
+
+exit ${PIPESTATUS[0]}

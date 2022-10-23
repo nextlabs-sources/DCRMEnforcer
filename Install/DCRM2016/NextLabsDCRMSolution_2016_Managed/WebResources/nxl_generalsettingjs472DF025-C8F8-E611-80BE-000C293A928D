@@ -1,0 +1,649 @@
+'use strict';
+
+/**
+ * the dcrm models namespace
+ * @external 'nxl.models'
+ */
+(function(){
+
+var models = nxl.models;
+
+//model alias
+var TestPC = models.TestPC;
+var TestWC = models.TestWC;
+var IOCommand = models.IOCommand;
+
+if(!models){
+    throw new Error('nxl.models namespace not imported before');
+}
+
+var strtestPCmsg = '';
+var strtestWCmsg = '';
+var btestPCflag = false;
+var btestWCflag = false;
+
+//Models class alias
+var GeneralSetting = models.GeneralSetting;
+
+var prePCPort = "443";
+var prePCAddrHost = "";
+var prewcUsername = "";
+var prewcPassword = "";
+var preClientId  ="";
+var preSecretKey = "";
+var preIfuseCloudAZ = true;
+var preIfUseHttps = true;
+var preActionValue = "Deny";
+var preDefultMessage = "";
+var preHintValue = "";
+var preOauthHost="";
+var preOauthPort="443";
+var preCahceRefreshTime="5";
+var preSpEnforcement = false;
+var preTimeCostEnable = false;
+var strUserHostIP = "";
+var preUserHostIP = "";
+
+function init(){
+	initListener();
+	LoadGeneralSetting();
+	resizeWindow();
+}
+
+function initListener(){
+
+	var toolbarTopSaveBtn = document.getElementById('toolbar-top-save-btn');
+	var toolbarTopDiscardBtn = document.getElementById('toolbar-top-discard-btn');
+	var toolbarTopHelpBtn = document.getElementById('toolbar-top-help-btn');
+	var testConnBtn = document.getElementById('testConnectionBtn');
+	var policyDecisionSelect = document.getElementById('policyDecisionSelect');
+	var toolbarBottomSaveBtn = document.getElementById('gsSaveBtn');
+	//var toolbarBottomDiscardBtn = document.getElementById('discard_input');
+
+	toolbarTopSaveBtn.onclick = SubmitGeneralSetting.bind(this);
+	toolbarTopDiscardBtn.onclick = DiscardChange.bind(this);
+	toolbarTopHelpBtn.onclick = ClickHelp.bind(this);
+	testConnBtn.onclick = testConnection.bind(this);
+	policyDecisionSelect.onchange = ChangeDefaultActionForInternalException.bind(this);
+	toolbarBottomSaveBtn.onclick = SubmitGeneralSetting.bind(this);
+	//toolbarBottomDiscardBtn.onclick = DiscardChange.bind(this);
+}
+
+function LoadGeneralSetting() {
+	
+	SDK.REST.retrieveMultipleRecords(nxlStorageEntity, '$select=nxl_name,nxl_datatype,nxl_enabled,nxl_content&$filter=nxl_datatype/Value eq 280240004')
+	.then(successRetrieveGeneralSetting)
+	.then(renderUI);	
+}
+
+function ChangeDefaultActionForInternalException() {
+	//console.log("ChangeDefaultActionForInternalException");
+}
+
+function SubmitGeneralSetting() 
+{
+	var strJpcHost=document.getElementById("host").value.trim();
+	var strJpcPort="443";
+	var bJpcHttps=true;
+	var strOAuthHost= document.getElementById("host").value.trim();
+	var strOAuthPort="443";
+	var strwcUsername = document.getElementById("username").value.trim();
+	var strwcPassword = document.getElementById("password").value.trim();
+	var strClientId=document.getElementById("clientId").value.trim();
+	var strClientKey=document.getElementById("clientKey").value.trim();
+	var strDefaultAction="Deny";
+	var strHintForInternalException=document.getElementById("HintForInternalException").value.trim();
+	var strtxtHintForDefaultMessage=document.getElementById("txtHintForDefaultMessage").value.trim();
+	var strReferchCacheTime=document.getElementById("div_RefreshTime_Content_Value_input").value.trim();
+	var iJpcPort=-1;
+	var iOAuthServerPort=-1;
+	var iRefrechCacheTime=-1;
+	var dialogBox=new NextlabsAlertMessage("Save Alert");
+	//var bIsSpEnabled = false;
+	//var bTimeCostEnable = false;
+	var bIsSpEnabled = document.getElementById('spEnforceCheckbox').checked || false;
+	var bTimeCostEnable = document.getElementById('TimeCostCheckbox').checked || false;
+	
+//	var strUserHostIP = '';
+//	try{
+//		var oReq = new XMLHttpRequest();
+//		oReq.addEventListener("load", function(){
+//			var oReqUserHost = JSON.parse(this.responseText);
+//			strUserHostIP = oReqUserHost.ip;
+//		});
+//		oReq.open("GET", "https://api.ipify.org/?format=json", false);
+//		oReq.send();
+//	}
+//	catch(e){
+//		console.log(e.message);
+//	}
+	
+	//validation not null
+	if((strJpcHost.length==0) || (strOAuthHost==0))
+	{
+		dialogBox.Show("Please input Policy Server Host");
+		return;
+	}
+	
+	if(strwcUsername.length==0)
+	{
+		dialogBox.Show("Please input User name");
+		return;
+	}
+
+	if(strwcPassword.length==0)
+	{
+		dialogBox.Show("Please input Password");
+		return;
+	}
+	
+	if(strClientId.length==0)
+	{
+		dialogBox.Show("Please input Client ID");
+		return;
+	}
+	if(strClientKey.length==0)
+	{
+		dialogBox.Show("Please input Client Secret Key");
+		return;
+	}
+	
+	// if(strJpcPort.length>0)
+	// {
+		// var iJpcPort=parseInt(strJpcPort);
+		// if(isNaN(iJpcPort)||iJpcPort<0||iJpcPort>65535)
+		// {
+			// dialogBox.Show("Please input correct policy controller server port.");
+			// return;
+		// }
+	// }
+	// if(strOAuthPort.length>0)
+	// {
+		// var iOAuthServerPort=parseInt(strOAuthPort);
+		// if(isNaN(iOAuthServerPort)||iOAuthServerPort<0||iOAuthServerPort>65535)
+		// {
+			// dialogBox.Show("Please input correct OAuth server port.");
+			// return;
+		// }
+	// }
+	if(strHintForInternalException.length==0)
+	{
+		//dialogBox.Show("Exception Message will be setted to default.");
+		var strHintForInternalException=document.getElementById("HintForInternalException").placeholder.trim();
+	}
+	if(strtxtHintForDefaultMessage.length==0)
+	{
+		//dialogBox.Show("Default Message will be setted to default.");
+		var strtxtHintForDefaultMessage=document.getElementById("txtHintForDefaultMessage").placeholder.trim();
+	}
+	if(strReferchCacheTime.length==0)
+	{
+		//dialogBox.Show("Refresh Cache Time will be setted to default.");
+		var strReferchCacheTime=document.getElementById("div_RefreshTime_Content_Value_input").placeholder.trim();
+	}
+	if(strReferchCacheTime.length>0)
+	{
+		var iRefrechCacheTime=parseInt(strReferchCacheTime);
+		if(isNaN(iRefrechCacheTime)||iRefrechCacheTime<0||iRefrechCacheTime>4294967295)
+		{
+			dialogBox.Show("Please input correct refresh cache time.");
+			return;
+		}
+	}
+	
+	if(strUserHostIP.length == 0){
+		dialogBox.Show('Get User Host IP failed, please wait a moment and save again');    
+		return;
+	}
+
+	var gs = new GeneralSetting();
+	gs.pcHost = strJpcHost;
+	gs.pcPort = strJpcPort;
+	gs.httpsEnable = bJpcHttps;
+	gs.oauthServer = strOAuthHost;
+	gs.oauthPort = strOAuthPort;
+	gs.wcUsername = strwcUsername;
+	gs.wcPassword = strwcPassword;
+	gs.clientId = strClientId;
+	gs.clientPwd = strClientKey;
+	gs.policyDecision = strDefaultAction;
+	gs.msg = strHintForInternalException;
+	gs.defaultMsg = strtxtHintForDefaultMessage;
+	gs.cacheInterval = strReferchCacheTime;
+	gs.spactioneable = bIsSpEnabled.toString();
+	gs.timecostenable = bTimeCostEnable.toString();
+	gs.UserHostIP = strUserHostIP;
+	
+	if(isNaN(parseInt(gs.cacheInterval))){
+		gs.cacheInterval = -1;
+	}
+
+	var gsJSON = {};
+	gsJSON.nxl_name = 'NXLGeneralSettings';
+	gsJSON.nxl_datatype = { Value: 280240004 };
+	gsJSON.nxl_enabled = true;
+	gsJSON.nxl_content = gs.serializeToString();
+	//console.log(JSON.stringify(gsJSON));
+	
+	//need change to new format
+	SDK.REST.createRecord(gsJSON, nxlStorageEntity)
+	.then(function(result){
+		//sendSPEnableCommand(bIsSpEnabled).then(function(){
+			location.reload(true);
+		//});
+	});
+}
+
+function sendSPEnableCommand(isEnable){
+
+    var cmd = isEnable ? 'EnableSPAction' : 'DisableSPAction';
+
+    return new Promise(function(resolve, reject){
+        var ioCommandDatatype = 280240007;
+        var ioCommand = new IOCommand(Date.now().toString(), cmd);
+        var record = {
+            nxl_name: 'iocommand',
+            nxl_datatype: { Value: ioCommandDatatype },
+            nxl_content: ioCommand.serializeToString(),
+            nxl_enabled: true
+        };
+        //console.log(JSON.stringify(record));
+        SDK.REST.createRecord(record, nxlStorageEntity).then(function(){
+            if(typeof resolve === 'function'){
+                resolve();
+            }
+        }, function(error){
+            if(typeof reject === 'function'){
+                reject(error);
+            }
+        });        
+    });
+}
+
+function ResetGeneralSetting() {
+	
+}
+
+/**
+ * @description success retrieving secured general setting result
+ * @param {multiRecords} result
+ */
+function successRetrieveGeneralSetting(result) {
+
+	//gs stands for general setting
+	var gsResults = result.results;
+	var isCompleted = result.isCompleted;
+	var nextQueryOption = result.nextQueryOption;
+		
+    	try{
+    		var oReq = new XMLHttpRequest();
+    		oReq.open("GET", "https://api.ipify.org/?format=json", true);
+            oReq.onreadystatechange = function (evt) {
+    
+                var xhr = evt ? evt.target : undefined;
+         
+                if (xhr && xhr.readyState == 4 /* complete */) {
+                    xhr.onreadystatechange = null;
+                    if (xhr.status == 200) {
+                        var oReqUserHost = JSON.parse(this.responseText);
+         			    strUserHostIP = oReqUserHost.ip;
+						//console.log("get User Host IP: " + strUserHostIP);
+						if (strUserHostIP !== preUserHostIP) console.log("UserHostIP is diffrent with preUserHostIP from DB: " + preUserHostIP);
+							
+                    }
+         
+                }
+            };
+    		oReq.send();
+    	}
+    	catch(e){
+    		console.log(e.message);
+    	}
+	
+	if(!gsResults || gsResults.length > 1){
+		throw new Error('retrieving general setting failed, record is null or more than one general setting retrieved');
+	}
+
+	var gs = gsResults[0];
+
+	if(gs){
+
+		var gsName = gs.nxl_name;
+		var gsDataType = gs.nxl_datatype;
+		var gsContent = gs.nxl_content;
+
+		if(!gsName || gsName.trim().toLowerCase() !== 'NXLGeneralSettings'.trim().toLowerCase()){
+			throw new Error('retrieving general setting failed, record is invalid');
+		}
+
+		var newGS = new GeneralSetting();
+		newGS.parseFromString(gsContent);
+		
+		return new Promise(function(resolve, reject){
+			if(typeof resolve === 'function'){
+				resolve(newGS);
+			}
+		});
+	}
+	else{
+		return new Promise(function(resolve, reject){});
+	}
+}
+
+/**
+ * @param {GeneralSetting} gs 
+ */
+function renderUI(gs){
+
+	var pcHostEl = document.getElementById('host');
+	var pcPortEl = document.getElementById('port');
+	var httpsCheckboxEl = document.getElementById('UsingHttps');
+	var oauthServerEl = document.getElementById('host');
+	var oauthPortEl = document.getElementById('port');
+	var wcUsernameE1 = document.getElementById('username');
+	var wcPasswordE1 = document.getElementById('password');
+	var clientIdEl = document.getElementById('clientId');
+	var clientPwdEl = document.getElementById('clientKey');
+	var policyDecisionEl = document.getElementById('policyDecisionSelect');
+	var msgEl = document.getElementById('HintForInternalException');
+	var defaultMsgEl = document.getElementById('txtHintForDefaultMessage');
+	var cacheIntervalEl = document.getElementById('div_RefreshTime_Content_Value_input');
+	var spEnforceCheckbox = document.getElementById('spEnforceCheckbox');
+	var TimeCostCheckbox = document.getElementById('TimeCostCheckbox');
+	
+	pcHostEl.value = gs.pcHost;
+	pcPortEl.value = gs.pcPort;
+	oauthServerEl.value = gs.oauthServer;
+	oauthPortEl.value = gs.oauthPort;
+	wcUsernameE1.value = gs.wcUsername;
+	wcPasswordE1.value = gs.wcPassword;
+	clientIdEl.value = gs.clientId;
+	clientPwdEl.value = gs.clientPwd;
+	msgEl.value = gs.msg;
+	defaultMsgEl.value = gs.defaultMsg;
+	cacheIntervalEl.value = (isNaN(parseInt(gs.cacheInterval)) || parseInt(gs.cacheInterval) < 0) ? '' : gs.cacheInterval;
+	spEnforceCheckbox.checked = gs.spactioneable || false;
+	TimeCostCheckbox.checked = gs.timecostenable || false;
+	
+	//store the original values
+	prePCAddrHost = gs.pcHost;
+	prePCPort = gs.pcPort;
+	preIfUseHttps = gs.httpsEnable;
+	preOauthHost = gs.oauthServer;
+	preOauthPort = gs.oauthPort;
+	prewcUsername = gs.wcUsername;
+	prewcPassword = gs.wcPassword;
+	preClientId = gs.clientId;
+	preSecretKey = gs.clientPwd;
+	preActionValue = gs.policyDecision;
+	preHintValue = gs.msg;
+	preDefultMessage = gs.defaultMsg;
+	preCahceRefreshTime = cacheIntervalEl.value;
+	preSpEnforcement = spEnforceCheckbox.checked;
+	preTimeCostEnable = TimeCostCheckbox.checked;
+    preUserHostIP = gs.UserHostIP;
+
+	if(typeof gs.httpsEnable === 'boolean'){
+		httpsCheckboxEl.checked = gs.httpsEnable 
+	}
+	if(gs.httpsEnable && typeof gs.httpsEnable === 'string'){
+		httpsCheckboxEl.checked = gs.httpsEnable.trim().toLowerCase() === 'true' ? true : false;
+	}
+
+	if(policyDecisionEl.options.length > 0){
+		var options = policyDecisionEl.options;
+		var decisionCount = options.length;
+
+		for(var i = 0; i < decisionCount; i++){
+			if(options[i].value.trim().toLowerCase().indexOf(gs.policyDecision.trim().toLowerCase()) > -1){
+				policyDecisionEl.selectedIndex = i;
+				break;
+			}
+		}
+	}
+	
+}
+
+function onCompleteGeneralSetting() {
+	//console.log("onCompleteGeneralSetting");
+}
+
+function testConnection(){
+
+	var btnTestConnection=document.getElementById("testConnectionBtn");
+	ShowTestConnectingMessage();
+	btnTestConnection.disabled=true;
+	strtestPCmsg = '';
+	strtestWCmsg = '';
+	btestPCflag = false;
+	btestWCflag = false;
+	testPCConnection();
+}
+
+function TestConnPostAction(){
+	if(btestPCflag && btestWCflag){
+		ShowTestConnectSuccessMessage();
+	} else
+	if(btestPCflag && !btestWCflag){
+		ShowTestConnectFailedMessage(strtestWCmsg);
+	} else
+	if(!btestPCflag && btestWCflag){
+		ShowTestConnectFailedMessage(strtestPCmsg);
+	} else {
+		if(strtestWCmsg == strtestPCmsg){
+			ShowTestConnectFailedMessage(strtestPCmsg);
+		}
+		else{
+			ShowTestConnectFailedMessage(strtestWCmsg + ' & ' + strtestPCmsg);
+		}
+	}
+	var btnTestConnection=document.getElementById("testConnectionBtn");
+	btnTestConnection.disabled=false;
+}
+	
+function testPCConnection(){
+	var strJpcHost=document.getElementById("host").value.trim();
+	var strJpcPort="443";
+	var bJpcHttps=true;
+	var strOAuthHost=document.getElementById("host").value.trim();
+	var strOAuthPort="443";
+	var strClientId=document.getElementById("clientId").value.trim();
+	var strClientKey=document.getElementById("clientKey").value.trim();
+	var strUsername=document.getElementById("username").value.trim();
+	var strPassword=document.getElementById("password").value.trim();
+		
+	//validation not null
+	if((strJpcHost.length==0) || (strOAuthHost.length == 0))
+	{
+		ShowTestConnectFailedMessage("Please input Policy Server Host");
+		var btnTestConnection=document.getElementById("testConnectionBtn");
+		btnTestConnection.disabled=false;
+		return;
+	}
+	
+	if(strUsername.length==0)
+	{
+		ShowTestConnectFailedMessage("Please input User Name");
+		var btnTestConnection=document.getElementById("testConnectionBtn");
+		btnTestConnection.disabled=false;
+		return;
+	}
+	if(strPassword.length==0)
+	{
+		ShowTestConnectFailedMessage("Please input Password");
+		var btnTestConnection=document.getElementById("testConnectionBtn");
+		btnTestConnection.disabled=false;
+		return;
+	}
+	
+	if(strClientId.length==0)
+	{
+		ShowTestConnectFailedMessage("Please input Client ID");
+		var btnTestConnection=document.getElementById("testConnectionBtn");
+		btnTestConnection.disabled=false;		
+		return;
+	}
+	if(strClientKey.length==0)
+	{
+		ShowTestConnectFailedMessage("Please input Client Secret Key");
+		var btnTestConnection=document.getElementById("testConnectionBtn");
+		btnTestConnection.disabled=false;
+		return;
+	}
+
+	var testPC = new TestPC(strJpcHost, strJpcPort, bJpcHttps, strOAuthHost, strOAuthPort, strClientId, strClientKey);
+
+	var record={};
+	record.nxl_name = "NXLTestPC";
+	record.nxl_datatype = { Value: 280240006 };
+	record.nxl_enabled = true;
+	record.nxl_content = testPC.serializeToString();
+
+	SDK.REST.createRecord(record, nxlStorageEntity)
+	.then(testPCConnectionSuccess, testPCConnectionError);
+}
+
+function testWCConnection(){
+	var bJpcHttps=true;
+	var strOAuthHost=document.getElementById("host").value.trim();
+	var strOAuthPort="443";
+	var strUsername=document.getElementById("username").value.trim();
+	var strPassword=document.getElementById("password").value.trim();
+	
+	var testWC = new TestWC(bJpcHttps, strOAuthHost, strOAuthPort, strUsername, strPassword);
+
+	var wcJSON = {};
+	wcJSON.nxl_name = 'NXLTestWC';
+	wcJSON.nxl_datatype = { Value: 280240010 };
+	wcJSON.nxl_enabled = true;
+	wcJSON.nxl_content = testWC.serializeToString();
+	SDK.REST.createRecord(wcJSON, nxlStorageEntity)
+		.then(testWCConnectionSuccess, testWCConnectionError);
+}
+
+function testPCConnectionSuccess(result){
+
+	if(result.nxl_content && result.nxl_content.trim().toLowerCase() === "ok"){
+		btestPCflag = true;
+	}
+	else{
+		strtestPCmsg = result.nxl_content;
+	}
+	testWCConnection();
+}
+
+function testWCConnectionSuccess(result){
+	if(result.nxl_content && result.nxl_content.trim().toLowerCase().substring(0,4) === "http"){
+		btestWCflag = true;
+	}
+	// else if(result.nxl_content && result.nxl_content.trim().toLowerCase().substring(0,4) === "please"){
+		// strtestWCmsg = result.nxl_content;
+	// } 
+	else{
+		strtestWCmsg = result.nxl_content;
+	}
+	TestConnPostAction();
+}
+
+function testPCConnectionError(result){
+	strtestPCmsg = 'Verify PC connection failed';
+	testWCConnection();
+}
+
+function testWCConnectionError(result){
+	strtestWCmsg = 'Verify cloudAz connection failed';
+	TestConnPostAction();
+}
+
+function ShowTestConnectingMessage(){
+	var errorMessageObj = document.getElementById("errorMessage");
+	var sucessState = document.getElementById("testconnSuccessState");
+	var errorState = document.getElementById("testconnFailState");
+	var errorDetail=document.getElementById("errorDetail");
+	errorMessageObj.innerHTML="Please wait for the validation to finish......";
+	errorDetail.innerHTML="";
+	sucessState.style["visibility"] = "hidden";
+	sucessState.style["display"] = "none";
+	errorState.style["visibility"] = "visible";
+	errorState.style["display"] = "block";
+}
+
+function ShowTestConnectSuccessMessage(){
+	var errorMessageObj = document.getElementById("errorMessage");
+	var sucessState = document.getElementById("testconnSuccessState");
+	var errorState = document.getElementById("testconnFailState");
+	var errorDetail=document.getElementById("errorDetail");
+	errorState.style["visibility"] = "hidden";
+	errorState.style["display"] = "none";
+	sucessState.style["visibility"] = "visible";
+	sucessState.style["display"] = "block";
+}
+
+function ShowTestConnectFailedMessage(strMessage){
+	var errorMessageObj = document.getElementById("errorMessage");
+	var sucessState = document.getElementById("testconnSuccessState");
+	var errorState = document.getElementById("testconnFailState");
+	var errorDetail=document.getElementById("errorDetail");
+	errorMessageObj.innerHTML="Connection could not be established";
+	errorDetail.innerHTML=strMessage;
+	sucessState.style["visibility"] = "hidden";
+	sucessState.style["display"] = "none";
+	errorState.style["visibility"] = "visible";
+	errorState.style["display"] = "block";
+}
+
+function DiscardChange(){
+
+	var host = document.getElementById("host");
+	var port = document.getElementById("port");
+	var oauthHost=document.getElementById("host");
+	var oauthPort=document.getElementById("port");
+	var usingHttps = document.getElementById("UsingHttps");
+	var username = document.getElementById("username");
+	var pwd = document.getElementById("password");
+	var id = document.getElementById('clientId');
+	var key = document.getElementById('clientKey');
+	var action = document.getElementById("policyDecisionSelect");
+	var hint = document.getElementById("HintForInternalException");
+	var hintDefaultDeny = document.getElementById("txtHintForDefaultMessage");
+	var domCacheRefreshTimeInput=document.getElementById("div_RefreshTime_Content_Value_input");
+	var spEnforceCheckbox = document.getElementById('spEnforceCheckbox');
+	var TimeCostCheckbox = document.getElementById('TimeCostCheckbox');
+
+	host.value = prePCAddrHost;
+	port.value = prePCPort;
+	oauthHost.value=preOauthHost;
+	oauthPort.value=preOauthPort;
+	usingHttps.checked = preIfUseHttps; 
+	username.value = prewcUsername;
+	pwd.value = prewcPassword;	
+	id.value = preClientId;
+	key.value = preSecretKey;
+	action.value = preActionValue;
+	hint.value = preHintValue;
+	hintDefaultDeny.value = preDefultMessage;
+	domCacheRefreshTimeInput.value=preCahceRefreshTime;
+	spEnforceCheckbox.checked = preSpEnforcement;
+	TimeCostCheckbox.checked = preTimeCostEnable;
+}
+
+function ClickHelp(){
+	var pageurl = window.location.href;
+	var intsplitedchar = pageurl.lastIndexOf("/");
+
+	if(intsplitedchar < 0){
+		console.log("can not find /");
+		dialogBox.Show("Open help page failed!");
+		return;
+	}
+
+	var headpart = pageurl.substring(0, intsplitedchar);
+	var helpurl = headpart + "/nxl_gsuserhelp.html";
+
+	//window.open(helpurl,"_blank");
+	window.open("https://emdcrm-help.pep.cloudaz.com/configuring_general_settings.html");
+}
+
+init();
+
+})();

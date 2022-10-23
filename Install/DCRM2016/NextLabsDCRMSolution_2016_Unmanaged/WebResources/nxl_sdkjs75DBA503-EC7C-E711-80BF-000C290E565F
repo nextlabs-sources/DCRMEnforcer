@@ -1,0 +1,1367 @@
+'use strict'
+
+/**
+ * @global
+ * @namespace
+ * @property {object} REST
+ * @property {object} Metadata
+ */
+var SDK = window.SDK || { __namespace: true };
+
+/**
+ * @namespace
+ * @type {object}
+ * @prop {Function} createRecord
+ * @prop {Function} retrieveRecord
+ * @prop {Function} updateRecord
+ * @prop {Function} deleteRecord
+ * @prop {Function} retrieveMultipleRecords
+ * @prop {Function} associateRecords
+ * @prop {Function} disassociateRecords
+ */
+SDK.REST = {
+    __namespace: true,
+
+    _context: function () {
+        ///<summary>
+        /// Private function to the context object.
+        ///</summary>
+        ///<returns>Context</returns>
+        if (typeof GetGlobalContext != "undefined")
+        { 
+            return GetGlobalContext(); 
+        }
+        else {
+            if (typeof Xrm != "undefined") {
+                return Xrm.Page.context;
+            }
+            else{ 
+                throw new Error("Context is not available."); 
+            }
+        }
+    },
+    _getClientUrl: function () {
+        ///<summary>
+        /// Private function to return the server URL from the context
+        ///</summary>
+        ///<returns>String</returns>
+        var scope = this;
+        var clientUrl = scope._context().getClientUrl();
+
+        return clientUrl;
+    },
+    _ODataPath: function () {
+        ///<summary>
+        /// Private function to return the path to the REST endpoint.
+        ///</summary>
+        ///<returns>String</returns>
+        var scope = this;
+        return scope._getClientUrl() + "/XRMServices/2011/OrganizationData.svc/";
+    },
+    _errorHandler: function (req) {
+        ///<summary>
+        /// Private function return an Error object to the errorCallback
+        ///</summary>
+        ///<param name="req" type="XMLHttpRequest">
+        /// The XMLHttpRequest response that returned an error.
+        ///</param>
+        ///<returns>Error</returns>
+        //Error descriptions come from http://support.microsoft.com/kb/193625
+        if (req.status == 12029)
+        { return new Error("The attempt to connect to the server failed."); }
+        if (req.status == 12007)
+        { return new Error("The server name could not be resolved."); }
+        var errorText;
+        try
+        { errorText = JSON.parse(req.responseText).error.message.value; }
+        catch (e)
+        { errorText = req.responseText }
+
+        return new Error("Error : " +
+            req.status + ": " +
+            req.statusText + ": " + errorText);
+    },
+    _dateReviver: function (key, value) {
+        ///<summary>
+        /// Private function to convert matching string values to Date objects.
+        ///</summary>
+        ///<param name="key" type="String">
+        /// The key used to identify the object property
+        ///</param>
+        ///<param name="value" type="String">
+        /// The string value representing a date
+        ///</param>
+        var a;
+        if (typeof value === 'string') {
+            a = /Date\(([-+]?\d+)\)/.exec(value);
+            if (a) {
+                return new Date(parseInt(value.replace("/Date(", "").replace(")/", ""), 10));
+            }
+        }
+        return value;
+    },
+    _parameterCheck: function (parameter, message) {
+        ///<summary>
+        /// Private function used to check whether required parameters are null or undefined
+        ///</summary>
+        ///<param name="parameter" type="Object">
+        /// The parameter to check;
+        ///</param>
+        ///<param name="message" type="String">
+        /// The error message text to include when the error is thrown.
+        ///</param>
+        if ((typeof parameter === "undefined") || parameter === null) {
+            throw new Error(message);
+        }
+    },
+    _stringParameterCheck: function (parameter, message) {
+        ///<summary>
+        /// Private function used to check whether required parameters are null or undefined
+        ///</summary>
+        ///<param name="parameter" type="String">
+        /// The string parameter to check;
+        ///</param>
+        ///<param name="message" type="String">
+        /// The error message text to include when the error is thrown.
+        ///</param>
+        if (typeof parameter != "string") {
+            throw new Error(message);
+        }
+    },
+    _callbackParameterCheck: function (callbackParameter, message) {
+        ///<summary>
+        /// Private function used to check whether required callback parameters are functions
+        ///</summary>
+        ///<param name="callbackParameter" type="Function">
+        /// The callback parameter to check;
+        ///</param>
+        ///<param name="message" type="String">
+        /// The error message text to include when the error is thrown.
+        ///</param>
+        if (typeof callbackParameter != "function") {
+            throw new Error(message);
+        }
+    },
+
+    /**
+     * Sends an asynchronous request to create a new record.
+     * @param {object} object - A JavaScript object with properties corresponding to the Schema name of entity attributes that are valid for create operations.
+     * @param {string} type - The Schema Name of the Entity type record to create.For an Account record, use "Account".
+     * @return {promise}
+     */
+    createRecord: function (object, type) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+
+            try{
+                scope._parameterCheck(object, 'SDK.REST.createRecord requires the object parameter.');
+                scope._stringParameterCheck(type, 'SDK.REST.createRecord requires the type parameter is a string.');
+
+                var req = new XMLHttpRequest();
+
+                req.open('POST', encodeURI(scope._ODataPath() + type + 'Set'), true);
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState == 4 /* complete */) {
+                        xhr.onreadystatechange = null;
+                        if (xhr.status == 201 && typeof resolve === 'function') {
+                            resolve(JSON.parse(xhr.responseText, scope._dateReviver).d);
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+
+                req.send(JSON.stringify(object));   
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+        });
+    },
+
+    /**
+     * Sends an asynchronous request to retrieve a record.
+     * @param {string} id - A String representing the GUID value for the record to retrieve.
+     * @param {string} type - The Schema Name of the Entity type record to retrive.For an Account record, use 'Account'.
+     * @param {string} select - A String representing the $select OData System Query Option to control which attributes will be returned. This is a comma separated list of Attribute names that are valid for retrieve. If null all properties for the record will be returned.
+     * @param {string} expand - A String representing the $expand OData System Query Option value to control which related records are also returned. This is a comma separated list of of up to 6 entity relationship names. If null no expanded related records will be returned.
+     * @return {promise}
+     */    
+    retrieveRecord: function (id, type, select, expand) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+
+            try{
+
+                scope._stringParameterCheck(id, 'SDK.REST.retrieveRecord requires the id parameter is a string.');
+                scope._stringParameterCheck(type, 'SDK.REST.retrieveRecord requires the type parameter is a string.');
+                
+                if (select){
+                    scope._stringParameterCheck(select, 'SDK.REST.retrieveRecord requires the select parameter is a string.');
+                }
+                if (expand){
+                    scope._stringParameterCheck(expand, 'SDK.REST.retrieveRecord requires the expand parameter is a string.');
+                }
+
+                var systemQueryOptions = '';
+
+                if (select != null || expand != null) {
+                    systemQueryOptions = '?';
+                    if (select != null) {
+                        var selectString = '$select=' + select;
+                        if (expand != null) {
+                            selectString = selectString + ',' + expand;
+                        }
+                        systemQueryOptions = systemQueryOptions + selectString;
+                    }
+                    if (expand != null) {
+                        systemQueryOptions = systemQueryOptions + '&$expand=' + expand;
+                    }
+                }
+
+
+                var req = new XMLHttpRequest();
+
+                req.open('GET', encodeURI(scope._ODataPath() + type + 'Set(guid\'' + id + '\')' + systemQueryOptions), true);
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState == 4 /* complete */) {
+                        xhr.onreadystatechange = null;
+                        if (xhr.status == 200 && typeof resolve === 'function') {
+                            resolve(JSON.parse(xhr.responseText, scope._dateReviver).d);
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+
+                req.send();
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+
+        });
+    },
+
+    /**
+     * Sends an asynchronous request to update a record.
+     * @param {string} id - A String representing the GUID value for the record to update.
+     * @param {object} object - A JavaScript object with properties corresponding to the Schema Names for entity attributes that are valid for update operations.
+     * @param {string} type - The Schema Name of the Entity type record to create.For an Account record, use 'Account'.
+     * @return {promise}
+     */
+    updateRecord: function (id, object, type) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+            try{
+
+                scope._stringParameterCheck(id, 'SDK.REST.updateRecord requires the id parameter.');
+                scope._parameterCheck(object, 'SDK.REST.updateRecord requires the object parameter.');
+                scope._stringParameterCheck(type, 'SDK.REST.updateRecord requires the type parameter.');
+                
+                var req = new XMLHttpRequest();
+
+                req.open('POST', encodeURI(scope._ODataPath() + type + 'Set(guid\'' + id + '\')'), true);
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                req.setRequestHeader('X-HTTP-Method', 'MERGE');
+
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState == 4 && typeof resolve === 'function'/* complete */) {
+
+                        xhr.onreadystatechange = null;
+
+                        if (xhr.status == 204 || xhr.status == 1223) {
+                            resolve();
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+
+                req.send(JSON.stringify(object));                
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+        });
+
+    },
+
+    /**
+     * Sends an asynchronous request to delete a record.
+     * @param {string} id - A String representing the GUID value for the record to delete
+     * @param {string} type - The Schema Name of the Entity type record to delete.For an Account record, use 'Account'.
+     * @return {promise}
+     */
+    deleteRecord: function (id, type) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+
+            try{
+
+                scope._stringParameterCheck(id, 'SDK.REST.deleteRecord requires the id parameter.');
+                scope._stringParameterCheck(type, 'SDK.REST.deleteRecord requires the type parameter.');
+
+                var req = new XMLHttpRequest();
+                req.open('POST', encodeURI(scope._ODataPath() + type + 'Set(guid\'' + id + '\')'), true);
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                req.setRequestHeader('X-HTTP-Method', 'DELETE');
+
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState == 4 /* complete */) {
+
+                        xhr.onreadystatechange = null;
+
+                        if (xhr.status === 204 || xhr.status === 1223 && typeof resolve === 'function') {
+                            resolve();
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+
+                req.send();
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+
+        });
+    },
+
+    /**
+     * Sends an asynchronous request to retrieve records.
+     * the resolve method accept another param {boolean} isCompleted to indicate whether the entities are all loaded.
+     * @param {string} type - The Schema Name of the Entity type record to retrive.For an Account record, use 'Account'.
+     * @param {string} options - A String representing the OData System Query Options to control the data returned.
+     * @return {promise} - resolve arg: { "results": Array<object>, "isCompleted": boolean, "nextQueryOption": string }
+     * 
+     */
+    retrieveMultipleRecords: function (type, options) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+
+            try{
+
+                scope._stringParameterCheck(type, 'SDK.REST.retrieveMultipleRecords requires the type parameter is a string.');
+                if (options){
+                    scope._stringParameterCheck(options, 'SDK.REST.retrieveMultipleRecords requires the options parameter is a string.');
+                }
+
+                var optionsString = '';
+                if (options) {
+                    if (options.charAt(0) !== '?') {
+                        optionsString = '?' + options;
+                    }
+                    else{ 
+                        optionsString = options; 
+                    }
+                }
+
+                var req = new XMLHttpRequest();
+                req.open('GET', scope._ODataPath() + type + 'Set' + optionsString, true);
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState === 4 /* complete */) {
+                        xhr.onreadystatechange = null;
+                        if (xhr.status === 200 && typeof resolve === 'function') {
+
+                            var returned = JSON.parse(xhr.responseText, scope._dateReviver).d;
+                            var isCompleted = false;
+                            var nextQueryOption = '';
+
+                            if(returned && !returned.__next){
+                                isCompleted = true;
+                            }
+
+                            if (!isCompleted) {
+                                nextQueryOption = returned.__next.substring((scope._ODataPath() + type + 'Set').length);
+                            }
+
+                            resolve({ "results": returned.results, "isCompleted": isCompleted, "nextQueryOption": nextQueryOption});
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+
+                req.send();
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+
+        });
+    },
+
+    /**
+     * @param {string} parentId - The Id of the record to be the parent record in the relationship.
+     * @param {string} parentType - The Schema Name of the Entity type for the parent record.
+     * @param {string} relationshipName - The Schema Name of the Entity Relationship to use to associate the records.To associate account records as a Parent account, use 'Referencedaccount_parent_account'.
+     * @param {string} childId - The Id of the record to be the child record in the relationship.
+     * @param {string} childType - The Schema Name of the Entity type for the child record.
+     * @return {promise}
+     */
+    associateRecords: function (parentId, parentType, relationshipName, childId, childType) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+
+            try{
+
+                scope._stringParameterCheck(parentId, 'SDK.REST.associateRecords requires the parentId parameter is a string.');
+                scope._stringParameterCheck(parentType, 'SDK.REST.associateRecords requires the parentType parameter is a string.');
+                scope._stringParameterCheck(relationshipName, 'SDK.REST.associateRecords requires the relationshipName parameter is a string.');
+                scope._stringParameterCheck(childId, 'SDK.REST.associateRecords requires the childId parameter is a string.');
+                scope._stringParameterCheck(childType, 'SDK.REST.associateRecords requires the childType parameter is a string.');
+
+
+                var req = new XMLHttpRequest();
+                req.open('POST', encodeURI(scope._ODataPath() + parentType + 'Set(guid\'' + parentId + '\')/$links/' + relationshipName), true);
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState == 4 /* complete */) {
+
+                        xhr.onreadystatechange = null;
+
+                        if (xhr.status == 204 || xhr.status == 1223 && typeof resolve === 'function') {
+                            resolve();
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+
+                var childEntityReference = {}
+                childEntityReference.uri = scope._ODataPath() + '/' + childType + 'Set(guid\'' + childId + '\')';
+                req.send(JSON.stringify(childEntityReference));
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+
+        });
+    },
+
+    /**
+     * @param {string} parentId - The Id of the record to be the parent record in the relationship.
+     * @param {string} parentType - The Schema Name of the Entity type for the parent record.
+     * @param {string} relationshipName - The Schema Name of the Entity Relationship to use to associate the records.To associate account records as a Parent account, use 'Referencedaccount_parent_account'.
+     * @param {string} childId - The Id of the record to be the child record in the relationship.
+     * @return {promise}
+     */    
+    disassociateRecords: function (parentId, parentType, relationshipName, childId) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+
+            try{
+
+                scope._stringParameterCheck(parentId, 'SDK.REST.disassociateRecords requires the parentId parameter is a string.');        
+                scope._stringParameterCheck(parentType, 'SDK.REST.disassociateRecords requires the parentType parameter is a string.');
+                scope._stringParameterCheck(relationshipName, 'SDK.REST.disassociateRecords requires the relationshipName parameter is a string.');
+                scope._stringParameterCheck(childId, 'SDK.REST.disassociateRecords requires the childId parameter is a string.');
+
+                var req = new XMLHttpRequest();
+                req.open('POST', encodeURI(scope._ODataPath() + parentType + 'Set(guid\'' + parentId + '\')/$links/' + relationshipName + '(guid\'' + childId + '\')'), true);
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                req.setRequestHeader('X-HTTP-Method', 'DELETE');
+
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState == 4 /* complete */) {
+                        
+                        xhr.onreadystatechange = null;
+                        
+                        if (xhr.status == 204 || xhr.status == 1223 && typeof resolve === 'function') {
+                            resolve();
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+                req.send();
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+
+        });
+    }
+    
+}
+
+/**
+ * @namespace
+ * @type {object}
+ * @prop {Function} RetrieveAllEntities
+ * @prop {Function} RetrieveEntity
+ * @prop {Function} RetrieveAttribute
+ */
+SDK.Metadata = {
+
+    __namespace: true,    
+
+    _arrayElements: [
+        'Attributes',
+        'ManyToManyRelationships',
+        'ManyToOneRelationships',
+        'OneToManyRelationships',
+        'Privileges',
+        'LocalizedLabels',
+        'Options',
+        'Targets'
+    ],
+
+    EntityFilters: {
+        __enum: true,
+        __flags: true,
+        Default: 1,
+        Entity: 1,
+        Attributes: 2,
+        Privileges: 4,
+        Relationships: 8,
+        All: 15
+    },
+
+    /**
+     * Sends an asynchronous RetrieveAllEntities Request to retrieve all entities in the system
+     * @param {number} EntityFilters - SDK.Metadata.EntityFilters provides an enumeration for the filters available to filter which data is retrieved.Include only those elements of the entity you want to retrieve. Retrieving all parts of all entitities may take significant time.
+     * @param {boolean} RetrieveAsIfPublished - Sets whether to retrieve the metadata that has not been published.
+     * @param {object} passThroughObject - An Object that will be passed through to as the second parameter to the successCallBack.
+     * @return {promise} - resolve arguments: {"entityMetadataCollection": entityMetadataCollection, "args": passThroughObject}
+     */
+    RetrieveAllEntities: function (EntityFilters, RetrieveAsIfPublished, passThroughObject) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+
+            try{
+
+                if((typeof EntityFilters != "number") || (EntityFilters < 1 || EntityFilters > 15)){ 
+                    throw new Error("SDK.Metadata.RetrieveAllEntities EntityFilters must be a SDK.Metadata.EntityFilters value."); 
+                }
+                if(typeof RetrieveAsIfPublished != "boolean"){ 
+                    throw new Error("SDK.Metadata.RetrieveAllEntities RetrieveAsIfPublished must be a boolean value."); 
+                }
+
+                var entityFiltersValue = scope._evaluateEntityFilters(EntityFilters);
+
+                var request = [
+                    "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">",
+                    //Allows retrieval if ImageAttributeMetadata objects
+                    "<soapenv:Header><a:SdkClientVersion xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">7.0</a:SdkClientVersion></soapenv:Header>",
+                    "<soapenv:Body>",
+                    "<Execute xmlns=\"http://schemas.microsoft.com/xrm/2011/Contracts/Services\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">",
+                    "<request i:type=\"a:RetrieveAllEntitiesRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">",
+                    "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>EntityFilters</b:key>",
+                    "<b:value i:type=\"c:EntityFilters\" xmlns:c=\"http://schemas.microsoft.com/xrm/2011/Metadata\">" + scope._xmlEncode(entityFiltersValue) + "</b:value>",
+                    "</a:KeyValuePairOfstringanyType>",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>RetrieveAsIfPublished</b:key>",
+                    "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">" + scope._xmlEncode(RetrieveAsIfPublished.toString()) + "</b:value>",
+                    "</a:KeyValuePairOfstringanyType>",
+                    "</a:Parameters>",
+                    "<a:RequestId i:nil=\"true\" />",
+                    "<a:RequestName>RetrieveAllEntities</a:RequestName>",
+                    "</request>",
+                    "</Execute>",
+                    "</soapenv:Body>",
+                    "</soapenv:Envelope>"].join("");
+
+                var req = new XMLHttpRequest();
+                req.open("POST", scope._getUrl() + "/XRMServices/2011/Organization.svc/web", true);
+
+                try { req.responseType = 'msxml-document' } catch (e) { }
+
+                req.setRequestHeader("Accept", "application/xml, text/xml, */*");
+                req.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
+                req.setRequestHeader("SOAPAction", "http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Execute");
+
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState == 4 /* complete */) {
+
+                        xhr.onreadystatechange = null; //Addresses potential memory leak issue with IE
+                        
+                        if (xhr.status == 200) {
+                            //Success				
+                            var doc = req.responseXML;
+
+                            try { scope._setSelectionNamespaces(doc); } catch (e) { }
+
+                            var entityMetadataNodes = scope._selectNodes(doc, "//c:EntityMetadata");
+                            var entityMetadataCollection = [];
+                            var entityNodeLength = entityMetadataNodes.length;
+                            for (var i = 0; i < entityNodeLength; i++) {
+                                var a = scope._objectifyNode(entityMetadataNodes[i]);
+                                a._type = "EntityMetadata";
+                                entityMetadataCollection.push(a);
+                            }
+
+                            if(typeof resolve === 'function'){
+                                resolve({"entityMetadataCollection": entityMetadataCollection, "args": passThroughObject});
+                            }
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+
+                req.send(request);
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+
+        });
+    },
+
+    /**
+     * Sends an asynchronous RetrieveEntity Request to retrieve a specific entity
+     * @param {number} EntityFilters - SDK.Metadata.EntityFilters provides an enumeration for the filters available to filter which data is retrieved.Include only those elements of the entity you want to retrieve. Retrieving all parts of all entitities may take significant time.
+     * @param {string} LogicalName - The logical name of the entity requested. A null value may be used if a MetadataId is provided.
+     * @param {string} MetadataId - A null value or an empty guid may be passed if a LogicalName is provided.
+     * @param {boolean} RetrieveAsIfPublished - Sets whether to retrieve the metadata that has not been published.
+     * @param {object} passThroughObject - An Object that will be passed through to as the second parameter to the successCallBack.
+     * @return {promise} - resolve arguments: {"entityMetadata": a, "args": passThroughObject}
+     */
+    RetrieveEntity: function (EntityFilters, LogicalName, MetadataId, RetrieveAsIfPublished, passThroughObject) {
+
+        var scope = this;
+        
+        return new Promise(function(resolve, reject){
+
+            try{
+
+                if((typeof EntityFilters !== "number") || (EntityFilters < 1 || EntityFilters > 15)){ 
+                    throw new Error("SDK.Metadata.RetrieveEntity EntityFilters must be a SDK.Metadata.EntityFilters value."); 
+                }
+                if(!LogicalName && !MetadataId) {
+                    throw new Error("SDK.Metadata.RetrieveEntity requires either the LogicalName or MetadataId parameter not be null.");
+                }
+                if(LogicalName) {
+                    if (typeof LogicalName !== "string"){ 
+                        throw new Error("SDK.Metadata.RetrieveEntity LogicalName must be a string value."); 
+                    }
+                    MetadataId = "00000000-0000-0000-0000-000000000000";
+                }
+                if(MetadataId && !LogicalName) {
+                    if (typeof MetadataId !== "string"){ 
+                        throw new Error("SDK.Metadata.RetrieveEntity MetadataId must be a string value."); 
+                    }
+                }
+                if(typeof RetrieveAsIfPublished !== "boolean"){ 
+                    throw new Error("SDK.Metadata.RetrieveEntity RetrieveAsIfPublished must be a boolean value."); 
+                }
+
+                var entityFiltersValue = scope._evaluateEntityFilters(EntityFilters);
+                var entityLogicalNameValueNode = "";
+
+                if(!LogicalName){ 
+                    entityLogicalNameValueNode = "<b:value i:nil=\"true\" />"; 
+                }
+                else{ 
+                    entityLogicalNameValueNode = "<b:value i:type=\"c:string\"   xmlns:c=\"http://www.w3.org/2001/XMLSchema\">" + scope._xmlEncode(LogicalName.toLowerCase()) + "</b:value>"; 
+                }
+
+                var request = [
+                    "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">",
+                    //Allows retrieval if ImageAttributeMetadata objects
+                    "<soapenv:Header><a:SdkClientVersion xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">6.0</a:SdkClientVersion></soapenv:Header>",
+                    "<soapenv:Body>",
+                    "<Execute xmlns=\"http://schemas.microsoft.com/xrm/2011/Contracts/Services\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">",
+                    "<request i:type=\"a:RetrieveEntityRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">",
+                    "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>EntityFilters</b:key>",
+                    "<b:value i:type=\"c:EntityFilters\" xmlns:c=\"http://schemas.microsoft.com/xrm/2011/Metadata\">" + scope._xmlEncode(entityFiltersValue) + "</b:value>",
+                    "</a:KeyValuePairOfstringanyType>",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>MetadataId</b:key>",
+                    "<b:value i:type=\"ser:guid\"  xmlns:ser=\"http://schemas.microsoft.com/2003/10/Serialization/\">" + scope._xmlEncode(MetadataId) + "</b:value>",
+                    "</a:KeyValuePairOfstringanyType>",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>RetrieveAsIfPublished</b:key>",
+                    "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">" + scope._xmlEncode(RetrieveAsIfPublished.toString()) + "</b:value>",
+                    "</a:KeyValuePairOfstringanyType>",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>LogicalName</b:key>",
+                    entityLogicalNameValueNode,
+                    "</a:KeyValuePairOfstringanyType>",
+                    "</a:Parameters>",
+                    "<a:RequestId i:nil=\"true\" />",
+                    "<a:RequestName>RetrieveEntity</a:RequestName>",
+                    "</request>",
+                    "</Execute>",
+                    "</soapenv:Body>",
+                    "</soapenv:Envelope>"].join("");
+
+                var req = new XMLHttpRequest();
+                req.open("POST", scope._getUrl() + "/XRMServices/2011/Organization.svc/web", true);
+
+                try { req.responseType = 'msxml-document'; } catch (e) { }
+
+                req.setRequestHeader("Accept", "application/xml, text/xml, */*");
+                req.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
+                req.setRequestHeader("SOAPAction", "http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Execute");
+                
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if (xhr && xhr.readyState === 4 /* complete */) {
+
+                        xhr.onreadystatechange = null; //Addresses potential memory leak issue with IE
+
+                        if (xhr.status === 200) {
+                            var doc = req.responseXML;
+                            
+                            try { scope._setSelectionNamespaces(doc); } catch (e) { }
+
+                            var a = scope._objectifyNode(scope._selectSingleNode(doc, "//b:value"));
+                            a._type = "EntityMetadata";
+                            
+                            if(typeof resolve === 'function'){
+                                resolve({"entityMetadata": a, "args": passThroughObject});
+                            }                            
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+
+                };
+
+                req.send(request);
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+
+        });
+    },
+
+    /**
+     * Sends an asynchronous RetrieveAttribute Request to retrieve a specific entity
+     * @param {string} EntityLogicalName - The logical name of the entity for the attribute requested. A null value may be used if a MetadataId is provided.
+     * @param {string} LogicalName - The logical name of the entity for the attribute requested. A null value may be used if a MetadataId is provided.
+     * @param {string} MetadataId - A null value may be passed if an EntityLogicalName and LogicalName is provided.
+     * @param {boolean} RetrieveAsIfPublished - Sets whether to retrieve the metadata that has not been published.
+     * @param {object} passThroughObject - An Object that will be passed through to as the second parameter to the successCallBack.
+     * @return {promise} - {"entityMetadata": entityMetadata, "args": passThroughObject}
+     */
+    RetrieveAttribute: function (EntityLogicalName, LogicalName, MetadataId, RetrieveAsIfPublished, passThroughObject) {
+
+        var scope = this;
+
+        return new Promise(function(resolve, reject){
+
+            try{
+
+                if(!EntityLogicalName && !LogicalName && !MetadataId) {
+                    throw new Error("SDK.Metadata.RetrieveAttribute requires either the EntityLogicalName and LogicalName  parameters or the MetadataId parameter not be null.");
+                }
+                if(MetadataId && !EntityLogicalName && !LogicalName) {
+                    if (typeof MetadataId !== "string"){ 
+                        throw new Error("SDK.Metadata.RetrieveEntity MetadataId must be a string value."); 
+                    }
+                }
+                else{ 
+                    MetadataId = "00000000-0000-0000-0000-000000000000"; 
+                }
+                if(EntityLogicalName) {
+                    if (typeof EntityLogicalName !== "string") {
+                        throw new Error("SDK.Metadata.RetrieveAttribute EntityLogicalName must be a string value.");
+                    }
+                }
+                if(LogicalName) {
+                    if (typeof LogicalName !== "string") {
+                       throw new Error("SDK.Metadata.RetrieveAttribute LogicalName must be a string value.");
+                    }
+                }
+                if(typeof RetrieveAsIfPublished !== "boolean"){ 
+                    throw new Error("SDK.Metadata.RetrieveAttribute RetrieveAsIfPublished must be a boolean value."); 
+                }
+
+                var entityLogicalNameValueNode = '';
+
+                if(!EntityLogicalName) {
+                    entityLogicalNameValueNode = "<b:value i:nil=\"true\" />";
+                }
+                else {
+                    entityLogicalNameValueNode = "<b:value i:type=\"c:string\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">" + scope._xmlEncode(EntityLogicalName.toLowerCase()) + "</b:value>";
+                }
+
+                var logicalNameValueNode;
+
+                if(!LogicalName) {
+                    logicalNameValueNode = "<b:value i:nil=\"true\" />";
+                }
+                else {
+                    logicalNameValueNode = "<b:value i:type=\"c:string\"   xmlns:c=\"http://www.w3.org/2001/XMLSchema\">" + scope._xmlEncode(LogicalName.toLowerCase()) + "</b:value>";
+                }
+
+                var request = [
+                    "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">",
+                    //Allows retrieval if ImageAttributeMetadata objects
+                    "<soapenv:Header><a:SdkClientVersion xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">6.0</a:SdkClientVersion></soapenv:Header>",
+                    "<soapenv:Body>",
+                    "<Execute xmlns=\"http://schemas.microsoft.com/xrm/2011/Contracts/Services\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">",
+                    "<request i:type=\"a:RetrieveAttributeRequest\" xmlns:a=\"http://schemas.microsoft.com/xrm/2011/Contracts\">",
+                    "<a:Parameters xmlns:b=\"http://schemas.datacontract.org/2004/07/System.Collections.Generic\">",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>EntityLogicalName</b:key>",
+                    entityLogicalNameValueNode,
+                    "</a:KeyValuePairOfstringanyType>",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>MetadataId</b:key>",
+                    "<b:value i:type=\"ser:guid\"  xmlns:ser=\"http://schemas.microsoft.com/2003/10/Serialization/\">" + scope._xmlEncode(MetadataId) + "</b:value>",
+                    "</a:KeyValuePairOfstringanyType>",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>RetrieveAsIfPublished</b:key>",
+                    "<b:value i:type=\"c:boolean\" xmlns:c=\"http://www.w3.org/2001/XMLSchema\">" + scope._xmlEncode(RetrieveAsIfPublished.toString()) + "</b:value>",
+                    "</a:KeyValuePairOfstringanyType>",
+                    "<a:KeyValuePairOfstringanyType>",
+                    "<b:key>LogicalName</b:key>",
+                    logicalNameValueNode,
+                    "</a:KeyValuePairOfstringanyType>",
+                    "</a:Parameters>",
+                    "<a:RequestId i:nil=\"true\" />",
+                    "<a:RequestName>RetrieveAttribute</a:RequestName>",
+                    "</request>",
+                    "</Execute>",
+                    "</soapenv:Body>",
+                    "</soapenv:Envelope>"].join("");
+                    
+                var req = new XMLHttpRequest();
+                req.open("POST", scope._getUrl() + "/XRMServices/2011/Organization.svc/web", true);
+
+                try { req.responseType = 'msxml-document'; } catch (e) { }
+
+                req.setRequestHeader("Accept", "application/xml, text/xml, */*");
+                req.setRequestHeader("Content-Type", "text/xml; charset=utf-8");
+                req.setRequestHeader("SOAPAction", "http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Execute");
+                
+                req.onreadystatechange = function (evt) {
+
+                    var xhr = evt ? evt.target : undefined;
+
+                    if(xhr && xhr.readyState === 4 /* complete */) {
+
+                        xhr.onreadystatechange = null; //Addresses potential memory leak issue with IE
+
+                        if (xhr.status === 200) {
+                            //Success
+                            var doc = xhr.responseXML;
+
+                            try { scope._setSelectionNamespaces(doc); } catch (e) { }
+                            
+                            var a = scope._objectifyNode(scope._selectSingleNode(doc, "//b:value"));
+
+                            if(typeof resolve === 'function'){
+                                resolve({"entityMetadata": a, "args": passThroughObject});
+                            }
+                            
+                        }
+                        else if(typeof reject === 'function'){
+                            reject(scope._errorHandler(xhr).message);
+                        }
+                    }
+                };
+                req.send(request);
+
+            }
+            catch(e){
+                if(typeof reject === 'function'){
+                    reject(e.message);
+                }
+            }
+
+        });
+    },
+
+    //EntityFilters: function () {
+        /// <summary>SDK.Metadata.EntityFilters enum summary</summary>
+        /// <field name="Default" type="Number" static="true">enum field summary for Default</field>
+        /// <field name="Entity" type="Number" static="true">enum field summary for Entity</field>
+        /// <field name="Attributes" type="Number" static="true">enum field summary for Attributes</field>
+        /// <field name="Privileges" type="Number" static="true">enum field summary for Privileges</field>
+        /// <field name="Relationships" type="Number" static="true">enum field summary for Relationships</field>
+        /// <field name="All" type="Number" static="true">enum field summary for All</field>
+        //throw new Error("Constructor not implemented this is a static enum.");
+    //},
+
+    _getError: function(resp) {
+        ///<summary>
+        /// Private function that attempts to parse errors related to connectivity or WCF faults.
+        ///</summary>
+        ///<param name="resp" type="XMLHttpRequest">
+        /// The XMLHttpRequest representing failed response.
+        ///</param>
+
+        var scope = this;
+
+        //Error descriptions come from http://support.microsoft.com/kb/193625
+        if (resp.status == 12029)
+        { return new Error("The attempt to connect to the server failed."); }
+        if (resp.status == 12007)
+        { return new Error("The server name could not be resolved."); }
+        
+        var faultXml = resp.responseXML;
+        var errorMessage = "Unknown (unable to parse the fault)";
+
+        if (typeof faultXml == "object") {
+
+            var faultstring = null;
+            var ErrorCode = null;
+
+            var bodyNode = faultXml.firstChild.firstChild;
+
+            //Retrieve the fault node
+            for (var i = 0; i < bodyNode.childNodes.length; i++) {
+                var node = bodyNode.childNodes[i];
+
+                //NOTE: This comparison does not handle the case where the XML namespace changes
+                if ("s:Fault" == node.nodeName) {
+                    for (var j = 0; j < node.childNodes.length; j++) {
+                        var testNode = node.childNodes[j];
+                        if ("faultstring" == testNode.nodeName) {
+                            faultstring = scope._getNodeText(testNode);
+                        }
+                        if ("detail" == testNode.nodeName) {
+                            for (var k = 0; k < testNode.childNodes.length; k++) {
+                                var orgServiceFault = testNode.childNodes[k];
+                                if ("OrganizationServiceFault" == orgServiceFault.nodeName) {
+                                    for (var l = 0; l < orgServiceFault.childNodes.length; l++) {
+                                        var ErrorCodeNode = orgServiceFault.childNodes[l];
+                                        if ("ErrorCode" == ErrorCodeNode.nodeName) {
+                                            ErrorCode = scope._getNodeText(ErrorCodeNode);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    break;
+                }
+
+            }
+        }
+        if (ErrorCode != null && faultstring != null) {
+            errorMessage = "Error Code:" + ErrorCode + " Message: " + faultstring;
+        }
+        else {
+            if (faultstring != null) {
+                errorMessage = faultstring;
+            }
+        }
+        return new Error(errorMessage);
+    },
+
+    _Context: function() {
+        var errorMessage = "Context is not available.";
+        if (typeof GetGlobalContext != "undefined")
+        { return GetGlobalContext(); }
+        else {
+            if (typeof Xrm != "undefined") {
+                return Xrm.Page.context;
+            }
+            else
+            { return new Error(errorMessage); }
+        }
+    },
+
+    _getUrl: function() {
+        var scope = this;
+        var url = scope._Context().getClientUrl();
+        return url;
+    },
+
+    _evaluateEntityFilters: function(EntityFilters) {
+        var entityFilterArray = [];
+        if ((1 & EntityFilters) == 1) {
+            entityFilterArray.push("Entity");
+        }
+        if ((2 & EntityFilters) == 2) {
+            entityFilterArray.push("Attributes");
+        }
+        if ((4 & EntityFilters) == 4) {
+            entityFilterArray.push("Privileges");
+        }
+        if ((8 & EntityFilters) == 8) {
+            entityFilterArray.push("Relationships");
+        }
+        return entityFilterArray.join(" ");
+    },
+
+    _isMetadataArray: function(elementName) {
+
+        var scope = this;
+        for (var i = 0; i < scope._arrayElements.length; i++) {
+            if (elementName == scope._arrayElements[i]) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    _objectifyNode: function (node) {
+
+        var scope = this;
+
+        //Check for null
+        if (node.attributes != null && node.attributes.length == 1) {
+            if (node.attributes.getNamedItem("i:nil") != null && node.attributes.getNamedItem("i:nil").nodeValue == "true") {
+                return null;
+            }
+        }
+
+        //Check if it is a value
+        if ((node.firstChild != null) && (node.firstChild.nodeType == 3)) {
+            var nodeName = scope._getNodeName(node);
+
+            switch (nodeName) {
+                //Integer Values 
+                case "ActivityTypeMask":
+                case "ObjectTypeCode":
+                case "ColumnNumber":
+                case "DefaultFormValue":
+                case "MaxValue":
+                case "MinValue":
+                case "MaxLength":
+                case "Order":
+                case "Precision":
+                case "PrecisionSource":
+                case "LanguageCode":
+                    return parseInt(node.firstChild.nodeValue, 10);
+                // Boolean values
+                case "AutoRouteToOwnerQueue":
+                case "CanBeChanged":
+                case "CanTriggerWorkflow":
+                case "IsActivity":
+                case "IsAIRUpdated":
+                case "IsActivityParty":
+                case "IsAvailableOffline":
+                case "IsChildEntity":
+                case "IsCustomEntity":
+                case "IsCustomOptionSet":
+                case "IsDocumentManagementEnabled":
+                case "IsEnabledForCharts":
+                case "IsGlobal":
+                case "IsImportable":
+                case "IsIntersect":
+                case "IsManaged":
+                case "IsReadingPaneEnabled":
+                case "IsValidForAdvancedFind":
+                case "CanBeSecuredForCreate":
+                case "CanBeSecuredForRead":
+                case "CanBeSecuredForUpdate":
+                case "IsCustomAttribute":
+                case "IsManaged":
+                case "IsPrimaryId":
+                case "IsPrimaryName":
+                case "IsSecured":
+                case "IsValidForCreate":
+                case "IsValidForRead":
+                case "IsValidForUpdate":
+                case "IsCustomRelationship":
+                case "CanBeBasic":
+                case "CanBeDeep":
+                case "CanBeGlobal":
+                case "CanBeLocal":
+                    return (node.firstChild.nodeValue == "true") ? true : false;
+                //OptionMetadata.Value and BooleanManagedProperty.Value and AttributeRequiredLevelManagedProperty.Value
+                case "Value":
+                    //BooleanManagedProperty.Value
+                    if ((node.firstChild.nodeValue == "true") || (node.firstChild.nodeValue == "false")) {
+                        return (node.firstChild.nodeValue == "true") ? true : false;
+                    }
+                    //AttributeRequiredLevelManagedProperty.Value
+                    if (
+                        (node.firstChild.nodeValue == "ApplicationRequired") ||
+                        (node.firstChild.nodeValue == "None") ||
+                        (node.firstChild.nodeValue == "Recommended") ||
+                        (node.firstChild.nodeValue == "SystemRequired")
+                    ) {
+                        return node.firstChild.nodeValue;
+                    }
+                    var numberValue = parseInt(node.firstChild.nodeValue, 10);
+                    if (isNaN(numberValue)) {
+                        //FormatName.Value
+                        return node.firstChild.nodeValue;
+                    }
+                    else {
+                        //OptionMetadata.Value
+                        return numberValue;
+                    }
+                    break;
+                //String values 
+                default:
+                    return node.firstChild.nodeValue;
+            }
+
+        }
+
+        //Check if it is a known array
+        if (scope._isMetadataArray(scope._getNodeName(node))) {
+            var arrayValue = [];
+            
+            for (var i = 0; i < node.childNodes.length; i++) {
+                var objectTypeName;
+                if ((node.childNodes[i].attributes != null) && (node.childNodes[i].attributes.getNamedItem("i:type") != null)) {
+                    objectTypeName = node.childNodes[i].attributes.getNamedItem("i:type").nodeValue.split(":")[1];
+                }
+                else {
+                    objectTypeName = scope._getNodeName(node.childNodes[i]);
+                }
+
+                try{
+
+                    var b = scope._objectifyNode(node.childNodes[i]);
+                    b._type = objectTypeName;
+                    arrayValue.push(b);
+                }
+                catch(e){
+                    console.log(e.message);
+                }
+                finally{
+                    continue;
+                }
+            }
+
+            return arrayValue;
+        }
+
+        //Null entity description labels are returned as <label/> - not using i:nil = true;
+        if (node.childNodes.length == 0) {
+            return null;
+        }
+
+        //Otherwise return an object
+        var c = {};
+        if (node.attributes.getNamedItem("i:type") != null) {
+            c._type = node.attributes.getNamedItem("i:type").nodeValue.split(":")[1];
+        }
+        for (var i = 0; i < node.childNodes.length; i++) {
+            if (node.childNodes[i].nodeType == 3) {
+                c[scope._getNodeName(node.childNodes[i])] = node.childNodes[i].nodeValue;
+            }
+            else {
+                c[scope._getNodeName(node.childNodes[i])] = scope._objectifyNode(node.childNodes[i]);
+            }
+
+        }
+        return c;
+    },
+
+    _selectNodes: function(node, XPathExpression) {
+
+        var scope = this;
+
+        if (typeof (node.selectNodes) != "undefined") {
+            return node.selectNodes(XPathExpression);
+        }
+        else {
+            var output = [];
+            var XPathResults = node.evaluate(XPathExpression, node, scope._NSResolver, XPathResult.ANY_TYPE, null);
+            var result = XPathResults.iterateNext();
+            while (result) {
+                output.push(result);
+                result = XPathResults.iterateNext();
+            }
+            return output;
+        }
+    },
+
+    _selectSingleNode: function(node, xpathExpr) {
+
+        var scope = this;
+
+        if (typeof (node.selectSingleNode) != "undefined") {
+            return node.selectSingleNode(xpathExpr);
+        }
+        else {
+            var xpe = new XPathEvaluator();
+            var xPathNode = xpe.evaluate(xpathExpr, node, scope._NSResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+            return (xPathNode != null) ? xPathNode.singleNodeValue : null;
+        }
+    },
+
+    _selectSingleNodeText: function(node, xpathExpr) {
+        
+        var scope = this;
+        var x = scope._selectSingleNode(node, xpathExpr);
+        
+        if (scope._isNodeNull(x))
+        { return null; }
+        if (typeof (x.text) != "undefined") {
+            return x.text;
+        }
+        else {
+            return x.textContent;
+        }
+    },
+
+    _getNodeText: function(node) {
+        if (typeof (node.text) != "undefined") {
+            return node.text;
+        }
+        else {
+            return node.textContent;
+        }
+    },
+
+    _isNodeNull: function(node) {
+        if (node == null)
+        { return true; }
+        if ((node.attributes.getNamedItem("i:nil") != null) && (node.attributes.getNamedItem("i:nil").value == "true"))
+        { return true; }
+        return false;
+    },
+
+    _getNodeName: function(node) {
+        if (typeof (node.baseName) != "undefined") {
+            return node.baseName;
+        }
+        else {
+            return node.localName;
+        }
+    },
+
+    _setSelectionNamespaces: function(doc) {
+        var namespaces = [
+            "xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'",
+            "xmlns:a='http://schemas.microsoft.com/xrm/2011/Contracts'",
+            "xmlns:i='http://www.w3.org/2001/XMLSchema-instance'",
+            "xmlns:b='http://schemas.datacontract.org/2004/07/System.Collections.Generic'",
+            "xmlns:c='http://schemas.microsoft.com/xrm/2011/Metadata'"
+        ];
+        doc.setProperty("SelectionNamespaces", namespaces.join(" "));
+
+    },
+
+    _NSResolver: function(prefix) {
+        var ns = {
+            "s": "http://schemas.xmlsoap.org/soap/envelope/",
+            "a": "http://schemas.microsoft.com/xrm/2011/Contracts",
+            "i": "http://www.w3.org/2001/XMLSchema-instance",
+            "b": "http://schemas.datacontract.org/2004/07/System.Collections.Generic",
+            "c": "http://schemas.microsoft.com/xrm/2011/Metadata"
+        };
+        return ns[prefix] || null;
+    },
+
+    _xmlEncode: function(strInput) {
+        var c;
+        var XmlEncode = '';
+        if (strInput == null) {
+            return null;
+        }
+        if (strInput == '') {
+            return '';
+        }
+        for (var cnt = 0; cnt < strInput.length; cnt++) {
+            c = strInput.charCodeAt(cnt);
+            if (((c > 96) && (c < 123)) ||
+                ((c > 64) && (c < 91)) ||
+                (c == 32) ||
+                ((c > 47) && (c < 58)) ||
+                (c == 46) ||
+                (c == 44) ||
+                (c == 45) ||
+                (c == 95)) {
+                XmlEncode = XmlEncode + String.fromCharCode(c);
+            }
+            else {
+                XmlEncode = XmlEncode + '&#' + c + ';';
+            }
+        }
+        return XmlEncode;
+    }
+}

@@ -1,0 +1,398 @@
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Created CrmConnectionManager 
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Failed to Encrypt Configuration File!
+Source	: mscorlib
+Method	: WinIOError
+Date	: 10/19/2016
+Time	: 10:42:46 AM
+Error	: Recovery policy configured for this system contains invalid recovery certificate.
+Stack Trace	: at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.File.Encrypt(String path)
+   at System.IO.FileInfo.Encrypt()
+   at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.LoadConfigFromFile(Boolean readLocalFirst)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : This problem may be related to a domain certificate in windows being out of sync with the domain, please read http://support.microsoft.com/kb/937536
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: SaveConfigToFile() - fail - C:\Users\ccao.O390-CCAO\AppData\Roaming\Microsoft\LoginControlTester\Default_LoginControlTester.exe
+Source	: Microsoft.Xrm.Tooling.CrmConnectControl
+Method	: SaveConfigToFile
+Date	: 10/19/2016
+Time	: 10:42:46 AM
+Error	: Object reference not set to an instance of an object.
+Stack Trace	: at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.SaveConfigToFile(Dictionary`2 configToSave)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : CheckBoxState = False
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Exception logged by the CRM Connector control:
+Source	: Not Provided
+Method	: Not Provided
+Date	: 10/19/2016
+Time	: 10:42:46 AM
+Error	: A CRM server name is required.
+Parameter name: CrmServerName
+Stack Trace	: Not Provided
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : You must specify a CRM Server to connect too
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : CheckBoxState = False
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SetConfigKeyInfo, Key Count = 14
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Using CRM deployment type Prem
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SSL Connection = False
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Discovery URI is = http://bear-test.qapf1.nextlabs.com:80/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Initializing UII core connections to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Retrieving organizations from CRM...
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : DiscoverOrganizations - Initializing Discovery Server Object with http://bear-test.qapf1.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - attempting to connect to CRM server @ http://bear-test.qapf1.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Exception logged by the CRM Connector control:
+Source	: System.ServiceModel
+Method	: Retrieve
+Date	: 10/19/2016
+Time	: 10:43:57 AM
+Error	: Metadata contains a reference that cannot be resolved: 'http://bear-test.qapf1.nextlabs.com/XRMServices/2011/Discovery.svc?wsdl&sdkversion=8.1'.
+Stack Trace	: at System.ServiceModel.Description.MetadataExchangeClient.MetadataRetriever.Retrieve(TimeoutHelper timeoutHelper)
+   at System.ServiceModel.Description.MetadataExchangeClient.ResolveNext(ResolveCallState resolveCallState)
+   at System.ServiceModel.Description.MetadataExchangeClient.GetMetadata(MetadataRetriever retriever)
+   at System.ServiceModel.Description.MetadataExchangeClient.GetMetadata(Uri address, MetadataExchangeClientMode mode)
+   at Microsoft.Xrm.Sdk.Client.ServiceMetadataUtility.RetrieveServiceEndpointMetadata(Type contractType, Uri serviceUri, Boolean checkForSecondary)
+   at Microsoft.Xrm.Sdk.Client.ServiceConfiguration`1..ctor(Uri serviceUri, Boolean checkForSecondary)
+   at Microsoft.Xrm.Sdk.Client.ServiceConfigurationFactory.CreateManagement[TService](Uri serviceUri, Boolean enableProxyTypes, Assembly assembly)
+   at Microsoft.Xrm.Sdk.Client.ServiceConfigurationFactory.CreateManagement[TService](Uri serviceUri)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.CreateAndAuthenticateProxy[T](IServiceManagement`1 servicecfg, Uri ServiceUri, Uri homeRealm, ClientCredentials userCredentials, ClientCredentials deviceCredentials, String LogString)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, ClientCredentials clientCredentials, ClientCredentials deviceCredentials)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, NetworkCredential networkCredential)
+   at Microsoft.Xrm.Tooling.Connector.CrmServiceClient.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, NetworkCredential networkCredential)
+   at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.ValidateServerConnection(CrmOrgByServer selectedOrg)
+======================================================================================================================
+Inner Exception Level 1	: 
+Source	: System
+Method	: GetResponse
+Date	: 10/19/2016
+Time	: 10:43:57 AM
+Error	: The remote name could not be resolved: 'bear-test.qapf1.nextlabs.com'
+Stack Trace	: at System.Net.HttpWebRequest.GetResponse()
+   at System.ServiceModel.Description.MetadataExchangeClient.MetadataLocationRetriever.DownloadMetadata(TimeoutHelper timeoutHelper)
+   at System.ServiceModel.Description.MetadataExchangeClient.MetadataRetriever.Retrieve(TimeoutHelper timeoutHelper)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Can't connect to Microsoft Dynamics CRM - .
+Source	: System.ServiceModel
+Method	: Retrieve
+Date	: 10/19/2016
+Time	: 10:43:57 AM
+Error	: Metadata contains a reference that cannot be resolved: 'http://bear-test.qapf1.nextlabs.com/XRMServices/2011/Discovery.svc?wsdl&sdkversion=8.1'.
+Stack Trace	: at System.ServiceModel.Description.MetadataExchangeClient.MetadataRetriever.Retrieve(TimeoutHelper timeoutHelper)
+   at System.ServiceModel.Description.MetadataExchangeClient.ResolveNext(ResolveCallState resolveCallState)
+   at System.ServiceModel.Description.MetadataExchangeClient.GetMetadata(MetadataRetriever retriever)
+   at System.ServiceModel.Description.MetadataExchangeClient.GetMetadata(Uri address, MetadataExchangeClientMode mode)
+   at Microsoft.Xrm.Sdk.Client.ServiceMetadataUtility.RetrieveServiceEndpointMetadata(Type contractType, Uri serviceUri, Boolean checkForSecondary)
+   at Microsoft.Xrm.Sdk.Client.ServiceConfiguration`1..ctor(Uri serviceUri, Boolean checkForSecondary)
+   at Microsoft.Xrm.Sdk.Client.ServiceConfigurationFactory.CreateManagement[TService](Uri serviceUri, Boolean enableProxyTypes, Assembly assembly)
+   at Microsoft.Xrm.Sdk.Client.ServiceConfigurationFactory.CreateManagement[TService](Uri serviceUri)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.CreateAndAuthenticateProxy[T](IServiceManagement`1 servicecfg, Uri ServiceUri, Uri homeRealm, ClientCredentials userCredentials, ClientCredentials deviceCredentials, String LogString)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, ClientCredentials clientCredentials, ClientCredentials deviceCredentials)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, NetworkCredential networkCredential)
+   at Microsoft.Xrm.Tooling.Connector.CrmServiceClient.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, NetworkCredential networkCredential)
+   at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.ValidateServerConnection(CrmOrgByServer selectedOrg)
+======================================================================================================================
+Inner Exception Level 1	: 
+Source	: System
+Method	: GetResponse
+Date	: 10/19/2016
+Time	: 10:43:57 AM
+Error	: The remote name could not be resolved: 'bear-test.qapf1.nextlabs.com'
+Stack Trace	: at System.Net.HttpWebRequest.GetResponse()
+   at System.ServiceModel.Description.MetadataExchangeClient.MetadataLocationRetriever.DownloadMetadata(TimeoutHelper timeoutHelper)
+   at System.ServiceModel.Description.MetadataExchangeClient.MetadataRetriever.Retrieve(TimeoutHelper timeoutHelper)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SetConfigKeyInfo, Key Count = 14
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Using CRM deployment type Prem
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SSL Connection = False
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Discovery URI is = http://bear-test.qapf1.qalab01.nextlabs.com:80/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Initializing UII core connections to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Retrieving organizations from CRM...
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : DiscoverOrganizations - Initializing Discovery Server Object with http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - attempting to connect to CRM server @ http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - created CRM server proxy configuration for http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc - duration: 00:00:00.6320000
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - proxy requiring authentication type : ActiveDirectory 
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - service proxy created - total create duration: 00:00:00.6350000
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Error: 2 : ERROR REQUESTING ORGS FROM THE DISCOVERY SERVER
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Error: 2 : Source	: mscorlib
+Method	: HandleReturnMessage
+Date	: 10/19/2016
+Time	: 10:45:18 AM
+Error	: The caller was not authenticated by the service.
+Stack Trace	: Server stack trace: 
+   at System.ServiceModel.Security.IssuanceTokenProviderBase`1.DoNegotiation(TimeSpan timeout)
+   at System.ServiceModel.Security.SspiNegotiationTokenProvider.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Security.WrapperSecurityCommunicationObject.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Security.CommunicationObjectSecurityTokenProvider.Open(TimeSpan timeout)
+   at System.ServiceModel.Security.SymmetricSecurityProtocol.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Security.WrapperSecurityCommunicationObject.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.SecurityChannelFactory`1.ClientSecurityChannel`1.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.CallOpenOnce.System.ServiceModel.Channels.ServiceChannel.ICallOnce.Call(ServiceChannel channel, TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.CallOnceManager.CallOnce(TimeSpan timeout, CallOnceManager cascade)
+   at System.ServiceModel.Channels.ServiceChannel.Call(String action, Boolean oneway, ProxyOperationRuntime operation, Object[] ins, Object[] outs, TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannelProxy.InvokeService(IMethodCallMessage methodCall, ProxyOperationRuntime operation)
+   at System.ServiceModel.Channels.ServiceChannelProxy.Invoke(IMessage message)
+
+Exception rethrown at [0]: 
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData& msgData, Int32 type)
+   at Microsoft.Xrm.Sdk.Discovery.IDiscoveryService.Execute(DiscoveryRequest request)
+   at Microsoft.Xrm.Sdk.Client.DiscoveryServiceProxy.Execute(DiscoveryRequest request)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, ClientCredentials clientCredentials, ClientCredentials deviceCredentials)
+======================================================================================================================
+Inner Exception Level 1	: 
+Source	: System.ServiceModel
+Method	: ThrowIfNegotiationFault
+Date	: 10/19/2016
+Time	: 10:45:18 AM
+Error	: The request for security token could not be satisfied because authentication failed.
+Stack Trace	: at System.ServiceModel.Security.SecurityUtils.ThrowIfNegotiationFault(Message message, EndpointAddress target)
+   at System.ServiceModel.Security.SspiNegotiationTokenProvider.GetNextOutgoingMessageBody(Message incomingMessage, SspiNegotiationTokenProviderState sspiState)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Exception logged by the CRM Connector control:
+Source	: mscorlib
+Method	: HandleReturnMessage
+Date	: 10/19/2016
+Time	: 10:45:18 AM
+Error	: The caller was not authenticated by the service.
+Stack Trace	: Server stack trace: 
+   at System.ServiceModel.Security.IssuanceTokenProviderBase`1.DoNegotiation(TimeSpan timeout)
+   at System.ServiceModel.Security.SspiNegotiationTokenProvider.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Security.WrapperSecurityCommunicationObject.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Security.CommunicationObjectSecurityTokenProvider.Open(TimeSpan timeout)
+   at System.ServiceModel.Security.SymmetricSecurityProtocol.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Security.WrapperSecurityCommunicationObject.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.SecurityChannelFactory`1.ClientSecurityChannel`1.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.CallOpenOnce.System.ServiceModel.Channels.ServiceChannel.ICallOnce.Call(ServiceChannel channel, TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.CallOnceManager.CallOnce(TimeSpan timeout, CallOnceManager cascade)
+   at System.ServiceModel.Channels.ServiceChannel.Call(String action, Boolean oneway, ProxyOperationRuntime operation, Object[] ins, Object[] outs, TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannelProxy.InvokeService(IMethodCallMessage methodCall, ProxyOperationRuntime operation)
+   at System.ServiceModel.Channels.ServiceChannelProxy.Invoke(IMessage message)
+
+Exception rethrown at [0]: 
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData& msgData, Int32 type)
+   at Microsoft.Xrm.Sdk.Discovery.IDiscoveryService.Execute(DiscoveryRequest request)
+   at Microsoft.Xrm.Sdk.Client.DiscoveryServiceProxy.Execute(DiscoveryRequest request)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, ClientCredentials clientCredentials, ClientCredentials deviceCredentials)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, NetworkCredential networkCredential)
+   at Microsoft.Xrm.Tooling.Connector.CrmServiceClient.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, NetworkCredential networkCredential)
+   at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.ValidateServerConnection(CrmOrgByServer selectedOrg)
+======================================================================================================================
+Inner Exception Level 1	: 
+Source	: System.ServiceModel
+Method	: ThrowIfNegotiationFault
+Date	: 10/19/2016
+Time	: 10:45:18 AM
+Error	: The request for security token could not be satisfied because authentication failed.
+Stack Trace	: at System.ServiceModel.Security.SecurityUtils.ThrowIfNegotiationFault(Message message, EndpointAddress target)
+   at System.ServiceModel.Security.SspiNegotiationTokenProvider.GetNextOutgoingMessageBody(Message incomingMessage, SspiNegotiationTokenProviderState sspiState)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Can't connect to Microsoft Dynamics CRM - .
+Source	: mscorlib
+Method	: HandleReturnMessage
+Date	: 10/19/2016
+Time	: 10:45:18 AM
+Error	: The caller was not authenticated by the service.
+Stack Trace	: Server stack trace: 
+   at System.ServiceModel.Security.IssuanceTokenProviderBase`1.DoNegotiation(TimeSpan timeout)
+   at System.ServiceModel.Security.SspiNegotiationTokenProvider.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Security.WrapperSecurityCommunicationObject.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Security.CommunicationObjectSecurityTokenProvider.Open(TimeSpan timeout)
+   at System.ServiceModel.Security.SymmetricSecurityProtocol.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Security.WrapperSecurityCommunicationObject.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.SecurityChannelFactory`1.ClientSecurityChannel`1.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.OnOpen(TimeSpan timeout)
+   at System.ServiceModel.Channels.CommunicationObject.Open(TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.CallOpenOnce.System.ServiceModel.Channels.ServiceChannel.ICallOnce.Call(ServiceChannel channel, TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannel.CallOnceManager.CallOnce(TimeSpan timeout, CallOnceManager cascade)
+   at System.ServiceModel.Channels.ServiceChannel.Call(String action, Boolean oneway, ProxyOperationRuntime operation, Object[] ins, Object[] outs, TimeSpan timeout)
+   at System.ServiceModel.Channels.ServiceChannelProxy.InvokeService(IMethodCallMessage methodCall, ProxyOperationRuntime operation)
+   at System.ServiceModel.Channels.ServiceChannelProxy.Invoke(IMessage message)
+
+Exception rethrown at [0]: 
+   at System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)
+   at System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData& msgData, Int32 type)
+   at Microsoft.Xrm.Sdk.Discovery.IDiscoveryService.Execute(DiscoveryRequest request)
+   at Microsoft.Xrm.Sdk.Client.DiscoveryServiceProxy.Execute(DiscoveryRequest request)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, ClientCredentials clientCredentials, ClientCredentials deviceCredentials)
+   at Microsoft.Xrm.Tooling.Connector.CrmWebSvc.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, NetworkCredential networkCredential)
+   at Microsoft.Xrm.Tooling.Connector.CrmServiceClient.DiscoverOrganizations(Uri discoveryServiceUri, Uri homeRealmUri, NetworkCredential networkCredential)
+   at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.ValidateServerConnection(CrmOrgByServer selectedOrg)
+======================================================================================================================
+Inner Exception Level 1	: 
+Source	: System.ServiceModel
+Method	: ThrowIfNegotiationFault
+Date	: 10/19/2016
+Time	: 10:45:18 AM
+Error	: The request for security token could not be satisfied because authentication failed.
+Stack Trace	: at System.ServiceModel.Security.SecurityUtils.ThrowIfNegotiationFault(Message message, EndpointAddress target)
+   at System.ServiceModel.Security.SspiNegotiationTokenProvider.GetNextOutgoingMessageBody(Message incomingMessage, SspiNegotiationTokenProviderState sspiState)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SetConfigKeyInfo, Key Count = 14
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Using CRM deployment type Prem
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SSL Connection = False
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Discovery URI is = http://bear-test.qapf1.qalab01.nextlabs.com:80/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : DiscoverOrganizations - Initializing Discovery Server Object with http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Initializing UII core connections to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Retrieving organizations from CRM...
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - attempting to connect to CRM server @ http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - created CRM server proxy configuration for http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc - duration: 00:00:00.0380000
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - proxy requiring authentication type : ActiveDirectory 
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - service proxy created - total create duration: 00:00:00.0380000
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : DiscoverOrganizations - Discovery Server Get Orgs Call Complete - Elapsed:00:00:00.2890000
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Found 1 Org(s)
+Microsoft.Xrm.Tooling.CrmConnectControl Verbose: 16 : DiscoveryServer indicated organization service location = http://bear-test/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Organization Service URI is = http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Validating connection to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Validating connection to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Process is bypassed.. OrgDetail object was provided
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoveryServer indicated organization service location = http://bear-test/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Organization Service URI is = http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Initializing Organization Service Object
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Requesting connection to Org with CRM Version: 8.0.0.1088
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Using ISerivceManagement
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - attempting to connect to CRM server @ http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - created CRM server proxy configuration for http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc - duration: 00:00:00.1780000
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - proxy requiring authentication type : ActiveDirectory 
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - service proxy created - total create duration: 00:00:00.1790000
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Proxy created, total elapsed time: 00:00:00.1790000
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Beginning Validation of CRM Connection
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Validation of CRM Connection Complete, total duration: 00:00:00.5790000
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : New Batch Manager Created, Max #of Batches:50000, Max #of RequestsPerBatch:5000
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connection to CRM Complete
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Failed to Encrypt Configuration File!
+Source	: mscorlib
+Method	: WinIOError
+Date	: 10/19/2016
+Time	: 10:46:57 AM
+Error	: Recovery policy configured for this system contains invalid recovery certificate.
+Stack Trace	: at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.File.Encrypt(String path)
+   at System.IO.FileInfo.Encrypt()
+   at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.SaveConfigToFile(Dictionary`2 configToSave)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : This problem may be related to a domain certificate in windows being out of sync with the domain, please read http://support.microsoft.com/kb/937536
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : CheckBoxState = False
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SetConfigKeyInfo, Key Count = 14
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Using CRM deployment type Prem
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SSL Connection = False
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Discovery URI is = http://bear-test.qapf1.qalab01.nextlabs.com:80/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : DiscoverOrganizations - Initializing Discovery Server Object with http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - attempting to connect to CRM server @ http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Initializing UII core connections to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Retrieving organizations from CRM...
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - created CRM server proxy configuration for http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc - duration: 00:00:00.0155989
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - proxy requiring authentication type : ActiveDirectory 
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - service proxy created - total create duration: 00:00:00.0155989
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : DiscoverOrganizations - Discovery Server Get Orgs Call Complete - Elapsed:00:00:00.0467967
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Found 1 Org(s)
+Microsoft.Xrm.Tooling.CrmConnectControl Verbose: 16 : DiscoveryServer indicated organization service location = http://bear-test/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Organization Service URI is = http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Validating connection to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Validating connection to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Process is bypassed.. OrgDetail object was provided
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoveryServer indicated organization service location = http://bear-test/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Organization Service URI is = http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Initializing Organization Service Object
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Requesting connection to Org with CRM Version: 8.0.0.1088
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Using ISerivceManagement
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - attempting to connect to CRM server @ http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - created CRM server proxy configuration for http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc - duration: 00:00:00.0623956
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - proxy requiring authentication type : ActiveDirectory 
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - service proxy created - total create duration: 00:00:00.0623956
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Proxy created, total elapsed time: 00:00:00.0623956
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Beginning Validation of CRM Connection
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Validation of CRM Connection Complete, total duration: 00:00:00.0311978
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : New Batch Manager Created, Max #of Batches:50000, Max #of RequestsPerBatch:5000
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connection to CRM Complete
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Failed to Encrypt Configuration File!
+Source	: mscorlib
+Method	: WinIOError
+Date	: 10/19/2016
+Time	: 10:47:29 AM
+Error	: Recovery policy configured for this system contains invalid recovery certificate.
+Stack Trace	: at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.File.Encrypt(String path)
+   at System.IO.FileInfo.Encrypt()
+   at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.SaveConfigToFile(Dictionary`2 configToSave)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : This problem may be related to a domain certificate in windows being out of sync with the domain, please read http://support.microsoft.com/kb/937536
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : CheckBoxState = False
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : Executed Command - RetrieveEntity : GetEntityMetadata : duration: 00:00:00.3899725
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SetConfigKeyInfo, Key Count = 14
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Using CRM deployment type Prem
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : SSL Connection = False
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Discovery URI is = http://bear-test.qapf1.qalab01.nextlabs.com:80/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : DiscoverOrganizations - Initializing Discovery Server Object with http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - attempting to connect to CRM server @ http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Initializing UII core connections to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connecting to the Microsoft Dynamics CRM server...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Retrieving organizations from CRM...
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - created CRM server proxy configuration for http://bear-test.qapf1.qalab01.nextlabs.com/XRMServices/2011/Discovery.svc - duration: 00:00:00.0311994
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - proxy requiring authentication type : ActiveDirectory 
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoverOrganizations - service proxy created - total create duration: 00:00:00.0311994
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : DiscoverOrganizations - Discovery Server Get Orgs Call Complete - Elapsed:00:00:00.0623988
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Found 1 Org(s)
+Microsoft.Xrm.Tooling.CrmConnectControl Verbose: 16 : DiscoveryServer indicated organization service location = http://bear-test/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Organization Service URI is = http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Validating connection to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Validating connection to Microsoft Dynamics CRM...
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Process is bypassed.. OrgDetail object was provided
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : DiscoveryServer indicated organization service location = http://bear-test/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Organization Service URI is = http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Initializing Organization Service Object
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Requesting connection to Org with CRM Version: 8.0.0.1088
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Using ISerivceManagement
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - attempting to connect to CRM server @ http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - created CRM server proxy configuration for http://bear-test.qapf1.qalab01.nextlabs.com/BearTest/XRMServices/2011/Organization.svc - duration: 00:00:00.0779985
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - proxy requiring authentication type : ActiveDirectory 
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : ConnectAndInitCrmOrgService - service proxy created - total create duration: 00:00:00.0779985
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : ConnectAndInitCrmOrgService - Proxy created, total elapsed time: 00:00:00.0779985
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Beginning Validation of CRM Connection
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Information: 8 : Validation of CRM Connection Complete, total duration: 00:00:00.0155997
+Microsoft.Xrm.Tooling.Connector.CrmServiceClient Verbose: 16 : New Batch Manager Created, Max #of Batches:50000, Max #of RequestsPerBatch:5000
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Login Status in Connect is =  Connection to CRM Complete
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Failed to Encrypt Configuration File!
+Source	: mscorlib
+Method	: WinIOError
+Date	: 10/19/2016
+Time	: 10:48:02 AM
+Error	: Recovery policy configured for this system contains invalid recovery certificate.
+Stack Trace	: at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.File.Encrypt(String path)
+   at System.IO.FileInfo.Encrypt()
+   at Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.SaveConfigToFile(Dictionary`2 configToSave)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : This problem may be related to a domain certificate in windows being out of sync with the domain, please read http://support.microsoft.com/kb/937536
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : CheckBoxState = False

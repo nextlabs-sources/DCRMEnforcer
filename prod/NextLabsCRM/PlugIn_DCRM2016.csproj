@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2EC14006-C4C8-4F3C-8DF1-F426E40E7FE7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NextLabs.CRMEnforcer</RootNamespace>
+    <AssemblyName>NextLabs.CRMEnforcer2016</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>PlugIn_DCRM.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>debug_win_x64\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;DCRM2016</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>release_win_x64\</OutputPath>
+    <DefineConstants>TRACE;DCRM2016</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Crm.Sdk.Proxy, Version=9.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Common\crmsdk2016\SDK\Bin\Microsoft.Crm.Sdk.Proxy.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xrm.Sdk, Version=9.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Common\crmsdk2016\SDK\Bin\Microsoft.Xrm.Sdk.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Common\DataBussiness\Cache\UserAttributeCache.cs" />
+    <Compile Include="Common\DataBussiness\Condition\ILazyInitialize.cs" />
+    <Compile Include="Common\DataBussiness\Condition\IndependPostiveOwnerCondition.cs" />
+    <Compile Include="Common\DataBussiness\Condition\NegativeOwnerCondition.cs" />
+    <Compile Include="Common\DataBussiness\Condition\ParentKnownCondition.cs" />
+    <Compile Include="Common\DataBussiness\Condition\EmbedPositiveOwnerCondition.cs" />
+    <Compile Include="Common\DataBussiness\Condition\NegativeShareCondition.cs" />
+    <Compile Include="Common\DataBussiness\Condition\PositiveShareCondition.cs" />
+    <Compile Include="Common\DataBussiness\ImportPolicyModel.cs" />
+    <Compile Include="Common\DataBussiness\IO\ComponentConditionHandler.cs" />
+    <Compile Include="Common\DataBussiness\IO\IRecordIDRequest.cs" />
+    <Compile Include="Common\DataBussiness\IO\IRecordRequest.cs" />
+    <Compile Include="Common\DataBussiness\IO\IRecordResponse.cs" />
+    <Compile Include="Common\DataBussiness\IO\IRecordIDResponse.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserConditionRequest.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserConditionResponse.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserRoleRequest.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserRoleResponse.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserTeamIDRequest.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserTeamIDResponse.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserTeamResponse.cs" />
+    <Compile Include="Common\DataBussiness\IO\SharedRecordRequest.cs" />
+    <Compile Include="Common\DataBussiness\IO\SharedRecordResponse.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserTeamRequest.cs" />
+    <Compile Include="Common\DataBussiness\ICompare.cs" />
+    <Compile Include="Common\DataBussiness\LogonWebConsole.cs" />
+    <Compile Include="Common\DataBussiness\ObligationHandles\MaskFieldHandles.cs" />
+    <Compile Include="Common\DataBussiness\Condition\CommonCondition.cs" />
+    <Compile Include="Common\DataBussiness\Condition\ConditionFactory.cs" />
+    <Compile Include="Common\DataBussiness\Condition\IsOwnerCondition.cs" />
+    <Compile Include="Common\DataBussiness\Condition\IsSharedCondition.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\ApplySecurityFilter.cs" />
+    <Compile Include="Common\DataBussiness\Cache\CacheTier.cs" />
+    <Compile Include="Common\Constant.cs" />
+    <Compile Include="Common\DataBussiness\ChartDatadefinitionXMLHelp.cs" />
+    <Compile Include="Common\DataBussiness\EntityDataHelp.cs" />
+    <Compile Include="Common\DataBussiness\IO\EntityMetaDataReader.cs" />
+    <Compile Include="Common\DataBussiness\Condition\Condition.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\EntityOutJoin.cs" />
+    <Compile Include="Common\DataBussiness\PolicyModel\NxlActionComponent.cs" />
+    <Compile Include="Common\DataBussiness\PolicyModel\LocalPolicyModel.cs" />
+    <Compile Include="Common\DataBussiness\PolicyModel\NxlRequestModel.cs" />
+    <Compile Include="Common\DataBussiness\PolicyModel\PolicyModelDetail.cs" />
+    <Compile Include="Common\DataBussiness\PolicyModel\PolicyModelOperators.cs" />
+    <Compile Include="Common\DataBussiness\PolicyModel\PolicyModelRepModel.cs" />
+    <Compile Include="Common\DataBussiness\Serialization\FakeStingSerialzer.cs" />
+    <Compile Include="Common\DataBussiness\Cache\ICache.cs" />
+    <Compile Include="Common\DataBussiness\IO\IDataReader.cs" />
+    <Compile Include="Common\DataBussiness\Serialization\IStringSerializer.cs" />
+    <Compile Include="Common\DataBussiness\Cache\IStringUpdatable.cs" />
+    <Compile Include="Common\DataBussiness\IO\IUserSettingsReader.cs" />
+    <Compile Include="Common\DataBussiness\JPCWrapper.cs" />
+    <Compile Include="Common\DataBussiness\IO\LogUserInfoReader.cs" />
+    <Compile Include="Common\DataBussiness\Cache\MemoryCache.cs" />
+    <Compile Include="Common\DataBussiness\MetaDataConverter.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\FilterUtil.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\InheritAttributeFrom.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\InheritFrom.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\InheritFromCollection.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\InheritPolicyFrom.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\Relation.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\RelationFactory.cs" />
+    <Compile Include="Common\DataBussiness\Obligation\TestInheritFrom.cs" />
+    <Compile Include="Common\DataBussiness\Cache\RegularCache.cs" />
+    <Compile Include="Common\DataBussiness\IO\UserSettingsDCRMReader.cs" />
+    <Compile Include="Common\DataBussiness\Serialization\XMLSerializeHelper.cs" />
+    <Compile Include="Common\DataBussiness\Sharepoint\SPActionHelper.cs" />
+    <Compile Include="Common\DataBussiness\Util.cs" />
+    <Compile Include="Common\DataModel\IOCommand.cs" />
+    <Compile Include="Common\DataModel\ObligationModel.cs" />
+    <Compile Include="Common\DataModel\DataModels.cs" />
+    <Compile Include="Common\DataModel\EnforceResult.cs" />
+    <Compile Include="Common\DataModel\fetch.cs" />
+    <Compile Include="Common\DataModel\GeneralSetting.cs" />
+    <Compile Include="Common\DataModel\LogSettings.cs" />
+    <Compile Include="Common\DataModel\MetaData\Attribute.cs" />
+    <Compile Include="Common\DataModel\MetaData\Entity.cs" />
+    <Compile Include="Common\DataModel\MetaData\Option.cs" />
+    <Compile Include="Common\DataModel\N1Relationship.cs" />
+    <Compile Include="Common\DataModel\NNRelationship.cs" />
+    <Compile Include="Common\DataModel\SchemaColumnAttribute.cs" />
+    <Compile Include="Common\DataModel\SecureEntity.cs" />
+    <Compile Include="Common\DataModel\SharedParam.cs" />
+    <Compile Include="Common\DataModel\VerifyConnection.cs" />
+    <Compile Include="Common\DataModel\UserSetting.cs" />
+    <Compile Include="Common\DataModel\XSDSchema.cs" />
+    <Compile Include="Common\Enums\Enums.cs" />
+    <Compile Include="Common\NXLIDProvider.cs" />
+    <Compile Include="Common\TimeEscapeRecorder.cs" />
+    <Compile Include="Enforces\Create.cs" />
+    <Compile Include="Enforces\Delete.cs" />
+    <Compile Include="Enforces\IEnforce.cs" />
+    <Compile Include="Enforces\Retrieve.cs" />
+    <Compile Include="Enforces\RetrieveMultiple.cs" />
+    <Compile Include="Enforces\Update.cs" />
+    <Compile Include="Exceptions\InvalidFilterException.cs" />
+    <Compile Include="Common\DataModel\ExcuteObligationResult.cs" />
+    <Compile Include="JavaPCSDK\DataAccess.cs" />
+    <Compile Include="JavaPCSDK\JavaPC.cs" />
+    <Compile Include="JavaPCSDK\JsonSerializer.cs" />
+    <Compile Include="JavaPCSDK\Model.cs" />
+    <Compile Include="Log\NextLabsCRMLogs.cs" />
+    <Compile Include="Common\MyOrganizationCrmSdkTypes.cs" />
+    <Compile Include="Common\DataBussiness\ObligationHandles\ApplySecurityFilterBasedonParentAttributesHandle.cs" />
+    <Compile Include="Common\DataBussiness\ObligationHandles\ApplySecurityFilterHandle.cs" />
+    <Compile Include="Common\DataBussiness\ObligationHandles\DisplayAlertMessageHandle.cs" />
+    <Compile Include="Common\DataBussiness\ObligationHandles\InheritPoliciesFromHanlde.cs" />
+    <Compile Include="Plugin\NextLabsCRMMsg.cs" />
+    <Compile Include="Plugin\NextLabsRegisterPlugin.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryPC\QueryJavaPC.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="PlugIn_DCRM.snk" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

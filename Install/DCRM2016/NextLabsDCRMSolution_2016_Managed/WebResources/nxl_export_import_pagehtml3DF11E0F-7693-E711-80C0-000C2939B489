@@ -1,0 +1,201 @@
+<html>
+	<head>
+	    <title>Export & Import</title>
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+	    <meta name="apple-mobile-web-app-capable" content="yes">
+	    <link href="nxl_common.css" type="text/css" rel="stylesheet">
+	    <link href="nxl_export_import_page.css" type="text/css" rel="stylesheet">
+        <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>
+	    <script src="nxl_es6promise.js" type="text/javascript"></script>            
+	    <script src="nxl_sdk.js"></script>
+	    <script src="nxl_models.js"></script>
+        <script src="nxl_common.js" type="text/javascript"></script>
+    </head>
+    <body>
+
+        <!-- top toolbar -->
+        <div class="toolbar-top font-lg bg-white">
+            <div id="toolbar-top-home-btn" class="toolbar-top-title-container" onclick="RedirectHomePage();">
+                <span class="toolbar-top-title-img"></span>
+                <span class="toolbar-top-title-text"><b class="font-bold">Entitlement Manager</b></span>
+            </div>	
+			<div id="toolbar-top-help-btn" class="toolbar-top-help-container">
+                <span class="toolbar-top-help-img"></span>
+                <span class="toolbar-top-help-text">Help</span>
+            </div>
+        </div>
+        
+        <!-- main body -->
+        <div id="container" class="container font-default">
+            <!--main section-->
+            <div class="main-container">
+                <div class="main-header">
+                    <div class="main-header-img"></div>
+                    <div class="main-header-title-wrapper">
+                        <h2 class="font-bold font-lg">Import / Export</h2>
+                        <h4 class="font-default font-md">Import and export NextLabs Entitlement Manager secured entities and settings</h4>
+                        <div class="main-header-desc-wrapper">
+                            <span>Export and import Nextlabs Entitlement Manager General Settings (Policy Server Host, Port, Control Center Server Host, Port, etc.).
+                                    Log Settings, Secured Entities and User Attributes for Microsoft Dynamic CRM.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-toolbar">
+                    <!-- <div class="toolbar-section">
+                        <h4 class="font-bold font-lg">Export Settings</h4>
+                        <p class="font-sm">Export general settings(Policy Server Host, Port, OAuth Server Host, Port, etc...), log setting, secured entities, and user attributes to a template file</p>
+                        <button id="export-btn" class="btn btn-default btn-lg">Export Settings</button>
+                    </div>
+                    <div class="toolbar-section">
+                        <h4 class="font-bold font-lg">Import Settings</h4>
+                        <p class="font-sm">Import and active general settings(Policy Server Host, Port, OAuth Server Host, Port, etc...), log setting, secured entities, and user attributes from a template file</p>
+                        <button id="import-btn" class="btn btn-default btn-lg">Import Settings</button>
+                    </div>                     -->
+                    <div class="btn-wrapper">
+                        <button id="import-btn" class="btn import-btn btn-desc"></button>
+                        <p class="font-bold font-lg btn-desc">Import</p>                            
+                    </div>                    
+                    <div class="btn-wrapper">
+                        <button id="export-btn" class="btn export-btn btn-desc"></button>
+                        <p class="font-bold font-lg btn-desc">Export</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="overlay" class="overlay hide"></div>
+
+        <div id="export-modal" class="modal export-modal hide">
+            <div class="modal-header gray-down">
+                <h4 class="modal-title font-bold">Export NextLabs Entitlement Manager Settings</h4>                    
+                <button class="btn bg-transparent btn-ms-close modal-close">X</button>                
+            </div>
+            <!-- <p class="font-sm">Select the settings you want to export:</p> -->
+            <ul id="export-list" class="export-list">
+                <li class="export-item">
+                    <input type="checkbox" data-type="280240004" checked>
+                    <label class="font-default">General Settings</label>
+                </li>
+                <li class="export-item">
+                    <input type="checkbox" data-type="280240005" checked>
+                    <label class="font-default">Log Settings</label>
+                </li>
+                <li class="export-item">
+                    <input type="checkbox" data-type="280240000" checked>
+                    <label class="font-default">Secured Entities</label>
+                </li>
+                <li class="export-item">
+                    <input type="checkbox" data-type="280240001" checked>
+                    <label class="font-default">Secured User Attributes</label>
+                </li>                                                
+            </ul>
+            <div class="modal-footer modal-toolbar gray-up">
+                <button id="export-cancel-btn" class="btn btn-default btn-sm btn-ms">Cancel</button>
+                <button id="export-confirm-btn" class="btn btn-default btn-sm btn-ms">Export</button>
+            </div>
+        </div>
+        
+        <div id="import-wizard" class="import-wizard hide">
+            <div class="modal-header gray-down">
+                <h4 class="modal-title font-bold">Import NextLabs Entitlement Manager Settings</h4>
+                <button class="btn bg-transparent btn-ms-close modal-close">X</button>                
+            </div>        
+            <ul id="indicator-list" class="indicator-list">
+                <!-- <li class="stage-indicator processed">
+                    <div class="indicator-arm"></div>
+                    <div class="indicator-body" data-name="Secure Entities">entity</div>
+                    <div class="indicator-arm"></div>                    
+                </li>
+                <li class="stage-indicator processed">
+                    <div class="indicator-arm"></div>
+                    <div class="indicator-body" data-name="User Attributes">attributes</div>
+                    <div class="indicator-arm"></div>                    
+                </li>
+                <li class="stage-indicator">
+                    <div class="indicator-arm"></div>
+                    <div class="indicator-body" data-name="General Settings">settings</div>
+                    <div class="indicator-arm"></div>                    
+                </li>                               -->
+            </ul>
+            <div id="stage-descriptor" class="stage-descriptor hide">
+                <p id="stage-title" class="stage-title"></p>
+                <p id="stage-description" class="stage-description"></p>
+                <p id="backup-warning" class="font-red font-sm">Note: please backup your NextLabs Entitlement Manager settings of current instance before importing.</p>
+            </div>
+            <div id="slide-mask" class="slide-mask">
+                <ul id="slide-list" class="slide-list hide">
+                    <!-- <li class="slide">
+                        <div class="slide-title-wrapper">
+                            <input type="checkbox" class="slide-checkbox checkbox-md">
+                            <span class="slide-title">Secure Entities</span>
+                        </div>
+                        <ul class="slide-content-list">
+                            <li class="slide-content-item">
+                                <label>Name</label>
+                                <input type="text" value="Joe" disabled>
+                            </li>
+                            <li class="slide-content-item">
+                                <label>Age</label>
+                                <input type="text" value="23" disabled>
+                            </li>
+                            <li class="slide-content-item">
+                                <label>Gender</label>
+                                <input type="text" value="Male" disabled>
+                            </li>                                                
+                        </ul>
+                    </li> -->
+                </ul>
+            </div>
+            <div id="import-wizard-toolbar" class="modal-footer import-wizard-toolbar gray-up hide">
+                <button id="backup-slide-btn" class="btn btn-default btn-sm backup-slide-btn btn-ms">Backup</button>
+                <button id="cancel-slide-btn" class="btn btn-default btn-sm btn-ms cancel-slide-btn">Cancel</button>
+                <button id="prev-slide-btn" class="btn btn-default btn-sm btn-ms prev-slide-btn" disabled>Prev</button>
+                <button id="next-slide-btn" class="btn btn-default btn-sm btn-ms next-slide-btn">Next</button>
+                <button id="import-slide-btn" class="btn btn-default btn-sm import-slide-btn btn-ms hide">Import</button>                
+            </div>
+        </div>
+
+        <div id="file-picker-modal" class="modal file-picker-modal hide">
+            <div class="modal-header gray-down">
+                <h4 class="modal-title font-bold">Import NextLabs Entitlement Manager Settings</h4>
+                <button class="btn bg-transparent btn-ms-close modal-close">X</button>            
+            </div>
+            <div class="file-picker-body">
+                <h5 id="file-name" class="file-name-picked font-md"></h5>                    
+                <div id="file-picker" class="font-sm btn file-picker btn-primary btn-ms">
+                    <input type="file">Browse
+                </div>
+                <p class="file-picker-desc font-sm"><i></i><span>Select a file that contains NextLabs Entitlement Manager Settings for Microsoft Dynamic CRM, including settings of policy Server host, control center server host, logging level, secured entities and secured user attributes.</span></p>
+                <p id="backup-warning" class="font-red font-sm backup-warning">Note: please backup your NextLabs Entitlement Manager settings of current instance before importing.</p>                
+            </div>
+            <div class="modal-footer modal-toolbar gray-up">
+                <button id="import-cancel-btn" class="btn btn-default btn-sm btn-ms">Cancel</button>
+                <button id="import-confirm-btn" class="btn btn-default btn-sm btn-ms" disabled>Next</button>
+            </div>
+        </div>
+
+        <div id="modal" class="modal hide">
+            <p class="modal-msg">Please wait, this may take a few minutes.</p>
+            <div class="modal-loading"><img src="/_imgs/advfind/progress.gif" alt="loading image"></div>
+        </div>
+
+        <div id="alert-modal" class="modal hide">
+            <div class="modal-header gray-down">
+                <h4 id="alert-title" class="modal-title alert-title font-bold">Import Result</h4>
+                <button id="alert-x-btn" class="btn bg-transparent btn-ms-close modal-close">X</button>            
+            </div>
+            <div class="alert-modal-body">
+                <span id="alert-icon" class="alert-icon"></span> 
+                <span id="alert-content" class="alert-content font-md">
+                    <span id="alert-highlight-text" class="font-bold"></span>
+                    <span id="alert-plain-text"></span>
+                </span>                   
+            </div>
+            <div class="modal-footer modal-toolbar gray-up">
+                <button id="alert-close-btn" class="btn btn-default btn-sm btn-ms alert-close-btn">Close</button>
+            </div>
+        </div>       
+        <script src="nxl_export_import_page.js"></script>        
+    </body>    
+</html>

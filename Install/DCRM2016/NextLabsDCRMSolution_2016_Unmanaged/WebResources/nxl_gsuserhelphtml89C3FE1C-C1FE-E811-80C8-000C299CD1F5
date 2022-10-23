@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>General Setting Manual</title>
+	<meta charset='utf-8'>
+
+	<style>
+	body, html{
+    display:table;
+    height:100%;
+    width:100%;
+	}
+	.container{
+		display:table-cell;
+		vertical-align:top;
+	}
+	.container .box{
+		width:100%;
+		height:100%;
+		margin:0 auto;
+		
+	}
+	.note-content {
+	line-height:1.5;
+	color:#2c3f51
+	}
+	.note-content div,.note-content dl,.note-content dt,.note-content em,.note-content font,.note-content h3,.note-content h4,.note-content h5,.note-content h6,.note-content hr,.note-content i,.note-content ins,.note-content kbd,.note-content li,.note-content map,.note-content ol,.note-content p,.note-content pre,.note-content q,.note-content s,.note-content samp,.note-content small,.note-content span,.note-content strike,.note-content strong,.note-content sub,.note-content sup,.note-content table,.note-content tbody,.note-content td,.note-content tfoot,.note-content th,.note-content thead,.note-content tr,.note-content tt,.note-content u,.note-content ul {
+		line-height:1.6
+	}
+	h1, h2 {
+		text-align: center;
+	}
+	p {
+		text-align:justify;
+	}
+	</style>
+</head>
+<body>
+	<div class='container note-content'>
+		<div class='box' style="max-width: 800px;">
+		
+			<h1>General Setting</h1>
+			<p>This section allows you to configure Policy Controller settings, and manage system exceptions. The Policy Controller settings are used by NextLabs Enforcer to communicate with NextLabs Policy Controller to determine if users have sufficient rights to access Dynamics CRM entities.</p>
+
+			<h2>Input boxes</h2>
+			
+			<p><strong>NextLabs Platform Configuration</strong></p>
+			<ul><li><p>Policy server Host - the Policy Controller address.</p></li>
+			<li><p>User Name - the user name of Cloudaz/Azure web console</p></li>
+			<li><p>Password - the password of cloudaz/Azure web console</p></li>
+			<li><p>Client ID- Control Center user ID to log into Policy Controller.</p></li>
+			<li><p>Client Secret Key - NextLabs Control Center password to log into Policy Controller.</p></li>
+			</ul>
+
+			<p><strong>Default Policy Enforcement Settings</strong></p>
+			<ul><li><p>Exception Message - A message for the end user describing the reason for exception. The default message is “Access denied due to system error. Try again and contact the system administrator if the problem persists.”</p></li>
+			<li><p>Default Message - A message for display to the end user when the user is denied access either due to policy violation or if no policy is deployed. The default message is “Access denied, you are not authorized to perform this operation.”</p></li>
+			<li><p>Enter the time interval in minutes in the Cache Settings to allow the Enforcer to check the cache for any updates to configuration and user information settings.</p></li>
+			</ul>
+
+			<p><mark>NOTE</mark>: For better performance, it is recommended to keep large time intervals, for example, 720 minutes, if the entity schemes, user information, and configuration settings are not going to be changed frequently.</p>
+
+			<h2>Button</h2>
+
+			<p><strong>Verify Connection</strong> button is behind NextLabs Platform Configuration form. Click the button to make sure the Policy Controller is running. On the right, the status message will be shown after clicked. <br>
+			<strong>Save Setting</strong> button is located at both the top and bottom. Click the button to save all contents of Input boxes into NextLabs Enforcer. <br>
+			<strong>Discard Changes</strong> button  is on the right side of the top Save Setting button. Click the button to reset contents of Input boxes.</p>
+
+			<p><mark>NOTE</mark>: Ensure NextLabs Enforcer is working properly, General Setting should be set up correctly. Firstly, enter the input boxes details; secondly click Verify Connection to make sure the Policy Controller is running; click Save Settings at last.</p>			
+		</div>
+	</div>
+</body>
+</html>

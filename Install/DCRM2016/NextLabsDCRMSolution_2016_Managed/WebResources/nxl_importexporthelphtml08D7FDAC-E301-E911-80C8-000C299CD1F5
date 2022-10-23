@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Exporting and Importing Settings</title>
+	<meta charset='utf-8'>
+
+	<style>
+	body, html{
+    display:table;
+    height:100%;
+    width:100%;
+	}
+	.container{
+		display:table-cell;
+		vertical-align:top;
+	}
+	.container .box{
+		width:100%;
+		height:100%;
+		margin:0 auto;
+		
+	}
+	.note-content {
+	line-height:1.5;
+	color:#2c3f51
+	}
+	.note-content div,.note-content dl,.note-content dt,.note-content em,.note-content font,.note-content h3,.note-content h4,.note-content h5,.note-content h6,.note-content hr,.note-content i,.note-content ins,.note-content kbd,.note-content li,.note-content map,.note-content ol,.note-content p,.note-content pre,.note-content q,.note-content s,.note-content samp,.note-content small,.note-content span,.note-content strike,.note-content strong,.note-content sub,.note-content sup,.note-content table,.note-content tbody,.note-content td,.note-content tfoot,.note-content th,.note-content thead,.note-content tr,.note-content tt,.note-content u,.note-content ul {
+		line-height:1.6
+	}
+	h1, h2 {
+		text-align: center;
+	}
+	p {
+		text-align:justify;
+	}
+	</style>
+</head>
+<body>
+	<div class='container note-content'>
+		<div class='box' style="max-width: 800px;">
+		
+		<h1 id="exporting-and-importing-settings">Exporting and Importing Settings</h1>
+
+		<p>EM for Microsoft Dynamics CRM provides a wizard to export and import entitlement manager settings for synchronization between various dynamic CRMs.</p>
+
+		<h2 id="procedure">Procedure</h2>
+
+		<ol><li rel="1"><p>In the <strong>Microsoft Dynamics CRM</strong> app, go to the <strong>Main</strong> menu &gt; <strong>Settings</strong> &gt; <strong>Entitlement Manager</strong>.</p></li>
+		<li rel="2"><p>Click <strong>Export &amp; Import</strong>.</p></li>
+		<li rel="3"><p>Click <strong>Export</strong> to start the wizard for exporting.</p></li>
+		<li rel="4"><p>In the wizard, perform the following steps:</p>
+
+		<ul>
+		<li><p>a. Select the settings to be exported.</p></li>
+		<li><p>b. Click <strong>Export</strong>.</p></li></ul></li>
+		<li rel="5"><p>In the other <strong>Microsoft Dynamics CRM</strong> app, go to the <strong>Main</strong> menu &gt; <strong>Settings</strong> &gt; <strong>Entitlement Manager</strong>.</p></li>
+		<li rel="6"><p>Click <strong>Export &amp; Import</strong>.</p></li>
+		<li rel="7"><p>Click <strong>Import</strong> to start the wizard for importing.</p></li>
+		<li rel="8"><p>Click <strong>browse</strong> to load the bin file that contains the entitlement manager settings.</p></li>
+		<li rel="9"><p>Click <strong>Next</strong> to start the wizard for importing.</p></li>
+		<li rel="10"><p>In the wizard, perform the following steps:</p>
+
+		<ul>
+		<li><p>a. Check/uncheck to enable/disable <strong>General Settings</strong> importing.</p></li>
+		<li><p>b. Click <strong>Next</strong>.</p></li>
+		<li><p>c. Check/uncheck to enable/disable <strong>Log settings</strong> importing.</p></li>
+		<li><p>d. Click <strong>Next</strong>.</p></li>
+		<li><p>e. Select <strong>Secured Entities</strong> to be imported.</p></li>
+		<li><p>f. Click <strong>Next</strong>.</p></li>
+		<li><p>g. Check/uncheck to enable/disable <strong>Secured User Attributes</strong> importing.</p></li>
+		<li><p>h. Click <strong>Next</strong>.</p></li>
+		<li><p>i. Show <strong>Summary</strong> about the selected settings.</p></li>
+		<li><p>j. Click <strong>Import</strong>. The system displays the following message: <br>
+		<code>Importing settings. This will take a few minutes, please wait…</code></p></li></ul></li>
+		</ol>
+
+		<p>A pop-up is displayed after importing is complete.</p>
+
+		</div>
+	</div>
+</body>
+</html>

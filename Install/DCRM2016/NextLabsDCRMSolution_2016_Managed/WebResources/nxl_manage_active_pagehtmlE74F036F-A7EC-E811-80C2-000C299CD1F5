@@ -1,0 +1,59 @@
+<html>
+	<head>
+	    <title>Manage</title>
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+	    <meta name="apple-mobile-web-app-capable" content="yes">
+	    <link href="nxl_common.css" type="text/css" rel="stylesheet">
+        <link href="nxl_manage_active_page.css" type="text/css" rel="stylesheet">
+        <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>
+	    <script src="nxl_es6promise.js" type="text/javascript"></script>            
+	    <script src="nxl_sdk.js"></script>
+	    <script src="nxl_models.js"></script>
+        <script src="nxl_common.js" type="text/javascript"></script>
+    </head>
+    <body style="position:absolute;">
+
+        <!-- top toolbar -->
+        <div class="toolbar-top font-lg bg-white">
+            <div id="toolbar-top-home-btn" class="toolbar-top-title-container" onclick="RedirectHomePage();">
+                <span class="toolbar-top-title-img"></span>
+                <span class="toolbar-top-title-text"><b class="font-bold">Entitlement Manager</b></span>
+            </div>	
+			<div id="toolbar-top-help-btn" class="toolbar-top-help-container">
+                <span class="toolbar-top-help-img"></span>
+                <span class="toolbar-top-help-text">Help</span>
+            </div>
+        </div>
+        
+        <!-- main body -->
+        <div id="container" class="container font-default">
+            <!--main section-->
+            <div class="main-container">
+                <div class="main-header">
+                    <div class="main-header-img"></div>
+                    <div class="main-header-title-wrapper">
+                        <h2 class="font-bold font-lg">Manage</h2>
+                        <h4 class="font-default font-md"><span><p>Manage the policies used by NextLabs Entitlement Manager</p></span></h4>
+                        <div class="main-header-desc-wrapper">
+                            <span>'Manage Policy' is used to configure policy relevant by logon to CloudAz automatically.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-toolbar">
+					<!-- <a href="./nxl_autologonAz.html"> -->
+						<div class="btn-wrapper">
+							<button id="manage-btn" class="btn import-btn btn-desc"></button>
+							<p class="font-bold font-lg btn-desc">Manage Policy</p>                            
+						</div>
+					<!-- </a> -->
+                    <div class="btn-wrapper" style="display:none; visibility: hidden">
+                        <button id="active-btn" class="btn export-btn btn-desc"></button>
+                        <p class="font-bold font-lg btn-desc">Active</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<script src="nxl_manage_active_page.js" type="text/javascript"></script>
+    </body>    
+</html>

@@ -1,0 +1,707 @@
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+	<title>General Settings</title>
+
+	<link href="nxl_jqueryuithemes.css" type="text/css" rel="stylesheet" />
+	<link href="nxl_axurerppage.css" type="text/css" rel="stylesheet" />
+	<link href="nxl_datastyles.css" type="text/css" rel="stylesheet" />
+	<link href="nxl_settingstyles.css" type="text/css" rel="stylesheet" />
+	<link href="nxl_common.css" type="text/css" rel="stylesheet">
+	
+	<script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>
+	<script src="nxl_es6promise.js" type="text/javascript"></script>
+	<script src="nxl_common.js" type="text/javascript"></script>
+	<script src="nxl_sdk.js"></script>
+	<script src="nxl_models.js"></script>
+
+	<style type="text/css">
+	/* ------base rules------ */
+	
+	* {
+		font-family: "Arial";
+		font-weight: 400;
+		font-style: normal;
+		color: #333333;
+		box-sizing: content-box;
+	}
+	*:focus {
+		outline: 0;
+	}
+	body,
+	ul,
+	li {
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
+	}
+	/* ------layouts------ */
+	
+	.grid {
+		height: auto;
+	}
+	.sider {
+		position: fixed;
+		width: 250px;
+		height: 100vh;
+		background-color: #303a46;
+	}
+	.header {
+		padding: 0;
+	}
+	.content {
+		padding: 0;
+	}
+	.col {
+		display: inline-block;
+		vertical-align: top;
+	}
+	.content-header {
+		padding: 20px;
+		width: 1200px;
+		height: 100px;
+	}
+	.content-body {
+		padding: 0 40px;
+	}
+	.content-footer {
+		height: 100px;
+		line-height: 100px;
+		padding: 0 40px;
+		background-image: url("nxl_u354.png");
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+	}
+	/* ------modules------ */
+	
+	.unfolder-wrap {
+		position: absolute;
+		display: inline-block;
+		vertical-align: top;
+	}
+	.unfolder-wrap-attr {
+		left: 0;
+		right: 0;
+		/* top: 0;    bottom: 0; */
+		
+		margin: auto 0 auto auto;
+		width: 24px;
+		height: 24px;
+	}
+	.unfolder,
+	.unfolder::before,
+	.unfolder::after {
+		position: absolute;
+		width: 4px;
+		height: 4px;
+		border: 0 solid transparent;
+		border-radius: 20px;
+		background-color: #666;
+		display: inline-block;
+	}
+	.unfolder {
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		margin: auto;
+	}
+	.unfolder::before {
+		content: "";
+		top: -8px;
+		left: 0;
+		right: 0;
+		margin: auto;
+	}
+	.unfolder::after {
+		content: "";
+		top: 8px;
+		left: 0;
+		right: 0;
+		margin: auto;
+	}
+	.box {
+		display: inline-block;
+		vertical-align: top;
+	}
+	.link {
+		color: #18b;
+		cursor: pointer;
+	}
+	.block {
+		display: block;
+	}
+	.hide {
+		display: none !important;
+	}
+	.btn {
+		cursor: pointer;
+	}
+	.checkbox+label {
+		width: 24px;
+		height: 24px;
+		background-image: url("nxl_checkbox_unchecked.png");
+		background-size: contain;
+		background-repeat: no-repeat;
+	}
+	.checkbox:checked+label {
+		background-image: url("nxl_checkbox.png");
+	}
+	/* ------themes------ */
+	
+	.btn-disabled {
+		background-color: #eee;
+		color: #999;
+		border-color: transparent;
+	}
+	.btn-default {
+		border: 1px solid #aaa;
+		background-color: #efefef;
+		font-size: 11px;
+	}
+	.btn-default:hover {
+		background-color: #ddd;
+	}
+	.btn-sm {
+		width: 100px;
+		height: 30px;
+		line-height: 30px;
+	}
+	.btn-md {
+		width: 120px;
+		height: 30px;
+		line-height: 30px;
+	}
+	.font-italic {
+		font-style: italic
+	}
+	.font-sm {
+		font-size: 11px;
+	}
+	.font-md {
+		font-size: 13px;
+	}
+	.font-lg {
+		font-size: 16px;
+	}
+	.font-default {
+		font-weight: 400;
+	}
+	.font-bold {
+		font-weight: 700;
+	}
+	.font-red {
+		color: #c03;
+	}
+	.font-green {
+		color: #696;
+	}
+	.font-blue {
+		color: #18b;
+	}
+	/* background colors */
+	
+	.bg-black {
+		background-color: #000;
+		color: #fff;
+	}
+	.bg-white {
+		background-color: #fff;
+		color: #333;
+	}
+	.bg-gray {
+		background-color: #eee;
+		color: #333;
+	}
+	.bg-gray-light {
+		background-color: rgba(200, 200, 200, 0.1);
+		color: #333;
+	}
+	.bg-transparent {
+		background-color: transparent;
+		color: #333;
+	}
+	/* tables */
+	
+	.td-sm {
+		width: 48px;
+		height: 48px;
+	}
+	.td-md {
+		width: 143px;
+		height: 48px;
+	}
+	.td-lg {
+		width: 173px;
+		height: 48px;
+	}
+	/* mask */
+	
+	@media (max-device-width: 1024px) {
+		.mask {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			margin: auto;
+			background-color: rgba(0, 0, 0, 0.1);
+			z-index: 12;
+		}
+	}
+	@media (min-device-width: 1025px) {
+		.mask {
+			display: none;
+		}
+	}
+	</style>
+	<style type="text/css">
+	/* save */
+	.toolbar-top-save-container{
+		width: 250px;
+		height: 100%;
+		position: relative;
+		display: inline-block;
+	}
+	.toolbar-top-save-container::after{
+		content: '';
+		display: inline-block;
+		position: absolute;
+		width: 1px;
+		height: 30px;
+		background-color: #ddd;
+		top: 50%;
+		right: 25px;
+		transform: translateY(-50%);
+	}
+	.toolbar-top-save-img{
+		background-image: url('./nxl_saveimg.png');
+		display: inline-block;
+		width: 32px;
+		height: 32px;
+		position: absolute;
+		top: 50%;
+		left: 0;
+		transform: translateY(-50%);
+	}
+	.toolbar-top-save-text{
+		display: inline-block;
+		width: calc(100% -75px);
+		height: 15px;
+		position: absolute;
+		top: 50%;
+		left: 45px;
+		transform: translateY(-50%);
+	}
+	/* discard */
+	.toolbar-top-discard-container{
+		width: 250px;
+		height: 100%;
+		position: relative;
+		display: inline-block;
+	}
+	.toolbar-top-discard-container::after{
+		content: '';
+		display: inline-block;
+		position: absolute;
+		width: 1px;
+		height: 30px;
+		background-color: #ddd;
+		top: 50%;
+		right: 25px;
+		transform: translateY(-50%);
+	}
+	.toolbar-top-discard-img{
+		background-image: url('./nxl_discardchange.png');
+		display: inline-block;
+		width: 32px;
+		height: 32px;
+		position: absolute;
+		top: 50%;
+		left: 0;
+		transform: translateY(-50%);
+	}
+	.toolbar-top-discard-text{
+		display: inline-block;
+		width: calc(100% -75px);
+		height: 15px;
+		position: absolute;
+		top: 50%;
+		left: 45px;
+		transform: translateY(-50%);    
+	}
+	/* help */
+	.toolbar-top-help-container{
+		width: 250px;
+		height: 100%;
+		position: relative;
+		display: inline-block;
+	}
+	.toolbar-top-help-img{
+		background-image: url('./nxl_userhelp.png');
+		display: inline-block;
+		width: 28px;
+		height: 32px;
+		position: absolute;
+		top: 50%;
+		left: 0;
+		transform: translateY(-50%);
+	}
+	.toolbar-top-help-text{
+		display: inline-block;
+		width: calc(100% -75px);
+		height: 15px;
+		position: absolute;
+		top: 50%;
+		left: 45px;
+		transform: translateY(-50%);    
+	}
+	</style>
+	<style type="text/css">
+	/* ------layouts------ */
+	/* ------modules------ */
+	
+	.content-header-avatar {
+		width: 64px;
+		height: auto;
+		margin: 10px 20px;
+	}
+	.content-title-wrap {}
+	.content-title {
+		margin: 0;
+		padding: 10px 0;
+	}
+	.content-title-desc {
+		margin: 0;
+		color: #999;
+	}
+	.sep-title-h {
+		background-color: #ddd;
+		border: 0;
+		height: 1px;
+	}
+	.sep-section-h {
+		background-image: url("nxl_u354.png");
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+		border: 0;
+		height: 30px;
+	}
+	.section-title-wrap {
+		width: 80%;
+	}
+	.section-title {
+		margin: 0;
+		padding: 10px 0;
+	}
+	.section-title-desc {
+		margin: 0 0 10px 0;
+		color: #999;
+	}
+	.section-sub-title-wrap {
+		width: 60%;
+	}
+	.form-control-group {
+		padding: 10px 0;
+	}
+	.form-control {
+		margin: 5px 0;
+		overflow: hidden;
+	}
+	.form-label {
+		line-height: 16px;
+	}
+	.form-input {
+		width: 60%;
+		height: 32px;
+		padding: 4px;
+		border: 1px solid #ddd;
+	}
+	.form-input-msg {
+		width: 60%;
+		height: 48px;
+		padding: 4px;
+		border: 1px solid #ddd;
+		text-align: top;
+	}
+	.form-input-inline {
+		width: 64px;
+		height: 16px;
+		padding: 4px;
+		border: 1px solid #ddd;
+		text-align: center;
+	}
+	.form-submit {
+		width: 140px;
+		height: 30px;
+		/* line-height: 30px; */
+		
+		text-align: center;
+	}
+	.form-select {
+		width: 140px;
+		height: 30px;
+		line-height: 30px;
+		text-align: center;
+	}
+	.form-textarea {
+		width: 60%;
+		height: 48px;
+		padding: 4px;
+		border: 1px solid #ddd;
+		resize: none;
+	}
+	.https-input {
+		width: 40%;
+	}
+	.https-wrap {
+		padding: 0 10px;
+		margin: 5px 0;
+		display: inline-block;
+	}
+	/* >, &gt;, &#x3e; \3e, ${AMP}lt;, ${AND}, ${AMP}gt;, ${AMP}#62;, $[AMP], \>; $[GT] */
+	.https-wrap input[type=checkbox] {
+		width: 24px;
+		height: 24px;
+		vertical-align: top;
+		margin: 0;
+		padding: 0;
+	}
+	.https-wrap label {
+		line-height: 24px;
+	}
+
+	input[type=submit] {
+		background-color: #eee;
+		border: 1px solid #999;
+	}
+	input[type=submit]:disabled {
+		background-color: #efefef !important;
+		border: 1px solid #ddd !important;
+		color: #999 !important;
+		cursor: not-allowed !important;
+	}
+	input[type=submit]:hover {
+		cursor: pointer;
+		background-color: #ddd;
+	}
+	.form-row .form-control-group {
+		display: inline-block;
+    	vertical-align: middle;
+		width: 28%;
+	}
+	.form-row .form-control-group:not(:first-child) {
+		margin-left: 20px;
+	}
+	.form-row .form-control-group .form-input {
+		width: 100%;
+	}
+	</style>
+</head>
+
+<body class="bg-white">
+	<div class="header">
+		
+		<div class="toolbar-top font-default font-lg bg-white">
+            <div id="toolbar-top-home-btn" class="toolbar-top-title-container" onclick="RedirectHomePage()">
+                <span class="toolbar-top-title-img"></span>
+                <span class="toolbar-top-title-text"><b class="font-bold">Entitlement Manager</b></span>
+            </div>
+            <div id="toolbar-top-save-btn" class="toolbar-top-save-container">
+                <span class="toolbar-top-save-img"></span>
+                <span class="toolbar-top-save-text">Save Settings</span>
+            </div>
+            <div id="toolbar-top-discard-btn" class="toolbar-top-discard-container hide">
+                <span class="toolbar-top-discard-img"></span>
+                <span class="toolbar-top-discard-text">Discard Changes</span>
+            </div>
+			<div id="toolbar-top-help-btn" class="toolbar-top-help-container">
+                <span class="toolbar-top-help-img"></span>
+                <span class="toolbar-top-help-text">Help</span>
+            </div>
+        </div>
+		
+	</div>
+	<div class="content">
+		<div>
+			<div class="content-header"> <img class="box content-header-avatar" src="nxl_u76.png" />
+				<div class="box content-title-wrap">
+					<h2 class="content-title font-bold">General Settings</h2>
+					<p class="content-title-desc font-md">Policy Server and other Entitlement Manager settings</p>
+				</div>
+				<hr class="sep-title-h" /> 	
+			</div>
+			
+			<div class="content-body">
+				<div class="section">
+					<div class="section-title-wrap">
+						<h3 class="section-title font-lg font-bold">NextLabs Platform Configuration</h3>
+						<hr class="sep-title-h" /> </div>
+					<div class="section-content">
+						<form>
+							<div class="form-control-group">
+								<label for="host" class="block form-label font-md font-bold">Policy Server Host</label>
+								<input id="host" class="form-control form-input" type="text" placeholder="&lt;Example: nxldemo.nextlabs.solutions&gt;" />
+							</div>
+							<div class="form-row" style="display:none; visibility: hidden">
+								<div class="form-control-group">
+									<label for="port" class="block form-label font-md font-bold">Host port</label>
+									<input id="port" class="form-control form-input" type="text" placeholder="443" />
+								</div>
+								<div class="form-control-group">
+									<label for="UsingHttps" class="block form-label font-md font-bold">HTTPS</label>
+									<input id="UsingHttps" class="form-control form-input" type="checkbox" value="checkbox" style="width:25px;height:25px;" />
+								</div>
+							</div>
+							<div class="form-row">
+								<div class="form-control-group">
+									<label for="username" class="form-control form-label font-md font-bold">User Name</label>
+									<input id="username" class="block form-control form-input" type="text" placeholder="&lt;Login username to Policy Configuration&gt;" />
+								</div>
+								<div class="form-control-group">
+									<label for="password" class="form-control form-label font-md font-bold">Password</label>
+									<input id="password" class="block form-control form-input" type="password" placeholder="&lt;Login password to Policy Configuration&gt;" />
+								</div>
+							</div>
+							<p class="font-md" style="font-weight: bold;">Indentifier for Nextlabs Entitlement Manager</p>
+							<div class="form-row">
+								<div class="form-control-group">
+									<label for="clientId" class="form-control form-label font-md font-bold">Client ID</label>
+									<input id="clientId" class="block form-control form-input" type="text" placeholder="&lt;Example: apiclient&gt;" />
+								</div>
+								<div class="form-control-group">
+									<label for="clientKey" class="form-control form-label font-md font-bold">Client Secret Key</label>
+									<input id="clientKey" class="block form-control form-input" type="password" placeholder="&lt;Example: 123dynamics!&gt;" />
+								</div>
+							</div>
+						</form>
+						
+						<div class="form-control-group col">
+							<input id="testConnectionBtn" style="margin:0 auto;" title="Try to connect to Police Server Host" class="verifyConnBtn form-control form-submit" type="submit" value="Verify Connection" />
+						</div>
+						<div class="form-control-group col"  style="height: 52px">
+							<div id="testconnState" data-label="testConnectionBtn">
+								<div id="testconnSuccessState"  data-label="SuccessState" style="margin: 0px 0 0 30; visibility: hidden; display: none;">
+									<div id="connSuccessMsg">
+										<p>
+									  <span id="successMessage" class="font-md font-green">&nbsp;Connection established successfully.</span>
+										</p>
+								  </div>
+								</div>
+								<div id="testconnFailState"  data-label="FailState" style="margin: 0px 0 0 30; visibility: hidden; display: none;">
+								    <div id="connFailMsg">
+										<p>
+											<span id="errorMessage" class="font-md font-red">&nbsp;Connection could not be established.</span>
+										</p>
+										<p>
+											<span id="errorDetail" class="font-md font-red"></span>
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+
+				<div class="section">
+					<div class="section-title-wrap">
+						<h3 class="section-title font-lg font-bold">Default Policy Enforcement Settings</h3>
+						<hr class="sep-title-h" />
+					</div>
+					<div class="section-content">
+						<form>							  
+							<div class="hide form-control-group">
+								<label for="policyDecisionSelect" class="block form-label form-control font-md font-bold">Policy Decision</label>
+								<select id="policyDecisionSelect">
+									<option selected value="Deny">&nbsp; Deny</option>
+									<option value="Allow">&nbsp; Allow</option>
+								</select>
+							</div>
+							<div class="form-control-group">
+								<label for="HintForInternalException" class="block form-label form-control font-md font-bold">Exception Message</label>
+								<textarea class="form-textarea" id="HintForInternalException"  type="text" placeholder="Access denied due to system error. Try again and contact the system administrator if the problem persists." ></textarea>
+							</div>
+
+							<div class="form-control-group">
+								<label for="txtHintForDefaultMessage" class="block form-label form-control font-md font-bold">Default message</label>
+								<textarea class="form-textarea" id="txtHintForDefaultMessage" placeholder="Access denied, you are not authorized to perform this operation." type="text"></textarea>
+							</div>
+						</form>
+					</div>
+				</div>	
+
+				<div class="section">
+					<div class="section-title-wrap">
+						<h3 class="section-title font-lg font-bold">Cache Settings</h3>
+						<hr class="sep-title-h" />
+					</div>
+					<div class="section-content">
+						<form>
+							<p class="font-md" style="font-weight: bold;">Refresh cached configuration settings</p>
+							<div class="form-row">
+								<div class="form-control-group">
+								    <span>Every</span>
+								    <span>&nbsp;&nbsp;<input type="text" id="div_RefreshTime_Content_Value_input" placeholder="5" /></span>
+								    <span>&nbsp;&nbsp;&nbsp;&nbsp;Minute(s)</span>
+								</div>
+								<div class="form-control-group"  style="display:none; visibility: hidden">
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+				
+				<div class="hide section">
+					<div class="section-title-wrap">
+						<h3 class="section-title font-lg font-bold">Sharepoint Document Enforcement Settings</h3>
+						<hr class="sep-title-h" />
+					</div>
+					<div class="section-content">
+						<form>
+							<p class="font-md" style="font-weight: bold;">Cofigure sharepoint document enforcement settings</p>
+							<div class="form-row">
+								<div class="form-control-group">
+									<input id="spEnforceCheckbox" type="checkbox" style="width: 25px; height: 25px; margin: 0 4px;">
+									<label for="spEnforceCheckbox" style="line-height: 25px; vertical-align: top">Protect Sharepoint Document</label>
+								</div>
+								<div class="form-control-group"  style="display:none; visibility: hidden"></div>
+							</div>
+						</form>
+					</div>
+				</div>
+				
+				<div class="hide section">
+					<div class="section-title-wrap">
+						<h3 class="section-title font-lg font-bold">Time Cost Settings</h3>
+						<hr class="sep-title-h" />
+					</div>
+					<div class="section-content">
+						<form>
+							<p class="font-md" style="font-weight: bold;">Cofigure Time Cost Settings</p>
+							<div class="form-row">
+								<div class="form-control-group">
+									<input id="TimeCostCheckbox" type="checkbox" style="width: 25px; height: 25px; margin: 0 4px;">
+									<label for="TimeCostCheckbox" style="line-height: 25px; vertical-align: top">Time Cost</label>
+								</div>
+								<div class="form-control-group"  style="display:none; visibility: hidden"></div>
+							</div>
+						</form>
+					</div>
+				</div>
+
+			</div>
+			
+			<div class="content-footer">
+				<input id="gsSaveBtn" type="submit" class="form-control form-submit" value="Save Settings" />
+				<input id="gsDiscardBtn" type="submit" class="hide form-control form-submit" value="Discard Changes" />
+			</div>
+		</div>
+		<script src="nxl_generalsetting.js" type="text/javascript"></script>
+	</div>
+</body>
+
+</html>

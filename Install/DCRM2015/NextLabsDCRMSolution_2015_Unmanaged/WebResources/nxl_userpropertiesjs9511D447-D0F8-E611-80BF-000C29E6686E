@@ -1,0 +1,934 @@
+
+var userProperties = [];
+var enforcedUserProperties = [];
+var selectedUserProperties = [];
+var standardUserProperties = [];
+var resetUserProperties = [];
+var AllUserAttributes = new Array();
+var submitErrorMessage = "";
+
+function LoadUserProperties() {	
+	enforcedUserProperties = [];
+	
+    SDK.REST.retrieveMultipleRecords(nxlStorageEntity, "$select=nxl_name,nxl_value&$filter=startswith(nxl_name, 'userproperties_')", 	successRetrieveNextLabsStorageUserProperties, errorNextLabsStorage, onCompleteRetrieveCheckedUserProperties);		
+			
+	//var attribute_message = document.getElementById("userproperties_message");			
+	//setText(attribute_message, "Loading...");	
+}
+
+
+function SetUserProperties(callback) {	
+	var lightbox = document.getElementById("lightbox");
+	lightbox.style["visibility"] = "visible";
+	lightbox.style["display"] = "block";
+	
+	
+    submitrecordCollection = new Array();
+	
+	var len = enforcedUserProperties.length;
+	for(var i = 0; i < len; i++){
+		var record = {};
+		var userProperty = enforcedUserProperties[i];
+		var pos = selectedUserProperties.indexOf(userProperty);
+		if(-1 != pos){
+			selectedUserProperties.splice(pos,1);
+		}else{
+			record.nxl_name = "userproperties_"+ userProperty;
+			record.nxl_value = "No";
+			//console.log("name:" + record.nxl_name + "   value:" + record.nxl_value);
+			submitrecordCollection.push(record);
+		}
+	}
+	
+	var len2 = selectedUserProperties.length;
+	for(var i = 0 ; i < len2; i++){
+		var record = {};
+		record.nxl_name = "userproperties_"+ selectedUserProperties[i];
+		record.nxl_value = "Yes";
+		//console.log("name:" + record.nxl_name + "   value:" + record.nxl_value);
+		submitrecordCollection.push(record);
+	}	
+	globalI = 0;
+	Length = submitrecordCollection.length;
+	//console.log(Length);
+	
+	nextlabsProcessBar=new NextlabsProcessBar("Working on it...",
+	"Enabling NextLabs Entitlement Management for the selected Dynamics CRM Entities. This may take a little while...",
+	"Processing Entity",
+	1
+	);
+	nextlabsProcessBar.SetCurrentIndex(1);
+	nextlabsProcessBar.SetCurrentMessage("Users");
+	nextlabsProcessBar.Show();
+	
+    insertAttrRecord(globalI, Length);
+}
+
+function insertAttrRecord(index , length){
+	if(index < length)
+	{	
+		nextlabsProcessBar.setCurrentDynamicBar(parseInt(index/length*100));
+		var record = submitrecordCollection[index];
+		globalI = index+1;
+		//console.log(index);
+		SDK.REST.createRecord(record, nxlStorageEntity, true, sucessNextlabsStorage , function(error){
+			//console.log(error);
+			submitErrorMessage += record.nxl_name + " , ";
+			//console.log(submitErrorMessage);
+            setTimeout(insertAttrRecord(globalI,Length), 20 );
+		});	
+	}
+	else
+	{
+		nextlabsProcessBar.Hiddlen();
+		var iDisplayTop=GetCenterAxisTop(200);
+		var iDisplayLeft=GetCenterAxisLeft(400);
+		var saveAlertDiv = document.getElementById("saveAlert");
+		saveAlertDiv.style["visibility"] = "visible";
+		saveAlertDiv.style["display"] = "block";
+		saveAlertDiv.style["top"]=iDisplayTop+"px";
+		saveAlertDiv.style["left"]=iDisplayLeft+"px";
+		if(submitErrorMessage == ""){
+			var successAlertContent = document.getElementById("alertsuccessContent");
+			successAlertContent.style["visibility"] = "visible";
+			successAlertContent.style["display"] = "block";
+		}else{
+			submitErrorMessage +=" Please save the failed attribute(s) again!"
+			saveAlertDiv.style["height"] = "300px";		
+			var closebuttonDiv = document.getElementById("closebuttonDiv");
+			closebuttonDiv.style["top"] = "240px";
+			var errorAlertContent = document.getElementById("alertErrorContent");
+			errorAlertContent.style["visibility"] = "visible";
+			errorAlertContent.style["display"] = "block";
+			var errorMessageSpan = document.getElementById("errorMessage");
+			errorMessageSpan.innerHTML ="Failed attribute(s) : "+ submitErrorMessage;
+		}
+		
+	}
+}
+
+
+function sucessNextlabsStorage(recordi){
+	setTimeout(insertAttrRecord(globalI,Length), 20 );
+}
+
+function SelectAllUserProperties(obj) {	
+	var setFlag = false;
+	var child1 = document.getElementById("u589_state0");   //uncheckedDiv
+	var child2 = document.getElementById("u589_state1");   //checked
+	if (child1.style["visibility"] == "visible" || child1.style["visibility"] == "" ) {
+		setFlag = true;
+		child1.style["visibility"] = "hidden";
+		child1.style["display"] = "none";
+		child2.style["visibility"] = "visible";		
+        child2.style["display"] = "block";			
+	} else {
+		setFlag = false;
+		child1.style["visibility"] = "visible";
+		child1.style["display"] = "block";	
+		child2.style["visibility"] = "hidden";	
+        child2.style["display"] = "none";			
+	}	
+	var userAttrcb;
+	var userAttrchild1, userAttrchild2;      
+	//selectedUserProperties
+	var len = userProperties.length;
+	for (var i = 0; i < len; i++) {
+		//console.log("displayEntities[i]" +displayEntities[i]);
+		userAttrcb = document.getElementById(userProperties[i]);		
+		userAttrchild1 = userAttrcb.childNodes.item(0);    //checkeddiv
+		if (child2.style["visibility"] == userAttrchild1.style["visibility"]) {
+			continue;
+		}
+		userAttrchild2 = userAttrcb.childNodes.item(1);	 //unckeckedDiv
+		if (setFlag) {		
+			userAttrchild1.style["visibility"] = "visible";
+		    userAttrchild1.style["display"] = "block";
+		    userAttrchild2.style["visibility"] = "hidden";		
+            userAttrchild2.style["display"] = "none";
+			selectedUserProperties.push(userProperties[i]);
+		    selectedUserProperties.sort(NxlArraySort);	
+		} else {
+			userAttrchild1.style["visibility"] = "hidden";
+			userAttrchild1.style["display"] = "none";
+			userAttrchild2.style["visibility"] = "visible";	
+            userAttrchild2.style["display"] = "block";	
+			var pos = selectedUserProperties.indexOf(userProperties[i]);
+            if(-1!=pos){
+				//console.log(" delete --"+ userProperties[i]);
+			    selectedUserProperties.splice(pos,1);
+		    }				
+		}
+	}
+	var totalInfo = document.getElementById("totalinfo");
+	var str = "Total &nbsp;" + userProperties.length + " &nbsp; attribuites  &nbsp;&nbsp;("+ selectedUserProperties.length + "&nbsp; selected)";
+	totalInfo.innerHTML = str;
+	
+}
+
+
+function successRetrieveNextLabsStorageUserProperties(results) {
+	//console.log(results);
+    for (var i = 0; i < results.length; i++) {
+		var index = results[i].nxl_name.indexOf("userproperties_");
+		if (index != -1) {				
+			if (results[i].nxl_value == "Yes") {
+				var userPropertiesName = results[i].nxl_name.substring(15);
+				enforcedUserProperties.push(userPropertiesName);					
+				selectedUserProperties.push(userPropertiesName);					
+			}
+		}
+    }
+}
+
+function onCompleteRetrieveCheckedUserProperties() {
+	SDK.Metadata.RetrieveEntity(SDK.Metadata.EntityFilters.Attributes,
+		"systemuser", null, true, successRetrieveUserProperties, function (message) {
+			//console.log(message);	
+			});
+}
+
+function successRetrieveUserProperties(attributeCollection) {	
+    
+	attributeCollection.Attributes.sort(function (a, b) {
+		var a_DisplayName = GetDisplayName(a);
+		var b_DisplayName = GetDisplayName(b);
+		if (a_DisplayName.toLowerCase() < b_DisplayName.toLowerCase()) {
+			return -1
+		}
+		if (a_DisplayName.toLowerCase() > b_DisplayName.toLowerCase()) {
+			return 1
+		}
+		return 0;
+	});
+	
+	//console.log(attributeCollection);
+	//AllUserAttributes = attributeCollection.Attributes.slice(0);
+    var len = attributeCollection.Attributes.length;
+	for (var i = 0; i < len; i++) 
+	{
+		var attribute = attributeCollection.Attributes[i];		
+		if(strArryNotEnforcedAttrType.indexOf(attribute.AttributeType)<0)
+		{
+			userProperties.push(attribute.LogicalName);
+			AllUserAttributes.push(attribute);
+		}
+	}
+	DrawUserProperties(AllUserAttributes);
+	var totalInfo = document.getElementById("totalinfo");
+	var str = "Total &nbsp;" + userProperties.length + " &nbsp; attribuites  &nbsp;&nbsp;("+ selectedUserProperties.length + "&nbsp; selected)";
+	totalInfo.innerHTML = str;
+	
+}
+
+
+function DrawCheckbox(root, name, flag) {	
+	var checkboxRootDiv = document.createElement("div");
+	checkboxRootDiv.id = name;
+	checkboxRootDiv.className = "ax_default shape2";
+    checkboxRootDiv.style["height"] = "30px";
+	var checkedDiv = document.createElement('div');
+	checkedDiv.className = "panel_state_content";
+	checkboxRootDiv.setAttribute("onclick", "OnClickAttr(this);");
+	var uncheckedDiv = document.createElement('div');
+	
+	uncheckedDiv.className = "panel_state_content";
+	if (flag) {
+		checkedDiv.style["visibility"] = "visible";
+		uncheckedDiv.style["visibility"] = "hiden";
+		uncheckedDiv.style["display"] = "none";
+	} 
+	else {
+		checkedDiv.style["visibility"] = "hidden";
+		checkedDiv.style["display"] = "none";
+		uncheckedDiv.style["visibility"] = "visible";
+	}
+	var checkedImgDiv = document.createElement("div");
+	checkedImgDiv.className = "ax_default image2";
+	var checkedImg = document.createElement("img");
+	checkedImg.className = "img"
+	checkedImg.src = "nxl_u171.png";
+	checkedImg.style["width"]="25px";
+	checkedImg.style["height"]="25px";
+	checkedImgDiv.appendChild(checkedImg);
+	
+	var uncheckedImgDiv = document.createElement("div");
+	var uncheckedImg = document.createElement("img");
+	uncheckedImg.className = "img";	
+	uncheckedImg.src = "nxl_u169.png";
+	uncheckedImg.style["width"]="25px";
+	uncheckedImg.style["height"]="25px";
+	uncheckedImgDiv.appendChild(uncheckedImg);
+	
+	
+	checkedDiv.appendChild(checkedImgDiv);
+	uncheckedDiv.appendChild(uncheckedImgDiv);
+	checkboxRootDiv.appendChild(checkedDiv);
+	checkboxRootDiv.appendChild(uncheckedDiv);
+	root.appendChild(checkboxRootDiv);
+}
+
+
+function OnClickAttr(obj){
+	
+	var checkeddiv = obj.childNodes.item(0);
+	var uncheckedDiv = obj.childNodes.item(1);
+	if(uncheckedDiv.style["visibility"] == "visible"){
+		uncheckedDiv.style["visibility"] = "hidden";
+		uncheckedDiv.style["display"] = "none";
+		checkeddiv.style["visibility"] = "visible";
+		checkeddiv.style["display"] = "block";
+		selectedUserProperties.push(obj.id);
+		selectedUserProperties.sort(NxlArraySort);	
+		
+	}else{
+		checkeddiv.style["visibility"] = "hidden";
+		checkeddiv.style["display"] = "none";
+		uncheckedDiv.style["visibility"] = "visible";
+		uncheckedDiv.style["display"] = "block";
+		var pos = selectedUserProperties.indexOf(obj.id);
+		if(-1 != pos){
+			selectedUserProperties.splice(pos, 1);
+		}
+	}
+	
+	var totalInfo = document.getElementById("totalinfo");
+	var str = "Total &nbsp;" + userProperties.length + " &nbsp; attribuites  &nbsp;&nbsp;("+ selectedUserProperties.length + "&nbsp; selected)";
+	totalInfo.innerHTML = str;
+}
+
+
+function DrawUserProperties(attributeCollection) {
+	//console.log(attributeCollection);
+	resetUserProperties = selectedUserProperties.slice(0);
+	
+	//var results = document.getElementById("userproperties_results");
+	var attributeblock = document.getElementById("userAttrsbody");
+	
+	attributeblock.innerHTML = "";
+	/*
+	var tableLength = results.rows.length;
+	for (var i = 0; i < tableLength; i++) {
+		var tr = document.getElementById("tr" + i);
+		results.removeChild(tr);
+	}
+	*/
+	var len = attributeCollection.length;
+	var attribute;
+	for(var i = 0; i < len; i++)
+	{
+		attribute = attributeCollection[i];
+		if(strArryNotEnforcedAttrType.indexOf(attribute.AttributeType)<0)
+		{
+			var displayName = GetDisplayName(attribute);
+			var attrName = attribute.LogicalName;
+			var attrType = GetAttributrType(attribute);
+			
+			var requiredLevel = GetRequiredLevel(attribute);
+			var descrip = "";
+			if (attribute.Description.UserLocalizedLabel != null && attribute.Description.UserLocalizedLabel.Label != null) 
+			{
+				descrip =  attribute.Description.UserLocalizedLabel.Label;
+			}
+	    	DrawOneAttribute(displayName,attrName,attrType,requiredLevel,descrip,resetUserProperties);
+		}
+	}		
+}
+
+
+function DrawOneAttribute(schemaName,attrName,attrType,requiredLevel,descrip,selectuserproperties){
+	var attributeblock = document.getElementById("userAttrsbody");
+	var attrTr = document.createElement("tr");
+	attrTr.className = "ax_default";
+	attrTr.style["textAlign"] = "left";
+	var checkboxTd = document.createElement("td");
+	checkboxTd.className = "checkboxTd";
+	attrTr.appendChild(checkboxTd);
+	var pos = selectuserproperties.indexOf(attrName);
+	var flag = false;
+	if(-1 != pos){
+		flag = true;	
+	}
+	DrawCheckbox( checkboxTd , attrName, flag);
+	
+	var displayname = document.createElement("td");
+	displayname.className = "displayNameTd";
+	var span1 =  document.createElement("span");
+	span1.className = "ax_default tdtextSpan";
+	span1.innerHTML = schemaName;
+	displayname.appendChild(span1);
+	attrTr.appendChild(displayname);
+	
+	
+	var name = document.createElement("td");
+	name.className = "nameTd";
+	var span2 =  document.createElement("span");
+	span2.className = "ax_default tdtextSpan";
+	span2.innerHTML = attrName;
+	name.appendChild(span2);
+	attrTr.appendChild(name);
+	
+	var attrTypeTd = document.createElement("td");
+	attrTypeTd.className = "dataTypeTd";
+	var span3 =  document.createElement("span");
+	span3.className = "ax_default tdtextSpan";
+	span3.innerHTML = attrType;
+	attrTypeTd.appendChild(span3);
+	attrTr.appendChild(attrTypeTd);
+	
+	var requiredLevelTd = document.createElement("td");
+	requiredLevelTd.className = "requiredTd";
+	var span5 =  document.createElement("span");
+	span5.className = "ax_default tdtextSpan";
+	span5.innerHTML = requiredLevel;
+	requiredLevelTd.appendChild(span5);
+	attrTr.appendChild(requiredLevelTd);
+	
+	
+	var descripTd = document.createElement("td");
+	descripTd.className = "descripTd";
+	var descripDiv = document.createElement("div");
+	descripDiv.className = "tdtextSpan";
+	
+	var span4 =  document.createElement("span");
+	span4.className = "ax_default";
+	span4.innerHTML = descrip;
+	descripDiv.appendChild(span4);
+	descripTd.appendChild(descripDiv);
+	attrTr.appendChild(descripTd);
+	
+	attributeblock.appendChild(attrTr);
+	
+}
+
+
+function ShowAttributeHint() {	
+	this.title = this.id + "";
+}
+
+
+function ChangeSelectedUserProperties() {
+	//console.log(selectedUserProperties);	
+	
+	if (this.checked == true) {
+		selectedUserProperties.push(this.id);
+		selectedUserProperties.sort(NxlArraySort);		
+		
+		DrawSelectedBlock();
+		return;
+	}
+	
+	for (var i = 0; i < selectedUserProperties.length; i++) {
+		if (selectedUserProperties[i] != this.id) {
+			continue;
+		}
+		selectedUserProperties.splice(i, 1);
+		break;
+	}
+	DrawSelectedBlock();
+	//console.log(selectedUserProperties);
+}
+
+
+function SetUserPropertiesSelectAllCheckbox(flag) {
+	var selectAll = document.getElementById("u589");
+	if (selectAll.checked != flag) {
+		selectAll.checked = flag;
+	}	
+	var uncheckedDiv = selectAll.childNodes.item(0);
+	var checkedDiv = selectAll.childNodes.item(1);
+	if(flag){
+		checkedDiv.style["visibility"] = "visible";
+		checkedDiv.style["display"] = "block";
+		uncheckedDiv.style["visibility"] = "hidden";
+		uncheckedDiv.style["display"] = "none";
+	}else{
+		checkedDiv.style["visibility"] = "hidden";
+		checkedDiv.style["display"] = "none";
+		uncheckedDiv.style["visibility"] = "visible";
+		uncheckedDiv.style["display"] = "block";
+	}
+}
+
+
+function ExportAndSavePolicyModel() {
+	
+	var attributes;
+	var policyModels = new Object();
+	policyModels.policyModels = new Array();
+	
+	var policyModel = new Object();
+	policyModel.name = "User";
+	policyModel.shortName = "user";
+	policyModel.description = "";
+	policyModel.type = "SUBJECT";
+	policyModel.status = "ACTIVE";
+	policyModel.tags = new Array();
+	AddTagToPolicyModel(policyModel.tags,"dynamics_365","Dynamics 365");
+	policyModel.attributes = new Array();
+	AllUserAttributes.sort(function (a, b) 
+	    {
+		    var a_DisplayName = GetDisplayName(a);
+			var b_DisplayName = GetDisplayName(b);
+			if (a_DisplayName.toLowerCase() < b_DisplayName.toLowerCase()) {
+				return -1
+			}
+			if (a_DisplayName.toLowerCase() > b_DisplayName.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+	var len = AllUserAttributes.length;
+	for (var k = 0; k < len; k++) {
+        var userProp = AllUserAttributes[k];
+		var checkboxDiv = document.getElementById(userProp.LogicalName);
+		
+		if (checkboxDiv.childNodes.item(0).style["visibility"] == "hidden") {
+            continue;
+        }
+		var attribute = new Object();
+		attribute.name  = GetDisplayName(userProp);
+		attribute.shortName = userProp.LogicalName;
+		attribute.operatorConfigs = new Array();
+		
+		var attrType = userProp.AttributeType !=null ? userProp.AttributeType:" ";
+		if(attrType.toLowerCase()=="integer" || attrType.toLowerCase() == "double" || attrType.toLowerCase() == "bigint"
+		|| attrType.toLowerCase()=="decimal"){
+			
+			attribute.dataType = "NUMBER";
+			var opConfig1 = new Object();
+			opConfig1.key = "=";
+			opConfig1.label = "=";
+			opConfig1.dataType = "NUMBER";
+			attribute.operatorConfigs[0] = opConfig1;
+			var opConfig2 = new Object();
+			opConfig2.key = "!=";
+			opConfig2.label = "!=";
+			opConfig2.dataType = "NUMBER";
+			attribute.operatorConfigs[1] = opConfig2;
+			var opConfig3 = new Object();
+			opConfig3.key = ">=";
+			opConfig3.label = ">=";
+			opConfig3.dataType = "NUMBER";
+			attribute.operatorConfigs[2] = opConfig3;
+			var opConfig4 = new Object();
+			opConfig4.key = "<";
+			opConfig4.label = "<";
+			opConfig4.dataType = "NUMBER";
+			attribute.operatorConfigs[3] = opConfig4;
+			
+			var opConfig5 = new Object();
+			opConfig5.key = "<=";
+			opConfig5.label = "<=";
+			opConfig5.dataType = "NUMBER";
+			attribute.operatorConfigs[4] = opConfig5;
+			
+			var opConfig6 = new Object();
+			opConfig6.key = ">";
+			opConfig6.label = ">";
+			opConfig6.dataType = "NUMBER";
+			attribute.operatorConfigs[5] = opConfig6;			
+		}else{
+			attribute.dataType = "STRING";
+			var opConfig = new Object();
+			opConfig.key = "=";
+			opConfig.label = "is";
+			opConfig.dataType = "STRING";
+			attribute.operatorConfigs[0] = opConfig;
+			
+			var opConfig2 = new Object();			
+			opConfig2.key = "!=";
+			opConfig2.label = "is not";
+			opConfig2.dataType = "STRING";
+			attribute.operatorConfigs[1] = opConfig2;
+			
+		}
+		attribute.operatorConfigs[0] = opConfig;		
+		policyModel.attributes.push(attribute);
+	}		
+		
+	policyModels.policyModels[0] = policyModel;				
+	policyModels.importedPolicyIds = new Array();
+	policyModels.overrideDuplicates = false;
+	var str = JSON.stringify(policyModels);
+	if(!!window.ActiveXObject || "ActiveXObject" in window)
+	{
+		showDetail("Export Data",str);
+	}
+	else
+	{
+		var fileName = "NextLabs_DynamicsEM_UserDefinition_"+currentDateTime()+".bin";
+		if (window.navigator.msSaveBlob) {  // FOR IE
+			var blob = new Blob([str]);
+			window.navigator.msSaveBlob(blob, fileName);
+		} else {    	
+			var alink = document.createElement('a');
+			alink.href = "data:text/plain," + str;
+			alink.download = fileName;
+			alink.click();
+		}
+	}
+	SetUserProperties(RefleshPage);
+}
+
+
+function currentDateTime(){
+    var d = new Date(); 
+    var year = d.getFullYear();  
+	var month = d.getMonth()+1; 
+	var date = d.getDate(); 
+	var day = d.getDay(); 
+	var hours = d.getHours(); 
+	var minutes = d.getMinutes(); 
+	var seconds = d.getSeconds(); 
+	var ms = d.getMilliseconds(); 
+	var curDateTime= year;
+	if(month>9)
+		curDateTime = curDateTime +""+month;
+	else
+		curDateTime = curDateTime +"0"+month;
+	if(date>9)
+		curDateTime = curDateTime +""+date;
+	else
+		curDateTime = curDateTime +"0"+date;
+	if(hours>9)
+		curDateTime = curDateTime +""+hours;
+	else
+		curDateTime = curDateTime +"0"+hours;
+	if(minutes>9)
+		curDateTime = curDateTime +""+minutes;
+	else
+		curDateTime = curDateTime +"0"+minutes;
+	if(seconds>9)
+		curDateTime = curDateTime +""+seconds;
+	else
+		curDateTime = curDateTime +"0"+seconds;
+	return curDateTime; 
+}
+
+function SortByDisplayName(){
+	var sort = document.getElementById("displayNameSort").sort;
+	if(sort==undefined || sort==null){
+		sort = document.getElementById("displayNameSort").getAttribute("sort");	
+	}
+	if(sort=="0"){
+		AllUserAttributes.sort(function (a, b) {
+			var a_DisplayName = GetDisplayName(a);
+			var b_DisplayName = GetDisplayName(b);
+			if (a_DisplayName.toLowerCase() < b_DisplayName.toLowerCase()) {
+				return -1
+			}
+			if (a_DisplayName.toLowerCase() > b_DisplayName.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("displayNameSort").sort){
+			document.getElementById("displayNameSort").sort = "1" ;
+		}else{
+			document.getElementById("displayNameSort").setAttribute("sort", "1");
+		}	
+	}else{
+		
+		AllUserAttributes.sort(function (a, b) {
+			var a_DisplayName = GetDisplayName(a);
+		    var b_DisplayName = GetDisplayName(b);
+            if (a_DisplayName.toLowerCase() > b_DisplayName.toLowerCase()) {
+				return -1
+			}
+			if (a_DisplayName.toLowerCase() < b_DisplayName.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("displayNameSort").sort){
+			document.getElementById("displayNameSort").sort = "0" ;
+		}else{
+			document.getElementById("displayNameSort").setAttribute("sort", "0");
+		}	
+	}
+	DrawUserProperties(AllUserAttributes);
+	
+}
+
+function SortByLogicalname(){
+	var sort = document.getElementById("nameSort").sort;
+	if(sort==undefined || sort==null){
+		sort = document.getElementById("nameSort").getAttribute("sort");	
+	}
+	if(sort=="0"){
+		AllUserAttributes.sort(function (a, b) {
+			if (a.LogicalName.toLowerCase() < b.LogicalName.toLowerCase()) {
+				return -1
+			}
+			if (a.LogicalName.toLowerCase() > b.LogicalName.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("nameSort").sort){
+			document.getElementById("nameSort").sort = "1" ;
+		}else{
+			document.getElementById("nameSort").setAttribute("sort", "1");
+		}	
+	}else{
+		
+		AllUserAttributes.sort(function (a, b) {
+			if (a.LogicalName.toLowerCase() > b.LogicalName.toLowerCase()) {
+				return -1
+			}
+			if (a.LogicalName.toLowerCase() < b.LogicalName.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("nameSort").sort){
+			document.getElementById("nameSort").sort = "0" ;
+		}else{
+			document.getElementById("nameSort").setAttribute("sort", "0");
+		}	
+	}
+	DrawUserProperties(AllUserAttributes);
+}
+
+function SortByDataType(){
+	var sort = document.getElementById("dataTypeSort").sort;
+	if(sort==undefined || sort==null){
+		sort = document.getElementById("dataTypeSort").getAttribute("sort");	
+	}
+	if(sort=="0"){
+		AllUserAttributes.sort(function (a, b) {
+			var a_AttributeType = GetAttributrType(a);
+			var b_AttributeType = GetAttributrType(b);
+			if (a_AttributeType.toLowerCase() < b_AttributeType.toLowerCase()) {
+				return -1
+			}
+			if (a_AttributeType.toLowerCase() > b_AttributeType.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("dataTypeSort").sort){
+			document.getElementById("dataTypeSort").sort = "1" ;
+		}else{
+			document.getElementById("dataTypeSort").setAttribute("sort", "1");
+		}	
+	}else{
+		
+		AllUserAttributes.sort(function (a, b) {
+			var a_AttributeType = GetAttributrType(a);
+			var b_AttributeType = GetAttributrType(b);
+			if (a_AttributeType.toLowerCase() > b_AttributeType.toLowerCase()) {
+				return -1
+			}
+			if (a_AttributeType.toLowerCase() < b_AttributeType.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("dataTypeSort").sort){
+			document.getElementById("dataTypeSort").sort = "0" ;
+		}else{
+			document.getElementById("dataTypeSort").setAttribute("sort", "0");
+		}	
+	}
+	DrawUserProperties(AllUserAttributes);
+	
+}
+ 
+function SortByRequired(){
+	var sort = document.getElementById("requiredSort").sort;
+	if(sort==undefined || sort==null){
+		sort = document.getElementById("requiredSort").getAttribute("sort");	
+	}
+	if(sort=="0"){
+		AllUserAttributes.sort(function (a, b) {
+			var a_RequiredLevel = GetRequiredLevel(a);
+			var b_RequiredLevel = GetRequiredLevel(b);
+			if (a_RequiredLevel.toLowerCase() < b_RequiredLevel.toLowerCase()) {
+				return -1
+			}
+			if (a_RequiredLevel.toLowerCase() > b_RequiredLevel.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("requiredSort").sort){
+			document.getElementById("requiredSort").sort = "1" ;
+		}else{
+			document.getElementById("requiredSort").setAttribute("sort", "1");
+		}	
+	}else{
+		
+		AllUserAttributes.sort(function (a, b) {
+			var a_RequiredLevel = GetRequiredLevel(a);
+			var b_RequiredLevel = GetRequiredLevel(b);
+			if (a_RequiredLevel.toLowerCase() > b_RequiredLevel.toLowerCase()) {
+				return -1
+			}
+			if (a_RequiredLevel.toLowerCase() < b_RequiredLevel.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("requiredSort").sort){
+			document.getElementById("requiredSort").sort = "0" ;
+		}else{
+			document.getElementById("requiredSort").setAttribute("sort", "0");
+		}	
+	}
+	DrawUserProperties(AllUserAttributes);	
+}
+
+function SortByDescription(){
+	var sort = document.getElementById("descriptionSort").sort;
+	if(sort==undefined || sort==null){
+		sort = document.getElementById("descriptionSort").getAttribute("sort");	
+	}
+	if(sort=="0"){
+		AllUserAttributes.sort(function (a, b) {
+			var descripA = " ";
+			if (a.Description.UserLocalizedLabel != null && a.Description.UserLocalizedLabel.Label != null) {
+				descripA = a.Description.UserLocalizedLabel.Label;
+			}
+			
+			var descripB = " ";
+			if (b.Description.UserLocalizedLabel != null && b.Description.UserLocalizedLabel.Label!=null) {
+				descripB = b.Description.UserLocalizedLabel.Label;
+			}
+			if (descripA.toLowerCase() < descripB.toLowerCase()) {
+				return -1
+			}
+			if (descripA.toLowerCase() > descripB.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("descriptionSort").sort){
+			document.getElementById("descriptionSort").sort = "1" ;
+		}else{
+			document.getElementById("descriptionSort").setAttribute("sort", "1");
+		}	
+	}else{
+		
+		AllUserAttributes.sort(function (a, b) {
+			var descripA = " ";
+			if (a.Description.UserLocalizedLabel != null && a.Description.UserLocalizedLabel.Label != null) {
+				descripA = a.Description.UserLocalizedLabel.Label;
+			}
+
+			var descripB = " ";
+			if (b.Description.UserLocalizedLabel != null && b.Description.UserLocalizedLabel.Label != null) {
+				descripB = b.Description.UserLocalizedLabel.Label;
+			}
+			if (descripA.toLowerCase() > descripB.toLowerCase()) {
+				return -1
+			}
+			if (descripA.toLowerCase() < descripB.toLowerCase()) {
+				return 1
+			}
+			return 0;
+	    });
+		if(document.getElementById("descriptionSort").sort){
+			document.getElementById("descriptionSort").sort = "0" ;
+		}else{
+			document.getElementById("descriptionSort").setAttribute("sort", "0");
+		}	
+	}
+	DrawUserProperties(AllUserAttributes);	
+}
+
+
+
+function SortBySelected(){
+	var sort = document.getElementById("selectedSort").sort;
+	//console.log("sort ----" + sort);
+	if(sort==undefined || sort==null){
+		sort = document.getElementById("selectedSort").getAttribute("sort");	
+		//console.log("sort ----" + sort);
+	}
+	resetUserProperties = selectedUserProperties.slice(0);
+	var attributeblock = document.getElementById("userAttrsbody");	
+    attributeblock.innerHTML = "";
+	if(sort=="0"){
+		if(document.getElementById("selectedSort").sort){
+			document.getElementById("selectedSort").sort = "1" ;
+		}else{
+			document.getElementById("selectedSort").setAttribute("sort", "1");
+		}	
+		var len = AllUserAttributes.length;
+		for(var i = 0; i < len; i++){
+			var attr = AllUserAttributes[i];
+			if(-1 == resetUserProperties.indexOf(attr.LogicalName)){
+				continue;
+			}
+			var displayName = GetDisplayName(attr);
+			var attrName = attr.LogicalName;
+			var attrType = GetAttributrType(attr);
+			var requiredLevel = GetRequiredLevel(attr);
+			var descrip = "";
+			if (attr.Description.UserLocalizedLabel != null) {
+				descrip = attr.Description.UserLocalizedLabel.Label;
+			}
+			DrawOneAttribute(displayName,attrName,attrType,requiredLevel,descrip,resetUserProperties);
+		}
+		for(var i = 0; i < len; i++){
+			var attr = AllUserAttributes[i];
+			if(-1 != resetUserProperties.indexOf(attr.LogicalName)){
+				continue;
+			}
+			var displayName = GetDisplayName(attr);
+			var attrName = attr.LogicalName;
+			var attrType = GetAttributrType(attr);
+			var requiredLevel = GetRequiredLevel(attr);
+			var descrip = "";
+			if (attr.Description.UserLocalizedLabel != null) {
+				descrip = attr.Description.UserLocalizedLabel.Label;
+			}
+			DrawOneAttribute(displayName,attrName,attrType,requiredLevel,descrip,resetUserProperties);
+		}
+	}else{
+		if(document.getElementById("selectedSort").sort){
+			document.getElementById("selectedSort").sort = "0" ;
+		}else{
+			document.getElementById("selectedSort").setAttribute("sort","0");
+		}
+		var len = AllUserAttributes.length;
+		for(var i = 0; i < len; i++){
+			var attr = AllUserAttributes[i];
+			if(-1 != resetUserProperties.indexOf(attr.LogicalName)){
+				continue;
+			}
+			var displayName = GetDisplayName(attr);
+			var attrName = attr.LogicalName;
+			var attrType = GetAttributrType(attr);
+			var requiredLevel = GetRequiredLevel(attr);
+			var descrip = "";
+			if (attr.Description.UserLocalizedLabel != null) {
+				descrip = attr.Description.UserLocalizedLabel.Label;
+			}
+			DrawOneAttribute(displayName,attrName,attrType,requiredLevel,descrip,resetUserProperties);
+		}
+		for(var i = 0; i < len; i++){
+			var attr = AllUserAttributes[i];
+			if(-1 == resetUserProperties.indexOf(attr.LogicalName)){
+				continue;
+			}
+			var displayName = GetDisplayName(attr)
+			var attrName = attr.LogicalName;
+			var attrType = GetAttributrType(attr);
+			var requiredLevel = GetRequiredLevel(attr);
+			var descrip = "";
+			if (attr.Description.UserLocalizedLabel != null) {
+				descrip = attr.Description.UserLocalizedLabel.Label;
+			}
+			DrawOneAttribute(displayName,attrName,attrType,requiredLevel,descrip,resetUserProperties);
+		}
+	}
+}
+
+function closeAlert(callback){
+	if (typeof callback == "function") {
+	   callback();
+	}
+}

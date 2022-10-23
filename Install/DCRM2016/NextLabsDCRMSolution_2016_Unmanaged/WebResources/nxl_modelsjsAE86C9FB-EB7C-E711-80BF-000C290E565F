@@ -1,0 +1,1016 @@
+/**
+ * @global
+ * @namespace
+ * @prop {object} models
+ */
+var nxl = window.nxl || {};
+
+/**
+ * @namespace
+ * @prop {Entity} Entity
+ * @prop {Attribute} Attribute
+ * @prop {OptionAttr} OptionAttr
+ * @prop {Area} Area
+ * @prop {Relation} Relation
+ * @prop {ManyToManyRelation} ManyToManyRelation
+ * @prop {ManyToOneRelation} ManyToOneRelation
+ * @prop {GeneralSetting} GeneralSetting
+ * @prop {LogSettings} LogSettings
+ * @prop {object} EntityState
+ */
+nxl.models = nxl.models || {};
+
+//--------------------class-------------------------
+
+/**
+ * @typedef {{logicalName: string, displayName: string, pluralName: string, description: string, attributes: Array<Attribute>, secured: boolean, entityState: number, m2oRelation: ManyToOneRelation, m2mRelation: ManyToManyRelation}} Entity 
+ * @class Entity
+ * @param  {string} logicalName
+ * @param  {string} displayName
+ * @param  {string} pluralName
+ * @param  {string} description
+ * @param  {object} attributes - { attrLogicalName: Attribute }
+ * @param  {boolean} secured
+ * @param  {enum} entityState
+ * @param  {ManyToOneRelation} m2oRelation
+ * @param  {ManyToManyRelation} m2mRelation
+ * @param  {number|string} objectTypeCode
+ */
+nxl.models.Entity = function(logicalName, displayName, pluralName, description, attributes, secured, entityState, m2oRelation, m2mRelation, objectTypeCode, primaryIdName){
+
+    this.secured = false;
+    this.entityState = nxl.models.EntityState.unchanged;
+    this.m2oRelation = m2oRelation;
+    this.m2mRelation = m2mRelation;
+
+    this.logicalName = logicalName;
+    this.displayName = displayName;
+    this.pluralName = pluralName;
+    this.description = description;
+    this.attributes = {};
+
+    this.objectTypeCode = undefined;
+    this.primaryIdName = '';
+    this.ownerIdExist = true;
+    this.isAttributesRetrieved = false;
+
+    if(!isNaN(parseInt(objectTypeCode))){
+        this.objectTypeCode = objectTypeCode;
+    }
+
+    if(typeof attributes === 'object' && attributes !== null){
+        this.attributes = attributes;
+    }
+
+    if(typeof secured === 'boolean'){
+        this.secured = secured;
+    }
+
+    if(typeof entityState === 'number'){
+        this.entityState = entityState;
+    }
+
+    if(typeof primaryIdName === 'string'){
+        this.primaryIdName = primaryIdName;
+    }
+};
+
+/**
+ * @typedef {{logicalName: string, displayName: string, description: string, dataType: number, requiredLevel: string, options: Array<OptionAttr>, secured: boolean}} Attribute 
+ * @class Attribute
+ * @param {string} logicalName
+ * @param {string} displayName
+ * @param {string} description
+ * @param {string} dataType
+ * @param {string} displayDataType
+ * @param {string} requiredLevel
+ * @param {Array<OptionAttr>} options
+ * @param {boolean} secured
+ */
+nxl.models.Attribute = function(logicalName, displayName, description, dataType, displayDataType, requiredLevel, options, secured, fromNxlXml){
+    
+    this.logicalName = logicalName;
+    this.displayName = displayName;
+    this.description = description;
+    this.dataType = dataType;
+    this.displayDataType = displayDataType;
+    this.requiredLevel = requiredLevel;
+    this.options = [];
+    this.secured = false;
+	this.fromNxlXml = false;
+	
+    if(typeof secured === 'boolean'){
+        this.secured = secured;
+    }
+
+    if(Array.isArray(options)){
+        this.options = options;
+    }
+	
+    if(typeof fromNxlXml === 'boolean'){
+        this.fromNxlXml = fromNxlXml;
+    }	
+};
+
+/**
+ * @typedef {{label: string, value: string}} OptionAttr 
+ * @class OptionAttr
+ * @param {string} label
+ * @param {string} value
+ */
+nxl.models.OptionAttr = function(label, value){
+    this.label = label;
+    this.value = value;
+};
+
+/**
+ * @typedef {{ areaName: string, entityLogicalNameList: Array<string> }} Area
+ * @class
+ * @param  {string} areaName
+ * @param  {Array<string>} entityLogicalNameList
+ */
+nxl.models.Area = function(areaName, entityLogicalNameList){
+    this.areaName = areaName;
+    this.entityLogicalNameList = entityLogicalNameList;
+};
+
+/**
+ * @typedef {{relationshipName: string, primaryEntityLogicalName: string, primaryAttrLogicalName: string, lookupAttrLogicalName: string}} Relation
+ * @class
+ * @param {string} relationshipName
+ * @param {string} primaryEntityLogicalName
+ * @param {string} primaryAttrLogicalName
+ * @param {string} lookupAttrLogicalName
+ */
+nxl.models.Relation = function(relationshipName, relationshipEntityLogicalName, primaryEntityLogicalName, primaryAttrLogicalName, lookupEntityLogicalName, lookupAttrLogicalName){
+
+    this.relationshipName = relationshipName;
+    this.relationshipEntityLogicalName = relationshipEntityLogicalName;
+    this.primaryEntityLogicalName = primaryEntityLogicalName;
+    this.primaryAttrLogicalName = primaryAttrLogicalName;
+    this.lookupEntityLogicalName = lookupEntityLogicalName;
+    this.lookupAttrLogicalName = lookupAttrLogicalName;
+}
+
+/**
+ * @typedef {{relatedEntityLogicalName: string, relations: Array<Relation>}} ManyToManyRelation
+ * @class
+ * @param {string} relatedEntityLogicalName
+ * @param {Array<Relation>} relations
+ */
+nxl.models.ManyToManyRelation = function(relatedEntityLogicalName, relations){
+    
+    this.relatedEntityLogicalName = relatedEntityLogicalName;
+    this.relations = [];
+
+    if(Array.isArray(relations)){
+        this.relations = relations;
+    }
+}
+
+/**
+ * @typedef {{relatedEntityLogicalName: string, relations: Array<Relation>}} ManyToOneRelation
+ * @class
+ * @param {string} relatedEntityLogicalName
+ * @param {Array<Relation>} relations
+ */
+nxl.models.ManyToOneRelation = function(relatedEntityLogicalName, relations){
+
+    this.relatedEntityLogicalName = relatedEntityLogicalName;
+    this.relations = [];
+
+    if(Array.isArray(relations)){
+        this.relations = relations;
+    }
+}
+
+/**
+ * @typedef {{ pcHost: string, pcPort: string, httpsEnable: boolean|string, oauthServer: string, oauthPort: string|number, clientId: string, clientPwd: string, policyDecision: string, msg: string, defaultMsg: string, cacheInterval: string|number }} GeneralSetting
+ * @class
+ * @param {string} pcHost 
+ * @param {string} pcPort
+ * @param {boolean|string} httpsEnable 
+ * @param {string} oauthServer 
+ * @param {string|number} oauthPort 
+ * @param {string} clientId 
+ * @param {string} clientPwd 
+ * @param {string} policyDecision 
+ * @param {string} msg 
+ * @param {string} defaultMsg 
+ * @param {string|number} cacheInterval 
+ */
+nxl.models.GeneralSetting = function(pcHost, pcPort, httpsEnable, oauthServer, oauthPort, wcUsername, wcPassword, clientId, clientPwd, policyDecision, msg, defaultMsg, cacheInterval, spEnforcement, TimeCostEnable, UserHostIP){
+	
+	this.pcHost = pcHost;
+	this.pcPort = pcPort;
+	this.httpsEnable = httpsEnable;
+	this.oauthServer = oauthServer;
+	this.oauthPort = oauthPort;
+	this.wcUsername = wcUsername;
+	this.wcPassword = wcPassword;
+	this.clientId = clientId;
+	this.clientPwd = clientPwd;
+	this.policyDecision = policyDecision;
+	this.msg = msg;
+	this.defaultMsg = defaultMsg;
+    this.cacheInterval = cacheInterval;
+    this.spactioneable = spEnforcement;
+	this.timecostenable = TimeCostEnable;
+	this.UserHostIP = UserHostIP;
+}
+
+/**
+ * @typedef {{logLevel: string}} LogSettings
+ * @class
+ * @param {string} logLevel 
+ */
+nxl.models.LogSettings = function(logLevel){
+    this.logLevel = logLevel;
+}
+
+
+/**
+ * @typedef {{ pcHost: string, pcPort: string|number, httpsEnable: boolean|string, oauthServer: string, oauthPort: string|number, clientId: string, clientPwd: string }} TestPC
+ * @class
+ * @param {string} pcHost 
+ * @param {string|number} pcPort 
+ * @param {string|boolean} httpsEnable 
+ * @param {string} oauthServer 
+ * @param {string|number} oauthPort 
+ * @param {string} clientId 
+ * @param {string} clientPwd 
+ */
+nxl.models.TestPC = function(pcHost, pcPort, httpsEnable, oauthServer, oauthPort, clientId, clientPwd){
+
+	this.pcHost = pcHost;
+	this.pcPort = pcPort;
+	this.httpsEnable = httpsEnable;
+	this.oauthServer = oauthServer;
+	this.oauthPort = oauthPort;
+	this.clientId = clientId;
+	this.clientPwd = clientPwd;    
+}
+
+/**
+ * @typedef {{ pcHost: string, pcPort: string|number, httpsEnable: boolean|string, oauthServer: string, oauthPort: string|number, clientId: string, clientPwd: string }} TestPC
+ * @class
+
+ * @param {string|boolean} httpsEnable 
+ * @param {string} oauthServer 
+ * @param {string|number} oauthPort 
+ * @param {string} clientId 
+ * @param {string} clientPwd 
+ */
+nxl.models.TestWC = function(httpsEnable, oauthServer, oauthPort, username, password){
+
+	this.httpsEnable = httpsEnable;
+	this.oauthServer = oauthServer;
+	this.oauthPort = oauthPort;
+	this.username = username;
+	this.password = password;    
+}
+
+/**
+ * @typedef {{ version: string, action: string }} IOCommand
+ * @class
+ * @param {string} version 
+ * @param {string} action 
+ */
+nxl.models.IOCommand = function(version, action){
+    this.version = version;
+    this.action = action;
+}
+
+//--------------------serialization & deserialization-------------------------
+
+/**
+ * parse secure entity xml & store the attribute with only logicalName and secured in entity.attributes
+ * @param {string} xmlContent
+ */
+nxl.models.Entity.prototype.parseFromString = function(xmlContent){
+
+    try{
+
+        if(this.entityState === null || this.entityState === undefined){
+            throw new Error('please call this method from an Entity object');
+        }
+
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(xmlContent, 'application/xml').documentElement;
+
+        //parse failed, domparser returns an html doc
+        if(!xmlDoc || !xmlDoc.nodeName || xmlDoc.nodeName.toLowerCase() === 'html'){
+            throw new Error('parse entity xml failed, xml: ' + xmlContent);
+        }
+
+        var logicalNameNode = xmlDoc.getElementsByTagName('logicname')[0];
+        var displayNameNode = xmlDoc.getElementsByTagName('displayname')[0];
+        var pluralNameNode = xmlDoc.getElementsByTagName('pluralname')[0];
+        var securedNode = xmlDoc.getElementsByTagName('secured')[0];
+        var attributeNodes = xmlDoc.getElementsByTagName('attribute');
+        var objectTypeCodeNode = xmlDoc.getElementsByTagName('objecttypecode')[0];
+        var primaryIdNameNode = xmlDoc.getElementsByTagName('primaryidname')[0];
+        var ownIdExistNode = xmlDoc.getElementsByTagName('owneridexist')[0];
+
+        var entitySecured = securedNode ? securedNode.textContent : '';
+        var entityLogicalName = logicalNameNode ? logicalNameNode.textContent : '';
+        var entityDisplayName = displayNameNode ? displayNameNode.textContent : '';
+        var entityPluralName = pluralNameNode ? pluralNameNode.textContent : '';
+        var entityTypeCode = objectTypeCodeNode ? objectTypeCodeNode.textContent : '';
+        var entityPrimaryIdName = primaryIdNameNode ? primaryIdNameNode.textContent : '';
+        var entityOwnIdExist = ownIdExistNode ? ownIdExistNode.textContent : '';
+
+        entitySecured = entitySecured.trim();
+        entityLogicalName = entityLogicalName.trim();
+        entityDisplayName = entityDisplayName.trim();
+        entityPluralName = entityPluralName.trim();
+        entityTypeCode = entityTypeCode.trim();
+        entityPrimaryIdName = entityPrimaryIdName.trim();
+        entityOwnIdExist = entityOwnIdExist.trim();
+
+        //check if current entity.logicalName === curSecuredEntity.logicalName
+        if(!entityLogicalName){
+            throw new Error('parse entity xml failed, EntityLogicalName: ' + entityLogicalName);
+        }
+
+        this.logicalName = entityLogicalName;
+        this.displayName = entityDisplayName;
+        this.pluralName = entityPluralName;
+
+        /**
+         * properities below are never used in frontend.
+         * ignoring the value stored in background allows the upgrade from old version.
+         * the properities below will be retrieved from crm metadata everytime.
+         */
+        //this.objectTypeCode = entityTypeCode;
+        //this.primaryIdName = entityPrimaryIdName;
+
+        /**
+         * allow the upgrade from old data
+         * for old data without ownerid, true value will be sent
+         */
+        if(entityOwnIdExist){
+            this.ownerIdExist = entityOwnIdExist;
+        }
+
+        //set current entity security
+        if(entitySecured.toLowerCase() === 'true'){
+            this.secured = true;
+        }
+
+        if(attributeNodes && attributeNodes.length > 0){
+            
+            var attributeCount = attributeNodes.length;
+
+            for(var i = 0; i < attributeCount; i++){
+                
+                var curAttrNode = attributeNodes[i];
+                var attrLogicalNameNode = curAttrNode.getElementsByTagName('logicname')[0];
+                var attrDisplayNameNode = curAttrNode.getElementsByTagName('displayname')[0];
+                var attrDataTypeNode = curAttrNode.getElementsByTagName('datatype')[0];
+                var optionNodes = curAttrNode.getElementsByTagName('option');
+
+                var attrLogicalName = attrLogicalNameNode ? attrLogicalNameNode.textContent : '';
+                var attrDisplayName = attrDisplayNameNode ? attrDisplayNameNode.textContent : '';
+                var attrDataType = attrDataTypeNode ? attrDataTypeNode.textContent : '';
+                var optionsList = [];
+
+                attrLogicalName = attrLogicalName.trim();
+                attrDisplayName = attrDisplayName.trim();
+                attrDataType = attrDataType.trim();
+
+                if(optionNodes && optionNodes.length > 0){
+
+                    var optionsCount = optionNodes.length;
+                    for(var j = 0; j < optionsCount; j++){
+
+                        var curOptionLabel = optionNodes[j].getAttribute('label');
+                        var curOptionValue = optionNodes[j].getAttribute('value');
+
+                        if(typeof curOptionLabel === 'string' && typeof curOptionValue === 'string'){
+                            optionsList.push(new nxl.models.OptionAttr(curOptionLabel, curOptionValue));
+                        }
+                        else{
+                            console.log('parse entity option failed, label: ' + curOptionLabel + ', value: ' + curOptionValue);
+                        }
+                    }
+                }
+
+                var securedAttr = new nxl.models.Attribute(attrLogicalName);
+                securedAttr.secured = true;
+                securedAttr.displayName = attrDisplayName;
+                securedAttr.dataType = attrDataType;
+                securedAttr.displayDataType = AttributeDataType[attrDataType];
+                securedAttr.options = optionsList;
+				securedAttr.fromNxlXml = true;
+
+                //store secured attr to current entity attributes set
+                this.attributes[attrLogicalName] = securedAttr;
+            }
+        }
+
+    }
+    catch(e){
+        console.log('entity parseFromString failed, error: ' + e.message);
+    }
+}
+
+/**
+ * @returns {string}
+ */
+nxl.models.Entity.prototype.serializeToString = function(){
+
+    var resultXml = '';
+
+    try{
+
+        if(!this || nxl.models.isEmpty(this) || !this.logicalName){
+            throw new Error('please call this method from an Entity object');
+        }
+
+        var secureEntityNode = document.createElement('secureentity');
+        var securedNode = document.createElement('secured');
+        var schemaNode = document.createElement('schema');
+        var entityLogicalNameNode = document.createElement('logicname');
+        var entityDisplayNameNode = document.createElement('displayname');
+        var entityPluralNameNode = document.createElement('pluralname');
+        var attributesNode = document.createElement('attributes');
+        var entityTypeCodeNode = document.createElement('objecttypecode');
+        var entityPrimaryIdNameNode = document.createElement('primaryidname');
+        var entityOwnIdExistNode = document.createElement('owneridexist');
+        
+        
+        if(!nxl.models.isEmpty(this.attributes)){
+            
+            for(var attrLogicalName in this.attributes){
+
+                if(this.attributes.hasOwnProperty(attrLogicalName)){
+
+                    var curAttr = this.attributes[attrLogicalName];
+
+                    if(curAttr.secured){
+
+                        var attributeNode = document.createElement('attribute');
+                        var attrLogicalNameNode = document.createElement('logicname');
+                        var attrDisplayNameNode = document.createElement('displayname');
+                        var attrDataTypeNode = document.createElement('datatype');
+
+                        //may need escaped
+                        attrLogicalNameNode.textContent = curAttr.logicalName;
+                        attrDisplayNameNode.textContent = curAttr.displayName;
+                        attrDataTypeNode.textContent = curAttr.dataType;
+
+                        attributeNode.appendChild(attrLogicalNameNode);
+                        attributeNode.appendChild(attrDisplayNameNode);
+                        attributeNode.appendChild(attrDataTypeNode);
+
+                        //attention !!!
+                        //options node should be inserted in the end of attribute node, otherwise server returns an 500 error somehow.
+                        if(curAttr.options && curAttr.options.length > 0){
+
+                            var optionsNode = document.createElement('options');
+                            
+                            for(var k = 0; k < curAttr.options.length; k++){
+
+                                var curOption = curAttr.options[k];
+                                var optionNode = document.createElement('option');
+                                
+                                if(typeof curOption.label === 'string' && (typeof curOption.value === 'string' || typeof curOption.value === 'number')){
+                                    optionNode.setAttribute('label', curOption.label);
+                                    optionNode.setAttribute('value', curOption.value);
+                                    optionsNode.appendChild(optionNode);
+                                }
+                            }
+
+                            attributeNode.appendChild(optionsNode);
+                        }                        
+
+                        attributesNode.appendChild(attributeNode);
+                    }
+                }
+            }
+        }
+
+        securedNode.textContent = this.secured;
+        entityLogicalNameNode.textContent = this.logicalName;
+        entityDisplayNameNode.textContent = this.displayName;
+        entityPluralNameNode.textContent = this.pluralName;
+        entityTypeCodeNode.textContent = this.objectTypeCode;
+        entityPrimaryIdNameNode.textContent = this.primaryIdName;
+        entityOwnIdExistNode.textContent = this.ownerIdExist;
+
+        schemaNode.appendChild(entityOwnIdExistNode);
+        schemaNode.appendChild(entityPrimaryIdNameNode);
+        schemaNode.appendChild(entityLogicalNameNode);
+        schemaNode.appendChild(entityDisplayNameNode);
+        schemaNode.appendChild(entityPluralNameNode);
+        schemaNode.appendChild(entityTypeCodeNode);
+        schemaNode.appendChild(attributesNode);
+
+        secureEntityNode.appendChild(securedNode);
+        secureEntityNode.appendChild(schemaNode);
+
+        var serializer = new XMLSerializer();
+        resultXml = serializer.serializeToString(secureEntityNode);
+        resultXml = nxl.models.clearNS(resultXml);
+        resultXml = nxl.models.appendNS(resultXml, 'secureentity');
+    }
+    catch(e){
+        console.log('entity serializeToString failed, error: ' + e.message);
+    }
+
+    return resultXml;
+}
+
+/**
+ * serialize many to many relations to xml string
+ * @returns {string}
+ */
+nxl.models.ManyToManyRelation.prototype.serializeToString = function(){
+    
+    var resultXml = '';
+
+    try{
+
+        var m2mRelationNode = document.createElement('nnrelationship');
+        var relatedEntityNode = document.createElement('relatedentity');
+        var relationshipsNode = document.createElement('relationships');
+
+        if(this.relations && this.relations.length > 0){
+
+            for(var i = 0; i < this.relations.length; i++){
+                
+                var curRelation = this.relations[i];
+
+                var relationshipNode = document.createElement('relationship');                
+                var relationshipEntityNameNode = document.createElement('relationshipentityname');
+                var primaryEntityNode = document.createElement('primaryentity');
+                var primaryFieldNode = document.createElement('primaryfield');
+                var lookupFieldNode = document.createElement('lookupfield');
+                
+                relationshipEntityNameNode.textContent = curRelation.relationshipEntityLogicalName;
+                primaryEntityNode.textContent = curRelation.primaryEntityLogicalName;
+                primaryFieldNode.textContent = curRelation.primaryAttrLogicalName;
+                lookupFieldNode.textContent = curRelation.lookupAttrLogicalName;
+
+                relationshipNode.setAttribute('name', curRelation.relationshipName);
+
+                relationshipNode.appendChild(relationshipEntityNameNode);
+                relationshipNode.appendChild(primaryEntityNode);
+                relationshipNode.appendChild(primaryFieldNode);
+                relationshipNode.appendChild(lookupFieldNode);
+
+                relationshipsNode.appendChild(relationshipNode);
+            }
+        }
+
+        relatedEntityNode.textContent = this.relatedEntityLogicalName;
+
+        m2mRelationNode.appendChild(relatedEntityNode);
+        m2mRelationNode.appendChild(relationshipsNode);
+
+        var serializer = new XMLSerializer();
+        resultXml = serializer.serializeToString(m2mRelationNode);
+        resultXml = nxl.models.clearNS(resultXml);
+        resultXml = nxl.models.appendNS(resultXml, 'nnrelationship');
+    }
+    catch(e){
+        console.log('ManyToManyRelation -> serializeToString failed, ' + e.message);
+    }
+
+    return resultXml;
+}
+
+/**
+ * serialize many to one relations to xml string
+ * @returns {string}
+ */
+nxl.models.ManyToOneRelation.prototype.serializeToString = function(){
+
+    var resultXml = '';
+
+    try{
+
+        var m2oRelationNode = document.createElement('n1relationship');
+        var relatedEntityNode = document.createElement('relatedentity');
+        var relationshipsNode = document.createElement('relationships');
+
+        if(this.relations && this.relations.length > 0){
+
+            for(var i = 0; i < this.relations.length; i++){
+                
+                var curRelation = this.relations[i];
+
+                var relationshipNode = document.createElement('relationship');
+                var primaryEntityNode = document.createElement('primaryentity');
+                var primaryFieldNode = document.createElement('primaryfield');
+                var lookupFieldNode = document.createElement('lookupfield');
+                
+                primaryEntityNode.textContent = curRelation.primaryEntityLogicalName;
+                primaryFieldNode.textContent = curRelation.primaryAttrLogicalName;
+                lookupFieldNode.textContent = curRelation.lookupAttrLogicalName;
+
+                relationshipNode.setAttribute('name', curRelation.relationshipName);
+
+                relationshipNode.appendChild(primaryEntityNode);
+                relationshipNode.appendChild(primaryFieldNode);
+                relationshipNode.appendChild(lookupFieldNode);
+
+                relationshipsNode.appendChild(relationshipNode);
+            }
+        }
+
+        relatedEntityNode.textContent = this.relatedEntityLogicalName;
+
+        m2oRelationNode.appendChild(relatedEntityNode);
+        m2oRelationNode.appendChild(relationshipsNode);
+
+        var serializer = new XMLSerializer();
+        resultXml = serializer.serializeToString(m2oRelationNode);
+        resultXml = nxl.models.clearNS(resultXml);
+        resultXml = nxl.models.appendNS(resultXml, 'n1relationship');
+    }
+    catch(e){
+        console.log('ManyToOneRelation -> serializeToString failed, ' + e.message);
+    }
+
+    return resultXml;
+}
+
+/**
+ * @description serialize general setting to xml string
+ * @returns {string}
+ */
+nxl.models.GeneralSetting.prototype.serializeToString = function(){
+
+	var resultXml = ''
+		
+	var gsNode = document.createElement('generalsetting');
+	var pcHostNode = document.createElement('policycontrolhost');
+	var pcPortNode = document.createElement('policycontrolport');
+	var isHttpsNode = document.createElement('ishttps');
+	var oauthServerNode = document.createElement('oauthserverhost');
+	var oauthPortNode = document.createElement('oauthport');
+	var clientIdNode = document.createElement('clientid');
+	var clientPwdNode = document.createElement('clientpassword');
+	var policyDecisionNode = document.createElement('policydecision');
+	var msgNode = document.createElement('message');
+	var defaultMsgNode = document.createElement('defaultmessage');
+    var cacheIntervalNode = document.createElement('cacherefreshinterval');
+    var spEnforcement = document.createElement('spactioneable');
+	var TimeCostNode = document.createElement('timecostenable');
+	var wcUsernameNode = document.createElement('wcusrname');
+    var wcPasswordNode = document.createElement('wcpwd');
+	var UserHostIPNode = document.createElement('userhostip');
+	
+	pcHostNode.textContent = this.pcHost;
+	pcPortNode.textContent = this.pcPort;
+	isHttpsNode.textContent = this.httpsEnable;
+	oauthServerNode.textContent = this.oauthServer;
+	oauthPortNode.textContent = this.oauthPort;
+	clientIdNode.textContent = this.clientId;
+	clientPwdNode.textContent = this.clientPwd;
+	policyDecisionNode.textContent = this.policyDecision;
+	msgNode.textContent = this.msg;
+	defaultMsgNode.textContent = this.defaultMsg;
+    cacheIntervalNode.textContent = this.cacheInterval;
+    spEnforcement.textContent = this.spactioneable || 'false';
+	TimeCostNode.textContent = this.timecostenable || 'false';
+	wcUsernameNode.textContent = this.wcUsername;
+    wcPasswordNode.textContent = this.wcPassword;
+	UserHostIPNode.textContent = this.UserHostIP;
+	
+	gsNode.appendChild(pcHostNode);
+	gsNode.appendChild(pcPortNode);
+	gsNode.appendChild(isHttpsNode);
+	gsNode.appendChild(oauthServerNode);
+	gsNode.appendChild(oauthPortNode);
+	gsNode.appendChild(clientIdNode);
+	gsNode.appendChild(clientPwdNode);
+	gsNode.appendChild(policyDecisionNode);
+	gsNode.appendChild(msgNode);
+	gsNode.appendChild(defaultMsgNode);
+    gsNode.appendChild(cacheIntervalNode);
+	gsNode.appendChild(TimeCostNode);
+    gsNode.appendChild(spEnforcement);
+	gsNode.appendChild(wcUsernameNode);
+    gsNode.appendChild(wcPasswordNode);
+	gsNode.appendChild(UserHostIPNode);
+	
+	try{
+		var serializer = new XMLSerializer();
+        resultXml = serializer.serializeToString(gsNode);
+        resultXml = nxl.models.clearNS(resultXml);
+        resultXml = nxl.models.appendNS(resultXml, 'generalsetting');
+	}
+	catch(e){
+		console.log('general setting serializeToString failed, error: ' + e.message);
+	}
+
+	return resultXml;
+}
+
+/**
+ * 
+ * @param {string} xmlContent 
+ */
+nxl.models.GeneralSetting.prototype.parseFromString = function(xmlContent){
+
+	try{
+		var parser = new DOMParser();
+		var xmlDoc = parser.parseFromString(xmlContent, 'application/xml').documentElement;
+
+		if(!xmlDoc || xmlDoc.nodeName.trim().toLowerCase() === 'html'){
+			throw new Error('parse xml failed, xml: ' + xmlContent);
+		}
+
+		var pcHostNode = xmlDoc.querySelector('policycontrolhost');
+		var pcPortNode = xmlDoc.querySelector('policycontrolport');
+		var isHttpsNode = xmlDoc.querySelector('ishttps');
+		var oauthServerNode = xmlDoc.querySelector('oauthserverhost');
+		var oauthPortNode = xmlDoc.querySelector('oauthport');
+		var clientIdNode = xmlDoc.querySelector('clientid');
+		var clientPwdNode = xmlDoc.querySelector('clientpassword');
+		var policyDecisionNode = xmlDoc.querySelector('policydecision');
+		var msgNode = xmlDoc.querySelector('message');
+		var defaultMsgNode = xmlDoc.querySelector('defaultmessage');
+        var cacheIntervalNode = xmlDoc.querySelector('cacherefreshinterval');
+        var spEnforcementNode = xmlDoc.querySelector('spactioneable');
+		var TimeCostNode = xmlDoc.querySelector('timecostenable');
+		var wcUsernameNode = xmlDoc.querySelector('wcusrname');
+        var wcPasswordNode = xmlDoc.querySelector('wcpwd');
+		var UserHostIPNode = xmlDoc.querySelector('userhostip');
+		
+		this.pcHost = pcHostNode.textContent;
+		this.pcPort = pcPortNode.textContent;
+		this.httpsEnable = isHttpsNode.textContent;
+		this.oauthServer = oauthServerNode.textContent;
+		this.oauthPort = oauthPortNode.textContent;
+		this.clientId = clientIdNode.textContent;
+		this.clientPwd = clientPwdNode.textContent;
+		this.policyDecision = policyDecisionNode.textContent;
+		this.msg = msgNode.textContent;
+		this.defaultMsg = defaultMsgNode.textContent;
+        this.cacheInterval = cacheIntervalNode.textContent;
+		this.timecostenable = TimeCostNode.textContent.trim().toLowerCase() === 'true' ? true : false;
+        this.spactioneable = spEnforcementNode.textContent.trim().toLowerCase() === 'true' ? true : false;
+		this.wcUsername = wcUsernameNode.textContent;
+        this.wcPassword = wcPasswordNode.textContent;
+		this.UserHostIP = UserHostIPNode.textContent;
+	}
+	catch(e){
+		console.log('GeneralSetting.parseFromString failed, error: ' + e.message);
+	}
+}
+
+/**
+ * @param {string} xmlContent 
+ */
+nxl.models.LogSettings.prototype.parseFromString = function(xmlContent){
+
+    try{
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(xmlContent, 'application/xml').documentElement;
+
+        if(!xmlDoc || xmlDoc.nodeName.trim().toLowerCase() === 'html'){
+            throw new Error('xml document is null or xml is invalid');
+        }
+
+        var logLevelNode = xmlDoc.querySelector('currentlevel');
+        this.logLevel = logLevelNode.textContent;
+    }
+    catch(e){
+        console.log('LogSettings -> parseFromXml failed, error: ' + e.message);
+    }
+}
+
+/**
+ * @returns {string}
+ */
+nxl.models.LogSettings.prototype.serializeToString = function(){
+
+    var resultXml = '';
+    
+    var logSettingsNode = document.createElement('logsettings');
+    var logLevelNode = document.createElement('currentlevel');
+
+    logLevelNode.textContent = this.logLevel;
+
+    logSettingsNode.appendChild(logLevelNode);
+
+    try{
+        var serializer = new XMLSerializer();
+        resultXml = serializer.serializeToString(logSettingsNode);
+        resultXml = nxl.models.clearNS(resultXml);
+        resultXml = nxl.models.appendNS(resultXml, 'logsettings');
+    }
+    catch(e){
+        console.log('LogSettings -> serializeToString failed, error: ' + e.message);
+    }
+
+    return resultXml;
+}
+
+nxl.models.TestPC.prototype.serializeToString = function(){
+
+	var resultXml = ''
+		
+	var testPcNode = document.createElement('testpc');
+	var pcHostNode = document.createElement('policycontrolhost');
+	var pcPortNode = document.createElement('policycontrolport');
+	var isHttpsNode = document.createElement('ishttps');
+	var oauthServerNode = document.createElement('oauthserverhost');
+	var oauthPortNode = document.createElement('oauthport');
+	var clientIdNode = document.createElement('clientid');
+	var clientPwdNode = document.createElement('clientpassword');
+
+	pcHostNode.textContent = this.pcHost;
+	pcPortNode.textContent = this.pcPort;
+	isHttpsNode.textContent = this.httpsEnable;
+	oauthServerNode.textContent = this.oauthServer;
+	oauthPortNode.textContent = this.oauthPort;
+	clientIdNode.textContent = this.clientId;
+	clientPwdNode.textContent = this.clientPwd;
+
+	testPcNode.appendChild(pcHostNode);
+	testPcNode.appendChild(pcPortNode);
+	testPcNode.appendChild(isHttpsNode);
+	testPcNode.appendChild(oauthServerNode);
+	testPcNode.appendChild(oauthPortNode);
+	testPcNode.appendChild(clientIdNode);
+	testPcNode.appendChild(clientPwdNode);
+
+	try{
+		var serializer = new XMLSerializer();
+        resultXml = serializer.serializeToString(testPcNode);
+        resultXml = nxl.models.clearNS(resultXml);        
+        resultXml = nxl.models.appendNS(resultXml, 'testpc');
+	}
+	catch(e){
+		console.log('test pc serializeToString failed, error: ' + e.message);
+	}
+
+	return resultXml;    
+}
+
+nxl.models.TestWC.prototype.serializeToString = function(){
+
+	var resultXml = ''
+		
+	var testWCNode = document.createElement('testwc');
+	var isHttpsNode = document.createElement('ishttps');
+	var oauthServerNode = document.createElement('oauthserverhost');
+	var oauthPortNode = document.createElement('oauthport');
+	var wcUsernameNode = document.createElement('wcusrname');
+    var wcPasswordNode = document.createElement('wcpwd');
+
+	isHttpsNode.textContent = this.httpsEnable;
+	oauthServerNode.textContent = this.oauthServer;
+	oauthPortNode.textContent = this.oauthPort;
+	wcUsernameNode.textContent = this.username;
+	wcPasswordNode.textContent = this.password;
+
+	testWCNode.appendChild(isHttpsNode);
+	testWCNode.appendChild(oauthServerNode);
+	testWCNode.appendChild(oauthPortNode);
+	testWCNode.appendChild(wcUsernameNode);
+	testWCNode.appendChild(wcPasswordNode);
+
+	try{
+		var serializer = new XMLSerializer();
+        resultXml = serializer.serializeToString(testWCNode);
+        resultXml = nxl.models.clearNS(resultXml);        
+        resultXml = nxl.models.appendNS(resultXml, 'testwc');
+	}
+	catch(e){
+		console.log('test cloudaz serializeToString failed, error: ' + e.message);
+	}
+
+	return resultXml;    
+}
+
+nxl.models.IOCommand.prototype.parseFromString = function(xmlContent){
+
+    try{
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(xmlContent, 'application/xml').documentElement;
+
+        if(!xmlDoc || xmlDoc.nodeName.trim().toLowerCase() === 'html'){
+            throw new Error('xml document is null or xml is invalid');
+        }
+
+        var versionNode = xmlDoc.querySelector('version');
+        var actionNode = xmlDoc.querySelector('action');
+
+        if(versionNode && actionNode){
+            this.version = versionNode.textContent;
+            this.action = actionNode.textContent;
+        }
+        else{
+            throw new Error('can not get version/action node');
+        }
+    }
+    catch(e){
+        console.log('IOCommand -> parseFromString failed, error: ' + e.message);
+    }    
+}
+
+nxl.models.IOCommand.prototype.serializeToString = function(){
+
+    var resultXml = '';
+    
+    var ioCommandNode = document.createElement('iocommand');
+    var versionNode = document.createElement('version');
+    var actionNode = document.createElement('action');
+
+    versionNode.textContent = this.version;
+    actionNode.textContent = this.action;
+
+    ioCommandNode.appendChild(versionNode);
+    ioCommandNode.appendChild(actionNode);
+
+    try{
+        var serializer = new XMLSerializer();
+        resultXml = serializer.serializeToString(ioCommandNode);
+        resultXml = nxl.models.clearNS(resultXml);                
+        resultXml = nxl.models.appendNS(resultXml, 'iocommand');
+    }
+    catch(e){
+        console.log('IOCommand -> serializeToString failed, error: ' + e.message);
+    }
+
+    return resultXml;    
+
+}
+
+//--------------------members-------------------------
+
+/**
+ * @type {enum}
+ */
+nxl.models.EntityState = {
+    unchanged: 0,
+    changed: 1
+} 
+
+/**
+ * check whether an object has its own properties
+ * @static
+ * @param {object} obj 
+ * @returns {boolean}
+ */
+nxl.models.isEmpty = function(obj){
+
+    var result = true;
+
+    for(var key in obj){
+        if(obj.hasOwnProperty(key)){
+            result = false;
+            break;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * remove all default namespace in root node
+ * @param {string} xmlContent 
+ * @returns {string}
+ */
+nxl.models.clearNS = function(xmlContent){
+
+    var nsReg = /\s([^\s<]+)\=[^\s>]*/gi;
+
+    var resultXml = xmlContent.replace(nsReg, function(value, key){
+        if(key && key.indexOf('xmlns') > -1){
+            return '';
+        }
+        else{
+            return value;
+        }
+    });
+
+    return resultXml;
+}
+
+/**
+ * @description append custom namespace to root node
+ * @param {string} xmlContent 
+ * @returns {string}
+ */
+nxl.models.appendNS = function(xmlContent, rootNodeName){
+
+    var xmlNS = 'xmlns="urn:nextlabs-crm-schema"';
+    var xsiNS = 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"';
+    var xsdNS = 'xmlns:xsd="http://www.w3.org/2001/XMLSchema"';
+
+    var nsArray = [xmlNS, xsiNS, xsdNS];
+    var xmlNSValue = ' ' + nsArray.join(' ');
+
+    var rootNodePos = xmlContent.indexOf(rootNodeName);
+    var strBeforeNS = xmlContent.substring(0, rootNodePos + rootNodeName.length);
+    var strAfterNS = xmlContent.substring(rootNodePos + rootNodeName.length);
+
+    return strBeforeNS + xmlNSValue + strAfterNS;
+}

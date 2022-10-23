@@ -1,0 +1,618 @@
+/**
+ * @typedef {{ nxl_nxlnoticesId: string, nxl_NotifyUser: string, nxl_Entity: string, nxl_Message: string }} PolicyResult
+ * @typedef {{ Decision: string, DisplayMessages: string[], MaskFields: MaskField[] }} PolicyContent
+ * @typedef {{ Fields: string[], MaskCharacter: string }} MaskField
+ */
+
+var queryType = 'nxl_nxlnotices';
+var autoSaveMode = 70;
+//var iframeDoc = window.parent.document;
+
+/**
+ * store crm validation functions for every attribute.
+ * - validation functions are removed if the attribute need masking to prevent default invalid alert.
+ * - if the masked control need re-enabled and editing, restore the validation functions.
+ * - the format: { attributeLogicalName: [func1, func2] }
+ */
+var attrValidateFuncs = {};
+
+/**
+ * @typedef {{id: string, result: PolicyContent}} QueryResult
+ * @type { QueryResult[] }
+ */
+var queryResults = [];
+
+//------------------ sdk ------------------//
+/**
+ * sends an asynchronous request to delete a record.
+ * 
+ * @param {string} id - A String representing the GUID value for the record to delete.
+ * @param {string} type - The Schema Name of the Entity type record to delete.For an Account record, use "Account".
+ * @param {Function} successCallback - The function that will be passed through and be called by a successful response. 
+ * @param {Function} errorCallback - The function that will be passed through and be called by a failed response.
+ *                                 - This function must accept an Error object as a parameter.
+ */
+function deleteRecord(id, type, successCallback, errorCallback) {
+
+    var req = new XMLHttpRequest();
+
+    req.open("POST", encodeURI(getODataPath() + type + "Set(guid'" + id + "')"), true);
+    req.setRequestHeader("Accept", "application/json");
+    req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+    req.setRequestHeader("X-HTTP-Method", "DELETE");
+
+    req.onreadystatechange = function () {
+
+        if (this.readyState == 4 /* complete */) {
+            req.onreadystatechange = null;
+            if (this.status == 204 || this.status == 1223) {
+                successCallback();
+            }
+            else {
+                //console.log("DeleteRecord error");
+            }
+        }
+    };
+
+    req.send();
+
+}
+
+/**
+ * sends an asynchronous request to retrieve records.
+ * @param {string} type - the Schema Name of the Entity type record to retrieve.
+ * @param {string} options - a String representing the OData System Query Options to control the data returned.
+ * @param {Function} successCallback - The function that will be passed through and be called for each page of records returned.Each page is 50 records.
+ *                                   - If you expect that more than one page of records will be returned, 
+ *                                     this function should loop through the results and push the records into an array outside of the function.
+ *                                   - Use the OnComplete event handler to know when all the records have been processed.
+ * @param {Function} errorCallback   - The function that will be passed through and be called by a failed response. 
+ *                                   - This function must accept an Error object as a parameter.
+ * @param {Function} OnComplete      - The function that will be called when all the requested records have been returned.
+ *                                   - No parameters are passed to this function.
+ */
+function retrieveMultipleRecords(type, options, successCallback, errorCallback, OnComplete) {
+
+    var optionsString;
+
+    if (options != null) {
+        if (options.charAt(0) != "?") {
+            optionsString = "?" + options;
+        }
+        else
+        { optionsString = options; }
+    }
+
+    var req = new XMLHttpRequest();
+    req.open("GET", getODataPath() + type + "Set" + optionsString, true);
+    req.setRequestHeader("Accept", "application/json");
+    req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+    req.onreadystatechange = function () {
+        if (this.readyState == 4 /* complete */) {
+            req.onreadystatechange = null;
+            if (this.status == 200) {
+                var returned = JSON.parse(this.responseText, _dateReviver).d;
+                successCallback(returned.results);
+                if (returned.__next != null) {
+                    var queryOptions = returned.__next.substring((getODataPath() + type + "Set").length);
+                    SDK.REST.retrieveMultipleRecords(type, queryOptions, successCallback, errorCallback, OnComplete);
+                }
+                else {
+                    OnComplete();
+                }
+            }
+            else {
+                errorCallback(this);
+            }
+        }
+    };
+    req.send();
+}
+
+
+//------------------ callbacks ------------------//
+/**
+ * success callback for retrieveMultipleRecords
+ * @param {PolicyResult} results 
+ */
+function successRetrieveSecureRecords(results) {
+    
+    if(results && results.length > 0){
+
+        for(var i = 0; i < results.length; i++){
+
+            var result = results[i];
+            var noticeId = result.nxl_nxlnoticesId;
+            var userId = result.nxl_NotifyUser;
+            var recordId = result.nxl_Id;
+            var entityLogicalName = result.nxl_Entity;
+            var queryMsg = result.nxl_Message;
+
+            /**
+             * @type {PolicyContent}
+             */
+            var queryResult = undefined;
+            
+            try{
+                queryResult = JSON.parse(queryMsg);
+                deleteRecord(noticeId, queryType, successDeleteRecord, errorDeleteRecord);
+            }
+            catch(e){
+                console.log('parse query result json failed, error: ' + e.message);
+            }
+
+            if(recordId && queryResult){
+                queryResults.push({
+                    id: recordId,
+                    result: queryResult
+                });
+            }
+            else{
+                console.log('successRetrieveSecureRecords failed, queryResult: ' + queryResult);
+            }            
+        }
+    }
+    else{
+        console.log('successRetrieveSecureRecords failed, results is null or empty');
+    }
+}
+
+/**
+ * error callback for retrieveMultipleRecords.
+ * @param {Error} error 
+ */
+function errorRetrieveSecureRecords(error) {
+
+    var primaryAttrbuteValue = Xrm.Page.data.entity.getPrimaryAttributeValue();
+    var entityId = Xrm.Page.data.entity.getId();
+    if (!checkAttributesValidation(entityId, primaryAttrbuteValue, Xrm.Page.data.entity.attributes)) {
+        Xrm.Page.ui.setFormNotification("Access denied, you are not authorized to perform this operation.", "ERROR", "1");
+        DisableAllControl();
+    }
+}
+
+/**
+ * complete callback for retrieveMultipleRecords
+ */
+function completeRetrieveSecureRecords() {
+    
+    if(queryResults && queryResults.length > 0){
+
+        var curEntityId = Xrm.Page.data.entity.getId();
+        curEntityId = curEntityId ? curEntityId.trim().toLowerCase() : '';
+
+        curEntityId = curEntityId.replace(/\{|\}/gi, function(value){
+            return '';
+        });
+
+        var validResult = getValidResult(queryResults, curEntityId);
+
+        if(validResult){
+            enforceFormView(validResult.result);
+        }
+        else{
+            console.log('no valid maskfield record found');
+        }
+    }
+    else{
+        console.log('completeRetrieveSecureRecords failed, queryResults is null');
+    }
+}
+
+/**
+ * success callback for deleteRecord.
+ * @param {PolicyResult} result 
+ */
+function successDeleteRecord(result) {
+    //console.log(result);
+}
+
+/**
+ * error callback for deleteRecord.
+ * 
+ * @param {Error} error 
+ */
+function errorDeleteRecord(error) {
+    //console.log(error);
+    alert(error);
+}
+
+
+//------------------ inner tools ------------------//
+/**
+ * @returns {string}
+ */
+function getQueryOptionString(){
+
+    var strQuery = '';
+    var strField = '';
+    var strFilters = '';
+    var strUserId = Xrm.Page.context.getUserId();
+    var strEntityLogicalName = Xrm.Page.data.entity.getEntityName();
+
+    if(strUserId && strEntityLogicalName){
+
+        strUserId = strUserId ? strUserId.substring(1, strUserId.length - 2) : '';
+
+        strField = 'nxl_nxlnoticesId,nxl_Id,nxl_NotifyUser,nxl_Entity,nxl_Message';
+        strFilters = 'startswith(nxl_NotifyUser,\'{0}\') and nxl_Entity eq \'{1}\'';
+
+        strFilters = strFilters.replace('{0}', strUserId).replace('{1}', strEntityLogicalName);
+
+        strQuery = '$select={0}&$filter={1}'.replace('{0}', strField).replace('{1}', strFilters);
+    }
+    else{
+        throw new Error('getQueryOptionString -> getUserid failed.');
+    }
+
+    return strQuery;
+}
+
+/**
+ * judge query result
+ * @param {string} queryResult - Desicsion property in nxl_Message JSON object
+ * @returns {boolean}
+ */
+function isDeny(queryResult){
+
+    var isDeny = true;
+
+    if(queryResult === 'CEAllow'){
+        isDeny = false;
+    }
+
+    return isDeny;
+}
+
+/**
+ * get client service url.
+ * @returns {string}
+ */
+function getODataPath() {
+    return Xrm.Page.context.getClientUrl() + "/XRMServices/2011/OrganizationData.svc/"
+}
+
+/**
+ * private function to convert matching string values to Date objects.
+ * @param {string} key - The key used to identify the object property.
+ * @param {string} value - The string value representing a date.
+ * @returns {string}
+ */
+function _dateReviver(key, value) {
+
+    var a;
+
+    if (typeof value === 'string') {
+        a = /Date\(([-+]?\d+)\)/.exec(value);
+        if (a) {
+            return new Date(parseInt(value.replace("/Date(", "").replace(")/", ""), 10));
+        }
+    }
+    return value;
+}
+
+/**
+ * set corresponding control editable state
+ * @param {string} attrLogicalName 
+ * @param {boolean} isEditable 
+ */
+function setAttrEditable(attrLogicalName, isEditable){
+
+    var control = Xrm.Page.getControl(attrLogicalName);
+
+    if(control && typeof isEditable === 'boolean'){
+
+        // if(isEditable){
+        //     enableValidtion(attrLogicalName);
+        // }
+        // else{
+        //     disableValidation(attrLogicalName);
+        // }
+
+        control.setDisabled(!isEditable);
+    }
+    else{
+        console.log('disableControl ' + attrLogicalName + ' failed');
+    }
+}
+
+function disableAllControl() {
+    
+    Xrm.Page.data.entity.attributes.forEach(function (attribute, index) {
+        var control = Xrm.Page.getControl(attribute.getName());
+        if (control) {
+            control.setDisabled(true);
+        }
+    });
+}
+
+/**
+ * Check whether all required fields have correct values.
+ * @param {string} entityId 
+ * @param {string} primaryAttrbuteValue 
+ * @param {object} attributes 
+ * @returns {boolean}
+ */
+function checkAttributesValidation(entityId, primaryAttrbuteValue, attributes) {
+    
+    var bResult = false;
+    
+    if(entityId){
+
+        if (primaryAttrbuteValue) {
+            bResult = true;
+        }
+        else if(isRequiredFieldHaveValue(attributes)){
+            bResult = true;
+        }     
+    }
+    else{
+        bResult = true;//creating a new record page
+    }
+
+    return bResult;
+}
+
+function isRequiredFieldHaveValue(attributes) {
+    
+    var bResult = true;
+
+    try {
+        attributes.forEach(function (attribute, index) {
+
+            var strName = attribute.getName();
+            var strValue = attribute.getValue();
+            var strRequiredLevel = attribute.getRequiredLevel();
+
+            if (strRequiredLevel && strRequiredLevel.trim().toLowerCase() === "required") {
+
+                if (strValue == null) {
+
+                    bResult = false;
+                    foreach.break = new Error("StopIteration");
+                }
+            }
+        });
+    }
+    catch (e) {
+        console.log('IsRequiredFieldHaveValue failed, error: ' + e.message);
+    }
+
+    return bResult;
+}
+
+/**
+ * set form notification. Notification ID will be returned for clearing the notification.
+ * @param {string} msg 
+ * @param {'ERROR'|'WARNING'|'INFO'} level 
+ * @returns {number} - notification id
+ */
+function setNotification(msg, level){
+
+    var notificationId = getGUID();
+    
+    Xrm.Page.ui.setFormNotification(msg,"ERROR", notificationId);
+    
+    return notificationId;
+}
+
+/**
+ * simple implementation of getting random guid
+ * @returns {string}
+ */
+function getGUID(){
+    return (Math.random() * 1000000).toString(36).replace('.', '');
+}
+
+function enforceFormView(queryResult){
+
+    if(!queryResult){
+        console.log('enforceFormView failed, queryResult is null');
+        return;
+    }
+
+    var curEntityId = Xrm.Page.data.entity.getId();
+    var curEntityPrimaryAttr = Xrm.Page.data.entity.getPrimaryAttributeValue();
+    var curEntityAttrs = Xrm.Page.data.entity.attributes;
+    var bIsDeny = isDeny(queryResult.Decision);
+
+    if(bIsDeny){
+
+        var denyMsgs = '';
+        var displayMsgs = queryResult.result.DisplayMessages;
+        
+        if(displayMsgs && displayMsgs.length > 0){
+
+            var denyMsgCount = displayMsgs.length;            
+
+            for(var i = 0; i < denyMsgCount; i++){
+                if(denyMsgs.indexOf(queryResult.DisplayMessages[i]) < 0){
+                    denyMsgs = queryResult.DisplayMessages[i] + '\r\n' + denyMsgs;
+                }
+            }
+        }
+        if(!checkAttributesValidation(curEntityId, curEntityPrimaryAttr, curEntityAttrs)){
+            
+            var notificationId = setNotification(denyMsgs, 'ERROR');
+            disableAllControl();
+        }        
+    }
+    else{
+
+        var maskFields = queryResult.MaskFields;
+
+        if(maskFields && maskFields.length > 0){
+
+            for(var j = 0; j < maskFields.length; j++){
+                
+                var attrLogicalNameList = maskFields[j].Fields;
+                var maskChar = maskFields[j].MaskCharacter;
+
+                if(attrLogicalNameList && attrLogicalNameList.length > 0){
+
+                    for(var k = 0; k < attrLogicalNameList.length; k++){
+
+                        var curAttrLogicalName = attrLogicalNameList[k];
+
+                        setAttrEditable(curAttrLogicalName, false);
+                    }
+                }
+            }
+        }
+    }
+}
+
+function format(str){
+
+    var braceReg = /(\{(\d+)\})/gi;
+
+    if(typeof str !== 'string'){
+        throw new Error('target is not a string object');
+    }
+
+    if(arguments.length < 2){
+        throw new Error('args must be a valid array object');
+    }
+    
+    var args = Array.apply(null, arguments);
+
+    str = str.replace(braceReg, function(value, p1, p2){
+
+        p2 = parseInt(p2);
+
+        if(!isNaN(p2)){
+            return args[p2+1];
+        }
+        else{
+            throw new Error('format failed, index must be a number type');
+        }
+    });
+
+    return str;
+}
+
+function mockAjax(){
+
+    var fakePolicyResult = {};
+    var fakePolicyContent = {
+
+        Decision: "CEAllow",
+        DisplayMessages: [
+            "deny msg 1",
+            "deny msg 2"
+        ],
+        MaskFields:[
+            {
+                Fields:[
+                    "fullname",
+                    "jobtitle",
+                    'telephone1'                 
+                ],
+                MaskCharacter:"*"
+            },
+            {
+                Fields:[
+                    'emailaddress1',
+                    'creditlimit',
+                    'address1_country'
+                ],
+                MaskCharacter:"#"
+            }
+        ]
+    };
+
+    fakePolicyResult.nxl_nxlnoticesId = '123';
+    fakePolicyResult.nxl_NotifyUser = '7694DCCF-2902-E711-80C4-000C29A1D090';
+    fakePolicyResult.nxl_Entity = 'contact';
+    fakePolicyResult.nxl_Message = JSON.stringify(fakePolicyContent);
+
+    setTimeout(function(){
+        successRetrieveSecureRecords([fakePolicyResult]);
+    }, 1000);
+
+    setTimeout(function(){
+        completeRetrieveSecureRecords();
+    }, 3000);    
+}
+
+/**
+ * Get valid query result matching current entity id & the length of MaskFields.Fields > 0
+ * - currently we only match the latest record that matches the conditions above, which may be inaccurate.
+ * - if no record matches the conditions above, null will be returned.
+ * @param { QueryResult[] } queryResults 
+ * @param { string } curEntityId 
+ * @returns { QueryResult }
+ */
+function getValidResult(queryResults, curEntityId){
+
+    var validResult = null;
+
+    for(var i = queryResults.length - 1; i >= 0; i--){
+
+        var curResult = queryResults[i];
+        var isResultValid = false;
+
+        if(curResult.id && curResult.id.trim().toLowerCase() === curEntityId){
+            
+            if(curResult.result && 
+                curResult.result.MaskFields && 
+                curResult.result.MaskFields.length > 0){
+                
+                var curMaskFields = curResult.result.MaskFields;
+                
+                for(var j = 0; j < curMaskFields.length; j++){
+                    if(curMaskFields[j].Fields && curMaskFields[j].Fields.length > 0){
+                        console.log('valid record: ' + JSON.stringify(curResult));
+                        validResult = curResult;
+                        isResultValid = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(isResultValid){
+            break;
+        }
+    }
+
+    return validResult;
+}
+
+//-------------- entry points ---------------------
+function maskOnLoad(context) {
+
+    // var args = context.getEventArgs();
+    // var sender = context.getEventSource();
+
+    // Xrm.Page.data.entity.addOnSave(function(context){
+    //     if(queryResults && queryResults.length > 0){
+    //         enforceFormView(queryResults[queryResults.length - 1]);
+    //     }
+    //     else{
+    //         console.log('mask onSave failed, queryResults is null or empty');
+    //     }
+    // });
+    var strQueryOption = getQueryOptionString();
+    
+    retrieveMultipleRecords(queryType, strQueryOption, successRetrieveSecureRecords, errorRetrieveSecureRecords, completeRetrieveSecureRecords);
+    //mockAjax();
+}
+
+/**
+ * Prevent default auto save action
+ * @deprecated - Can stop save pipeline from executing.Function name improper.
+ * @param {object} context 
+ */
+function remaskOnSave(context) {
+
+    // if(context){
+
+    //     var args = context.getEventArgs();
+    //     var saveMode = args.getSaveMode();
+
+    //     if(saveMode === autoSaveMode){
+    //         args.preventDefault();
+    //     }
+    // }
+}

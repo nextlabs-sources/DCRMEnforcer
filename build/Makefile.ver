@@ -1,0 +1,17 @@
+##
+# Product version information
+#
+# Description:
+#
+#	This file should be included in top-level Makefile 
+#
+# http://sharepoint/sites/support/release/Lists/Current%20Releases/AllItems.aspx
+##
+
+VERSION_PRODUCT_SPE			= Entitlement Manager for Microsoft SharePoint Online
+
+VERSION_MAJOR_SPOE			= 1
+VERSION_MINOR_SPOE			= 0
+VERSION_MAINTENANCE_SPOE	= 1
+VERSION_PATCH_SPOE			= 0
+ 

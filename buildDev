@@ -1,0 +1,86 @@
+#!/bin/bash
+#
+# DESCRIPTION
+#	Invoke dev build
+#
+# USAGE:
+#	Steps to invoke this script.
+#		export NLEXTERNALDIR=<path>
+#		export BUILD_NUMBER=<#>
+#		source setEnv
+#		./buildDev
+#
+# HUDSON BUILD:
+#	cd $WORKSPACE
+#	export NLEXTERNALDIR=c:/hudson/jobs/external_latest/workspace
+#	source setEnv
+#	./buildDev
+#
+# Build Options:
+#	make -f build/Makefile.compile || exit $?
+#	make -f build/Makefile.compile compile install || exit $?
+#
+# Publish Options:
+#	make -f build/Makefile.publish TYPE=dev || exit $?
+#	make -f build/Makefile.publish TYPE=dev spe archive || exit $
+
+
+LOG_FILE=buildDev.log
+BUILD_MANIFEST_FILE=build.manifest
+
+(
+set -x
+# Extract Perforce Workspace and Hudson info (only if running on Hudson)
+if [ -f ../config.xml ]; then
+	build/getGitWorkspaceInfo.pl ../config.xml
+fi
+
+# Prepare environment
+./configure --type=dev || exit $?
+source build.config
+
+# Prepare dependencies
+make -f build/Makefile.xlib
+
+# Compile NextLabsDCRM code
+make -f build/Makefile.compile compile || exit $?
+
+# Unzip the contents of NLSPOLEventHandlerApp.web.zip from the build-output directory
+#if [ -f ${WORKSPACE}/bin/release_win_x64/NLSPOLEventHandlerApp.web.zip ]
+#then
+#	TMPDIR=`mktemp -d -p $PWD`
+#	rm -rf ${TMPDIR}/
+#	unzip ${WORKSPACE}/bin/release_win_x64/NLSPOLEventHandlerApp.web.zip -d ${TMPDIR}/
+#	cd ${TMPDIR}/
+#	WEBCONFIG_LOC=`find . -type f -name Web.config`
+#	WEBCONFIG_DIR=`dirname ${WEBCONFIG_LOC}`
+#	mkdir -p ${WORKSPACE}/bin/release_win_x64/NLSPOERER/NLSPOERER/
+#	cd ${WEBCONFIG_DIR} ; tar cf - . | ( cd ${WORKSPACE}/bin/release_win_x64/NLSPOERER/NLSPOERER/ && tar xf - )
+#else
+#	echo "ERROR: NLSPOLEventHandlerApp.web.zip was NOT found - probably build failed. Please check the build log" && exit -1
+#fi
+
+#cd ${WORKSPACE}/
+
+# Create SPOE installer
+#make -f build/Makefile.compile install || exit $?
+
+# Publish packages and artifacts to BODA only if PUBLISH_TO_BODA environment variable is set
+#if [ "X${PUBLISH_TO_BODA}" = "XYes" -o "X${PUBLISH_TO_BODA}" = "Xyes" -o "X${PUBLISH_TO_BODA}" = "XYES" -o "X${PUBLISH_TO_BODA}" = "X1" ]
+#then
+	# Publish installers and artifacts
+#	make -f build/Makefile.publish TYPE=dev || exit $?
+#fi
+
+# Create and publish build manifest
+#build/createBuildManifest.pl $LOG_FILE > $BUILD_MANIFEST_FILE || exit $?
+# Publish packages and artifacts to BODA only if PUBLISH_TO_BODA environment variable is set
+#if [ "X${PUBLISH_TO_BODA}" = "XYes" -o "X${PUBLISH_TO_BODA}" = "Xyes" -o "X${PUBLISH_TO_BODA}" = "XYES" -o "X${PUBLISH_TO_BODA}" = "X1" ]
+#then
+#	make -f build/Makefile.publish TYPE=dev manifest || exit $?
+#fi
+
+set +x
+) 2>&1 | tee $LOG_FILE
+
+exit ${PIPESTATUS[0]}

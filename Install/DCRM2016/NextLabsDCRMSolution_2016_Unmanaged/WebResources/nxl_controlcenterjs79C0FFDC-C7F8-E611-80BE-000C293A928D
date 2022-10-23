@@ -1,0 +1,121 @@
+
+function LoadPolicyControlAddr() {
+    SDK.REST.retrieveMultipleRecords(nxlStorageEntity, "$select=nxl_name,nxl_value&$filter=nxl_name eq 'PolicyControlAddr' or nxl_name eq 'JPCUsername' or nxl_name eq 'JPCPassword' or nxl_name eq 'UsingCloudAz'",
+		function (results) {
+			//console.log(results);
+			for (var i = 0; i < results.length; i++) {
+				if (results[i].nxl_name == "PolicyControlAddr") {
+					//console.log(results[i].nxl_value);
+					
+					var host = results[i].nxl_value;
+					var index = host.indexOf("https://");
+					if (index != -1) {
+						var usingHttps = document.getElementById("UsingHttps");
+						usingHttps.checked = true;
+						host = host.slice(8);
+					} else {
+						var usingHttps = document.getElementById("UsingHttps");
+						usingHttps.checked = false;	
+						index = host.indexOf("http://");
+						if (index != -1) {
+							host = host.slice(7);
+						}
+					}
+					index = host.lastIndexOf(":");
+					if (index != -1) {
+						var portvalue = host.slice(index + 1);
+						//console.log(portvalue);
+						var port = document.getElementById("PolicyControlAddrPort");
+						port.value = portvalue;
+						host = host.slice(0, index);
+					}
+					//console.log(host);
+					
+					var val = document.getElementById("PolicyControlAddrHost");
+					val.value = host;
+				} else if (results[i].nxl_name == "JPCUsername") {
+					var username = document.getElementById("JPCUsername");
+					username.value = results[i].nxl_value;
+				} else if (results[i].nxl_name == "JPCPassword") {
+					var pwd = document.getElementById("JPCPassword");
+					pwd.value = results[i].nxl_value;
+				} else if (results[i].nxl_name == "UsingCloudAz") {
+					var usingCloudAz = document.getElementById("UsingCloudAz");
+					if (results[i].nxl_value == "true") {
+						usingCloudAz.checked = true;
+					} else {
+						usingCloudAz.checked = false;
+					}					
+				}
+			}
+        },
+        errorNextLabsStorage, function () {
+			//console.log("Load complete...");
+        });
+}
+
+function SetPolicyControlAddr() {
+    var record = {};	
+    var addr = document.getElementById("PolicyControlAddrHost");
+	var port = document.getElementById("PolicyControlAddrPort");
+	var usingHttps = document.getElementById("UsingHttps");
+
+	var index = addr.value.indexOf("https://");
+	if (index != -1) {
+		addr.value = addr.value.slice(8);
+	} else {
+		index = addr.value.indexOf("http://");
+		if (index != -1) {
+			addr.value = addr.value.slice(7);
+		}
+	}
+	if (addr.value[addr.value.length - 1] == "/") {
+		addr.value = addr.value.slice(0, addr.value.length - 1);
+	}	
+	//console.log(addr.value);
+	
+	var prefix = "";
+	if (usingHttps.checked) {
+		var prefix = "https://";		
+	} else {
+		var prefix = "http://";		
+	}
+	addr.value = prefix.concat(addr.value);
+	if (port.value != "") {
+		addr.value = addr.value.concat(":");
+		addr.value = addr.value.concat(port.value);
+	}
+
+    record.nxl_name = "PolicyControlAddr";
+    record.nxl_value = addr.value;
+    //console.log("name:" + record.nxl_name + "   value:" + record.nxl_value);
+
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+	
+    var username = document.getElementById("JPCUsername");
+
+    record.nxl_name = "JPCUsername";
+    record.nxl_value = username.value;
+    //console.log("name:" + record.nxl_name + "   value:" + record.nxl_value);
+
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+
+    var pwd = document.getElementById("JPCPassword");
+
+    record.nxl_name = "JPCPassword";
+    record.nxl_value = pwd.value;
+
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);	
+	
+    var usingCloudAz = document.getElementById("UsingCloudAz");
+
+    record.nxl_name = "UsingCloudAz";
+	if (usingCloudAz.checked) {
+		record.nxl_value = "true";
+	} else {
+		record.nxl_value = "false";
+	}
+    //console.log("name:" + record.nxl_name + "   value:" + record.nxl_value);
+
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);	
+}

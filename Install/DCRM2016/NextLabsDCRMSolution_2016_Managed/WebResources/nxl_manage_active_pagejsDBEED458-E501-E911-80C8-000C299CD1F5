@@ -1,0 +1,65 @@
+(function(){
+
+function init(){
+    addEventListeners();
+	resizeWindow();
+}
+
+function addEventListeners(){
+
+
+    var manageBtn = document.getElementById('manage-btn');
+    var activeBtn = document.getElementById('active-btn');
+	var helpBtn = document.getElementById('toolbar-top-help-btn');
+
+
+    if(manageBtn && activeBtn && helpBtn){
+        manageBtn.addEventListener('click', function(evt){
+            manageClickHandler(evt);
+            evt.stopPropagation();
+        }, false);
+
+        activeBtn.addEventListener('click', function(evt){
+            activeClickHandler(evt);
+            evt.stopPropagation();
+        }, false);
+
+        helpBtn.addEventListener('click', function(evt){
+            helpClickHandler(evt);
+            evt.stopPropagation();
+        }, false);      
+    }
+    else{
+        console.log('addEventListeners failed');
+    }
+}
+
+function manageClickHandler(evt){
+	window.location.href ='nxl_autologonAz.html';
+}
+
+function activeClickHandler(evt){
+	//none
+}
+
+function helpClickHandler(evt){
+	var pageurl = window.location.href;
+	var intsplitedchar = pageurl.lastIndexOf("/");
+
+	if(intsplitedchar < 0){
+		console.log("can not find /");
+		dialogBox.Show("Open help page failed!");
+		return;
+	}
+
+	var headpart = pageurl.substring(0, intsplitedchar);
+	var helpurl = headpart + "/nxl_managehelp.html";
+
+	//window.open(helpurl,"_blank");
+	window.open("https://emdcrm-help.pep.cloudaz.com/creating_and_managing_policies.html");
+}
+
+//----------------- entry point --------------//
+init();
+
+})();

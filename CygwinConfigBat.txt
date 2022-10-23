@@ -1,0 +1,25 @@
+@echo off
+subst /d o:
+subst /d r:
+subst /d v:
+subst /d x:
+subst /d t:
+
+subst o: "C:\Program Files\Microsoft SDKs\Windows/v7.0"
+subst r: "C:\Program Files\Microsoft SDKs\Windows/v6.0A"
+subst v: "C:\program files (x86)\Microsoft Visual Studio 11"
+subst x: "C:\Program Files (x86)\Microsoft Visual Studio 12.0"
+
+
+export NLENFORCERSDIR="C:/Kim_Work/GitCode/Nextlabs"
+export NLEXTERNALGITDIR="C:/Kim_Work/Perforce/git_external"
+export NLEXTERNALDIR="C:/Kim_Work/Perforce/git_external"
+export NLBUILDROOT="C:/Kim_Work/GitCode/Nextlabs"
+unset TMP TEMP
+
+
+
+
+
+
+make TARGETENVARCH=x64 BUILDTYPE=release

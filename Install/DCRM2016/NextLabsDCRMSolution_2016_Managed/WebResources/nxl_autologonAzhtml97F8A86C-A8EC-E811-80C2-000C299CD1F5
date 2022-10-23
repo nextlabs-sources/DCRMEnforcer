@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Control Center Web Console</title>
+  <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>
+  <script src="nxl_es6promise.js" type="text/javascript"></script>
+  <script src="nxl_common.js" type="text/javascript"></script>
+  <script src="nxl_sdk.js"></script>
+  <script src="nxl_models.js"></script>
+  
+  <script type="text/javascript">
+	function tryOpenWebConsole(){
+		AuthWebConsole().then(function(result){
+		document.getElementById("loading").style.display = "none";
+	
+		var nxlframe = document.createElement('iframe');
+		nxlframe.id = "cc_console";
+		nxlframe.name = "cc_web_console";
+		nxlframe.width = "100%";
+		nxlframe.height = "100%";
+		nxlframe.scrolling = "auto";
+		nxlframe.frameBorder = "0";
+		nxlframe.src = result.nxl_content.trim();
+		document.body.appendChild(nxlframe);
+	});
+	}
+  </script>
+
+  <style type="text/css">
+	html, body{
+		position:absolute;
+		margin:0;
+		width:100%;
+		height:99%;
+		scrolling:no;
+		background-color: #fff;
+		color: #333;
+	}
+
+	
+  </style>
+</head>
+
+<body onload = "tryOpenWebConsole()">
+	<div id="loading" style="position:absolute;width:100%;height:99%;background:#FFF;padding-left:32px;">
+		<h2>
+		<p style="display:inline-block">Loading CloudAz...</p>
+		</h2>
+	</div>
+</body>
+
+</html>

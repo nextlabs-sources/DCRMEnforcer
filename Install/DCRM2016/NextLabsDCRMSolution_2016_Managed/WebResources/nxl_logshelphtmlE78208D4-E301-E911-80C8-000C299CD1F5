@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Viewing Log Files</title>
+	<meta charset='utf-8'>
+
+	<style>
+	body, html{
+    display:table;
+    height:100%;
+    width:100%;
+	}
+	.container{
+		display:table-cell;
+		vertical-align:top;
+	}
+	.container .box{
+		width:100%;
+		height:100%;
+		margin:0 auto;
+		
+	}
+	.note-content {
+	line-height:1.5;
+	color:#2c3f51
+	}
+	.note-content div,.note-content dl,.note-content dt,.note-content em,.note-content font,.note-content h3,.note-content h4,.note-content h5,.note-content h6,.note-content hr,.note-content i,.note-content ins,.note-content kbd,.note-content li,.note-content map,.note-content ol,.note-content p,.note-content pre,.note-content q,.note-content s,.note-content samp,.note-content small,.note-content span,.note-content strike,.note-content strong,.note-content sub,.note-content sup,.note-content table,.note-content tbody,.note-content td,.note-content tfoot,.note-content th,.note-content thead,.note-content tr,.note-content tt,.note-content u,.note-content ul {
+		line-height:1.6
+	}
+	h1, h2 {
+		text-align: center;
+	}
+	p {
+		text-align:justify;
+	}
+	</style>
+</head>
+<body>
+	<div class='container note-content'>
+		<div class='box' style="max-width: 800px;">
+		
+			<h1 id="viewing-log-files">Viewing Log Files</h1>
+
+			<p>The application performs continuous monitoring of how users are accessing the business entities in the Microsoft Dynamics CRM platform. The log report displays information about the events, date/time, users, entities, severity level (debug, information, warning, and error) and messages.</p>
+
+			<h2 id="procedure">Procedure</h2>
+
+			<ol><li rel="1"><p>In the Microsoft Dynamics CRM app, go to the Main menu &gt; Settings &gt; Entitlement Manager.</p></li>
+			<li rel="2"><p>Select Logs.</p></li>
+			<li rel="3"><p>Click the Enable checkbox and select one of the following:</p>
+
+			<ul>
+			<li><p>Debug Logs - information to help troubleshoot issues</p></li>
+			<li><p>Information Logs - general information about the user/system activities</p></li>
+			<li><p>Warning Logs - messages that describe errors or exceptions which are not critical</p></li>
+			<li><p>Error Logs - Errors that prevented the system from performing the requested action</p></li></ul></li>
+			<li rel="4"><p>Click Save Log Settings.</p></li>
+			<li rel="5"><p>To perform a basic search, enter a keyword to retrieve the desired logs.</p></li>
+			<li rel="6"><p>To search logs for a desired time period, select a duration from View.</p></li>
+			<li rel="7"><p>To perform an Advanced Search, enter the following details:</p>
+
+			<ul>
+			<li><p>Select Time Range - Date and time in the UTC timezone</p></li>
+			<li><p>Severity Level - Select a severity level. For example, Error logs.</p></li>
+			<li><p>Event - Select one of the following: <br>
+			• Any <br>
+			• Retrieve - An event type where a user views a single entity record <br>
+			• Retrieve Multiple - An event type where a user views multiple entities <br>
+			• Create - An event type where a user creates an entity record <br>
+			• Update - An event type where a user updates an entity record <br>
+			• Delete - An event type where a user deletes an entity record</p></li>
+			<li><p>Username - username to retrieve logs for a particular user</p></li>
+			<li><p>Entities - A Dynamics CRM entity name</p></li>
+			<li><p>Message - Messages defined in the policy</p></li></ul></li>
+			<li rel="8"><p>Click Search.</p></li>
+			</ol>
+			
+		</div>
+	</div>
+</body>
+</html>

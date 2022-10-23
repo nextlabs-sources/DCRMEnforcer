@@ -1,0 +1,551 @@
+var prePCPort = "";
+var prePCAddrHost = "";
+var preClientId  ="";
+var preSecretKey = "";
+var preIfuseCloudAZ = true;
+var preIfUseHttps = false;
+var preActionValue = "deny";
+var preDefultMessage = "";
+var preHintValue = "";
+var preOauthHost="";
+var preOauthPort="";
+var preCahceRefreshTime="";
+function LoadGeneralSetting() {
+	//console.log("LoadGeneralSetting...");
+	
+    SDK.REST.retrieveMultipleRecords(nxlStorageEntity, "$select=nxl_name,nxl_value&$filter=startswith(nxl_name, 'setting_')", 
+		successRetrieveGeneralSetting, errorNextLabsStorage, onCompleteGeneralSetting);	
+}
+
+function ChangeDefaultActionForInternalException() {
+	//console.log("ChangeDefaultActionForInternalException");
+}
+function SubmitGeneralSetting() 
+{
+	var strJpcHost=document.getElementById("PolicyControlAddrHost").value.trim();
+	var strJpcPort=document.getElementById("PolicyControlAddrPort").value.trim();
+	var bJpcHttps=document.getElementById("UsingHttps").checked;
+	var strOAuthHost=document.getElementById("txtOAuthServerHost").value.trim();
+	var strOAuthPort=document.getElementById("txtOAuthPort").value.trim();
+	var strClientId=document.getElementById("JPCUsername").value.trim();
+	var strClientKey=document.getElementById("JPCPassword").value.trim();
+	var strDefaultAction = document.getElementById("u847_input").value.trim();
+	var strHintForInternalException=document.getElementById("HintForInternalException").value.trim();
+	var strtxtHintForDefaultMessage=document.getElementById("txtHintForDefaultMessage").value.trim();
+	var strReferchCacheTime=document.getElementById("div_RefreshTime_Content_Value_input").value.trim();
+	var iJpcPort=-1;
+	var iOAuthServerPort=-1;
+	var iRefrechCacheTime=-1;
+	var dialogBox=new NextlabsAlertMessage("Save Alert");
+	//validation not null
+	if(strJpcHost.length==0)
+	{
+		dialogBox.Show("Please input correct policy controller server address.");
+		return;
+	}
+	
+	if(strJpcPort.length>0)
+	{
+		var iJpcPort=parseInt(strJpcPort);
+		if(isNaN(iJpcPort)||iJpcPort<0||iJpcPort>65535)
+		{
+			dialogBox.Show("Please input correct policy controller server port.");
+			return;
+		}
+	}
+	if(strOAuthPort.length>0)
+	{
+		var iOAuthServerPort=parseInt(strOAuthPort);
+		if(isNaN(iOAuthServerPort)||iOAuthServerPort<0||iOAuthServerPort>65535)
+		{
+			dialogBox.Show("Please input correct OAuth server port.");
+			return;
+		}
+	}
+	if(strReferchCacheTime.length>0)
+	{
+		var iRefrechCacheTime=parseInt(strReferchCacheTime);
+		if(isNaN(iRefrechCacheTime)||iRefrechCacheTime<0||iRefrechCacheTime>4294967295)
+		{
+			dialogBox.Show("Please input correct refresh cache time.");
+			return;
+		}
+	}
+	var record = {};
+	
+	//Set Jpc Info
+	record.nxl_name = "PolicyControlAddr";
+	if(bJpcHttps)
+	{
+		record.nxl_value="https://"+strJpcHost;
+	}
+	else
+	{
+		record.nxl_value="http://"+strJpcHost;
+	}
+	if(iJpcPort>-1)
+	{
+		record.nxl_value=record.nxl_value+":"+iJpcPort;
+	}
+	SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { },errorNextLabsStorage);
+		
+	//set Oauth Info
+	record.nxl_name="OAuthServerAddr";
+	
+	if(iOAuthServerPort>-1)
+	{
+		if(strOAuthHost.indexOf("/oauth/token")>-1)
+		{
+			record.nxl_value="https://"+strOAuthHost.replace("/oauth/token",":"+iOAuthServerPort+"/oauth/token");
+		}	
+		else
+		{
+			record.nxl_value="https://"+strOAuthHost+":"+iOAuthServerPort;
+		}
+	}
+	else
+	{
+		record.nxl_value="https://"+strOAuthHost;
+	}
+	SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { },errorNextLabsStorage);
+	//set Client ID 
+	
+	record.nxl_name = "JPCUsername";
+	record.nxl_value = strClientId;
+	SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { },errorNextLabsStorage);
+	
+	
+	//set Client Key
+	
+	record.nxl_name = "JPCPassword";
+	record.nxl_value = strClientKey;
+	SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { },errorNextLabsStorage);
+	//set default action
+	record.nxl_name = "setting_defaultaction";
+	record.nxl_value = strDefaultAction;
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+	
+	//set exception message
+	
+	record.nxl_name = "setting_hint";
+	record.nxl_value = strHintForInternalException;
+	SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+	
+	//set default deny message
+	
+	record.nxl_name = "setting_hintDefaultDeny";
+	record.nxl_value = strtxtHintForDefaultMessage;
+	SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+	
+	
+	//set cache refresh time
+	if(iRefrechCacheTime>-1)
+	{
+		record.nxl_name = "setting_CacheExpiryTime";
+		record.nxl_value = String(iRefrechCacheTime);
+		SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+	}
+	else if(strReferchCacheTime.length==0)
+	{
+		record.nxl_name = "setting_CacheExpiryTime";
+		record.nxl_value = strReferchCacheTime;
+		SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+	}
+	location.reload(true);
+}
+
+function ResetGeneralSetting() {
+	
+}
+
+function successRetrieveGeneralSetting(results) 
+{
+	//console.log(results);
+    for (var i = 0; i < results.length; i++) 
+	{
+		if (results[i].nxl_name == "setting_defaultaction") 
+		{
+			var action = document.getElementById("u847_input");
+			action.value = results[i].nxl_value;
+			preActionValue = action.value;
+		} 
+		else if (results[i].nxl_name == "setting_hint") 
+		{
+			var hint = document.getElementById("HintForInternalException");
+			if(results[i].nxl_value!=undefined&&results[i].nxl_value!=null)
+			{
+				hint.value = results[i].nxl_value;
+				preHintValue = hint.value;
+			}
+		} 
+		else if (results[i].nxl_name == "setting_hintDefaultDeny") 
+		{
+			var loglevel = document.getElementById("txtHintForDefaultMessage");
+			if(results[i].nxl_value!=undefined&&results[i].nxl_value!=null)
+			{
+				loglevel.value = results[i].nxl_value;
+				preDefultMessage = loglevel.value;
+			}
+		}
+		else if(results[i].nxl_name == "setting_CacheExpiryTime")
+		{
+			var domCacheRefreshTimeInput=document.getElementById("div_RefreshTime_Content_Value_input");
+			if(results[i].nxl_value!=undefined&&results[i].nxl_value!=null)
+			{
+				domCacheRefreshTimeInput.value=results[i].nxl_value;
+				preCahceRefreshTime=results[i].nxl_value;
+			}
+		}
+    }	
+}
+
+function onCompleteGeneralSetting() {
+	//console.log("onCompleteGeneralSetting");
+}
+
+function testPCConnection()
+{
+	var strJpcHost=document.getElementById("PolicyControlAddrHost").value.trim();
+	var strJpcPort=document.getElementById("PolicyControlAddrPort").value.trim();
+	var bJpcHttps=document.getElementById("UsingHttps").checked;
+	var strOAuthHost=document.getElementById("txtOAuthServerHost").value.trim();
+	var strOAuthPort=document.getElementById("txtOAuthPort").value.trim();
+	var strClientId=document.getElementById("JPCUsername").value.trim();
+	var strClientKey=document.getElementById("JPCPassword").value.trim();
+	var iJpcPort=-1;
+	var iOAuthServerPort=-1;
+	
+	var btnTestConnection=document.getElementById("u5016_input");
+	
+	//validation not null
+	if(strJpcHost.length==0)
+	{
+		ShowTestConnectFailedMessage("Please input correct policy controller server address.");
+		return;
+	}
+	
+	if(strJpcPort.length>0)
+	{
+		var iJpcPort=parseInt(strJpcPort);
+		if(isNaN(iJpcPort)||iJpcPort<0||iJpcPort>65535)
+		{
+			ShowTestConnectFailedMessage("Please input correct policy controller server port.");
+			return;
+		}
+	}
+	if(strOAuthPort.length>0)
+	{
+		var iOAuthServerPort=parseInt(strOAuthPort);
+		if(isNaN(iOAuthServerPort)||iOAuthServerPort<0||iOAuthServerPort>65535)
+		{
+			ShowTestConnectFailedMessage("Please input correct OAuth server port.");
+			return;
+		}
+	}
+	
+	var strJpcServerAddress=strJpcHost;
+	if(bJpcHttps)
+	{
+		strJpcServerAddress="https://"+strJpcHost;
+	}
+	else
+	{
+		strJpcServerAddress="http://"+strJpcHost;
+	}
+	if(iJpcPort>-1)
+	{
+		strJpcServerAddress=strJpcServerAddress+":"+iJpcPort;
+	}
+	
+	var strOAuthServerAddress="https://"+strOAuthHost;
+	if(strOAuthHost.indexOf("/oauth/token")>-1)
+	{
+		if(iOAuthServerPort>-1)
+		{
+			strOAuthServerAddress="https://"+strOAuthHost.replace("/oauth/token",":"+iOAuthServerPort+"/oauth/token");
+		}
+	}
+	else
+	{
+		if(iOAuthServerPort>-1)
+		{
+			strOAuthServerAddress=strOAuthServerAddress+":"+iOAuthServerPort;
+		}
+	}
+	var strParamter="address="+strJpcServerAddress+"&oAuthServerAddress="+strOAuthServerAddress+"&clientID="+strClientId+"&clientSecret="+strClientKey;
+	var record={};
+	record.nxl_name = "NXLCommand_TestPC";
+	record.nxl_value = strParamter;
+	SDK.REST.createRecord(record, nxlStorageEntity, true, 
+		function (record) 
+		{
+			if(record.nxl_value=="OK")
+			{
+					ShowTestConnectSuccessMessage();
+					btnTestConnection.disabled=false;
+			}
+			else
+			{
+				ShowTestConnectFailedMessage(record.nxl_value);
+				btnTestConnection.disabled=false;
+			}
+		}, 	
+		function(error)
+		{
+			ShowTestConnectFailedMessage("");
+			btnTestConnection.disabled=false;
+		});
+		ShowTestConnectingMessage();
+		btnTestConnection.disabled=true;
+}
+function ShowTestConnectingMessage()
+{
+	var errorMessageObj = document.getElementById("errorMessageSpan");
+	var sucessState = document.getElementById("u5031_state0");
+	var errorState = document.getElementById("u5031_state1");
+	var errorDetail=document.getElementById("errorDetail");
+	errorMessageObj.innerHTML="Please wait for the validation to finish......";
+	errorDetail.innerHTML="";
+	sucessState.style["visibility"] = "hidden";
+	sucessState.style["display"] = "none";
+	errorState.style["visibility"] = "visible";
+	errorState.style["display"] = "block";
+}
+function ShowTestConnectSuccessMessage()
+{
+	var errorMessageObj = document.getElementById("errorMessageSpan");
+	var sucessState = document.getElementById("u5031_state0");
+	var errorState = document.getElementById("u5031_state1");
+	var errorDetail=document.getElementById("errorDetail");
+	errorState.style["visibility"] = "hidden";
+	errorState.style["display"] = "none";
+	sucessState.style["visibility"] = "visible";
+	sucessState.style["display"] = "block";
+}
+function ShowTestConnectFailedMessage(strMessage)
+{
+	var errorMessageObj = document.getElementById("errorMessageSpan");
+	var sucessState = document.getElementById("u5031_state0");
+	var errorState = document.getElementById("u5031_state1");
+	var errorDetail=document.getElementById("errorDetail");
+	errorMessageObj.innerHTML="×&nbsp;Connection could not be established.";
+	errorDetail.innerHTML=strMessage;
+	sucessState.style["visibility"] = "hidden";
+	sucessState.style["display"] = "none";
+	errorState.style["visibility"] = "visible";
+	errorState.style["display"] = "block";
+}
+function SetPolicyControlAddr() {
+    var record = {};	
+    var addr = document.getElementById("PolicyControlAddrHost");
+	var port = document.getElementById("PolicyControlAddrPort");
+	var strOauthServerAddr=document.getElementById("txtOAuthServerHost").value.trim();
+	var strOauthServerPort=document.getElementById("txtOAuthPort").value.trim();
+	addr.value=addr.value.trim();
+	port.value=port.value.trim();
+	var usingHttps = document.getElementById("UsingHttps");
+
+	record.nxl_name="OAuthServerAddr";
+	if(strOauthServerAddr.length>0)
+	{
+		if(strOauthServerPort!="")
+		{
+			if(strOauthServerAddr.indexOf("/oauth/token")>-1)
+			{
+				record.nxl_value="https://"+strOauthServerAddr.replace("/oauth/token",":"+strOauthServerPort+"/oauth/token");
+			}	
+			else
+			{
+				record.nxl_value="https://"+strOauthServerAddr+":"+strOauthServerPort;
+			}
+		}
+		else
+		{
+			record.nxl_value="https://"+strOauthServerAddr;
+		}
+	}
+	else
+	{
+		record.nxl_value="";
+	}
+	SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+	
+	var index = addr.value.indexOf("https://");
+	if (index != -1) {
+		addr.value = addr.value.slice(8);
+	} else {
+		index = addr.value.indexOf("http://");
+		if (index != -1) {
+			addr.value = addr.value.slice(7);
+		}
+	}
+	if (addr.value[addr.value.length - 1] == "/") {
+		addr.value = addr.value.slice(0, addr.value.length - 1);
+	}	
+	//console.log(addr.value);
+	
+	var prefix = "";
+	if (usingHttps.checked) {
+		var prefix = "https://";		
+	} else {
+		var prefix = "http://";		
+	}
+	addr.value = prefix.concat(addr.value);
+	if (port.value != "") {
+		addr.value = addr.value.concat(":");
+		addr.value = addr.value.concat(port.value);
+	}
+
+    record.nxl_name = "PolicyControlAddr";
+    record.nxl_value = addr.value;
+    //console.log("name:" + record.nxl_name + "   value:" + record.nxl_value);
+
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+	
+    var username = document.getElementById("JPCUsername");
+
+    record.nxl_name = "JPCUsername";
+    record.nxl_value = username.value.trim();
+    //console.log("name:" + record.nxl_name + "   value:" + record.nxl_value);
+
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);
+
+    var pwd = document.getElementById("JPCPassword");
+
+    record.nxl_name = "JPCPassword";
+    record.nxl_value = pwd.value;
+
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);	
+	
+    
+    //console.log("name:" + record.nxl_name + "   value:" + record.nxl_value);
+
+    SDK.REST.createRecord(record, nxlStorageEntity, false, function (record) { }, errorNextLabsStorage);	
+}
+
+
+function LoadPolicyControlAddr() {
+    SDK.REST.retrieveMultipleRecords(nxlStorageEntity, "$select=nxl_name,nxl_value&$filter=nxl_name eq 'PolicyControlAddr' or nxl_name eq 'JPCUsername' or nxl_name eq 'JPCPassword' or nxl_name eq 'OAuthServerAddr'",
+		function (results) 
+		{
+			//console.log(results);
+			for (var i = 0; i < results.length; i++) 
+			{
+				if (results[i].nxl_name == "PolicyControlAddr") 
+				{
+					//console.log(results[i].nxl_value);
+					
+					var host = results[i].nxl_value;
+					var index = host.indexOf("https://");
+					if (index != -1) 
+					{
+						var usingHttps = document.getElementById("UsingHttps");
+						usingHttps.checked = true;
+						host = host.slice(8);
+					} 
+					else 
+					{
+						var usingHttps = document.getElementById("UsingHttps");
+						usingHttps.checked = false;	
+						index = host.indexOf("http://");
+						if (index != -1) 
+						{
+							host = host.slice(7);
+						}
+					}
+					preIfUseHttps = usingHttps.checked;
+					index = host.lastIndexOf(":");
+					if (index != -1) 
+					{
+						var portvalue = host.slice(index + 1);
+						//console.log(portvalue);
+						var port = document.getElementById("PolicyControlAddrPort");
+						port.value = portvalue;
+						prePCPort = portvalue;
+						host = host.slice(0, index);
+					}
+					//console.log(host);
+					
+					var val = document.getElementById("PolicyControlAddrHost");
+					val.value = host;
+					prePCAddrHost = host;
+				} 
+				else if(results[i].nxl_name == "OAuthServerAddr") 
+				{
+					var strValue=results[i].nxl_value;
+					var host = "";
+					var port="";
+					if(strValue!=null&&strValue.length>=8)
+					{
+						strValue = strValue.slice(8);
+						if(strValue.split(":").length==2)
+						{
+							host=strValue.split(":")[0];
+							if(strValue.split(":")[1].indexOf("/oauth/token")>-1)
+							{
+								port=strValue.split(":")[1].replace("/oauth/token","");
+								host=host+"/oauth/token";
+							}
+							else
+							{
+								port=strValue.split(":")[1];
+							}
+						}
+						else
+						{
+							host=strValue;
+						}
+					}
+					else
+					{
+						host=strValue;
+					}
+					preOauthHost=host;
+					preOauthPort=port;
+					var txtOAuthServerHost= document.getElementById("txtOAuthServerHost");
+					var txtOAuthPort=document.getElementById("txtOAuthPort");
+					txtOAuthServerHost.value=host;
+					txtOAuthPort.value=port;
+				}
+				else if (results[i].nxl_name == "JPCUsername") 
+				{
+					var username = document.getElementById("JPCUsername");
+					username.value = results[i].nxl_value;
+					preClientId = username.value;
+				} else if (results[i].nxl_name == "JPCPassword") {
+					var pwd = document.getElementById("JPCPassword");
+					pwd.value = results[i].nxl_value;
+					preSecretKey = pwd.value;
+				} 
+				
+			}
+        },
+        errorNextLabsStorage, function () {
+			//console.log("Load complete...");
+        });
+}
+
+function DiscardChange(){
+	var host = document.getElementById("PolicyControlAddrHost");
+	var port = document.getElementById("PolicyControlAddrPort");
+	var oauthHost=document.getElementById("txtOAuthServerHost");
+	var oauthPort=document.getElementById("txtOAuthPort");
+	var usingHttps = document.getElementById("UsingHttps");
+	var username = document.getElementById("JPCUsername");
+	var pwd = document.getElementById("JPCPassword");
+	var action = document.getElementById("u847_input");
+	var hint = document.getElementById("HintForInternalException");
+	var hintDefaultDeny = document.getElementById("txtHintForDefaultMessage");
+	var domCacheRefreshTimeInput=document.getElementById("div_RefreshTime_Content_Value_input");
+	host.value = prePCAddrHost;
+	port.value = prePCPort;
+	oauthHost.value=preOauthHost;
+	oauthPort.value=preOauthPort;
+	usingHttps.checked = preIfUseHttps; 
+	username.value = preClientId;
+	pwd.value = preSecretKey;
+	action.value = preActionValue;
+	hint.value = preHintValue;
+	hintDefaultDeny.value = preDefultMessage;
+	domCacheRefreshTimeInput.value=preCahceRefreshTime;
+}

@@ -1,0 +1,2202 @@
+(function(){
+
+var models = nxl.models;
+
+if(!models){
+    throw new Error('nxl.models namespace not imported before');
+}
+
+var ENTITY_NOT_EXIST = 10000;
+
+//Models class alias
+var Entity = models.Entity;
+var Attribute = models.Attribute;
+var OptionAttr = models.OptionAttr;
+var Area = models.Area;
+var Relation = models.Relation;
+var ManyToManyRelation = models.ManyToManyRelation;
+var ManyToOneRelation = models.ManyToOneRelation;
+var EntityState = models.EntityState;
+var IOCommand = models.IOCommand;
+var GeneralSetting = models.GeneralSetting;
+var LogSettings = models.LogSettings;
+
+
+var modal = new LoadingModal('modal');
+var filepickerModal = new FilePickerModal('file-picker-modal');
+var importWizard = new ImportWizard('import-wizard');
+var exportModal = new ExportModal('export-modal');
+var slider = new Slider();
+var alertModal = new AlertModal('alert-modal');
+
+var datatypes = (function(){
+
+    var cursor = 0;
+    var types = [280240000, 280240001, 280240002, 280240003, 280240004, 280240005];
+
+    var reset = function(){
+        cursor = 0;
+    }
+
+    return {
+        current: function(){
+            return types[cursor];
+        },
+        next: function(){
+            cursor++;
+            return types[cursor];
+        },
+        reset: function(){
+            cursor = 0;
+        }
+    };
+})();
+
+var history = (function(){
+
+    var histories = [];
+
+    return {
+        pushState: function(state){
+            if(state != null){
+                histories.push(state);
+            }
+            else{
+                console.log('pushState failed, state: ' + state);
+            }
+        },
+        popState: function(){
+            return histories.pop();
+        },
+        rollback: function(handler){
+
+            var state = histories.pop();
+
+            while(state){
+
+                handler(state);
+                state = histories.pop();
+            }
+        },
+        clear: function(){
+            histories.length = 0;
+        },
+        latest: function(){
+            return histories.length > 0 ? histories[histories.length - 1] : null;
+        }
+    };
+})();
+
+var settingToIgnore = [];
+var settingsToExport;
+var settingsToImport;
+var checkedExportSettings;
+var checkedImportSettings;
+
+var datatypeTitleMap = {
+    100000000: 'Browse File',
+    280240000: 'Secured Entities',
+    280240001: 'Secured User Attributes',
+    280240002: 'N1 Relationships',
+    280240003: 'NN Relationships',
+    280240004: 'General Settings',
+    280240005: 'Log Settings',
+    280240006: 'Test PC Parameters',
+    999999999: 'Summary'
+};
+
+var datatypeDescMap = {
+    100000000: 'Browse File',
+    280240000: 'Configure Entities secured by NextLabs Entitlement Manager for policy authoring and evaluation',
+    280240001: 'Configure User Attributes available for policy authoring and evaluation',
+    280240002: '',
+    280240003: '',
+    280240004: 'Policy Server and other Entitlement Manager settings',
+    280240005: 'Entitlement Manager logs',
+    280240006: '',
+    999999999: ''    
+};
+
+var datatypeIndexMap = {
+    100000000: -1,
+    280240000: 2,
+    280240001: 3,
+    280240002: -1,
+    280240003: -1,
+    280240004: 0,
+    280240005: 1,
+    280240006: -1,
+    999999999: 99    
+};
+
+var datatypeToolbarDescMap = {
+    280240004: 'Import general settings',
+    280240005: 'Import log settings'
+}
+
+var generalSettingPropNameMap = {
+    'pcHost': 'Policy Server (PDP) Host',
+    'pcPort': 'Policy Server Port',
+    'httpsEnable': 'HTTPS',
+    'oauthServer': 'Control Center Server Host',
+    'oauthPort': 'Control Center Port',
+    'clientId': 'Client ID',
+    'clientPwd': 'Client Secret Key',
+    'policyDecision': 'Policy Decision',
+    'msg': 'Message',
+    'defaultMsg': 'Default message',
+    'cacheInterval': 'Cache Settings',
+    'logLevel': 'Log Level',
+	'wcUsername': 'User Name',
+	'wcPassword': 'Password',
+	'UserHostIP': 'HostIP'
+};
+
+var generalSettingPropNameDescMap = {
+    'policyDecision': 'Default behavior in case of system or configuration issues',
+    'msg': 'Default behavior in case of system or configuration issues',
+    'defaultMsg': 'Default message if the user is not authorized or no applicable policies',
+    'cacheInterval': 'Refresh cached configuration settings'
+};
+
+var alertMsgs = {
+    importSuccess: 'imported successfully in the system.',
+    importFailed: 'Error in importing selected file.',
+    exportSuccess: 'file is exported successfully to default download folder in your local drive.',
+    exportFailed: 'Error in exporting selected entitie(s).',
+    beginRollback: 'System will delete the changes of the imported NextLabs Entitlement Manager settings. To restore original settings, please import from the setting backup file.',
+    rollingBack: 'Rolling back entitlement manager settings. Please wait …',
+    rollbackSuccess: 'Rollback succeed. Please verify the entitlement manager settings, or re-import the backup setting file',
+    rollbackFailed: 'Rollback failed. Please contact your system administrator for further help.',
+    fileNotSelected: 'Please select your entitlement manager setting file.',
+    invalidFileSelected: 'Please select a valid entitlement manager setting file.'
+};
+
+function init(){
+    addEventListeners();
+    resizeWindow();
+}
+
+function addEventListeners(){
+
+    var scope = this;
+    var exportBtn = $('#export-btn');
+    var importBtn = $('#import-btn');
+	var helpBtn = $('#toolbar-top-help-btn');
+    var filepicker = $('#file-picker');
+    var filepickInput = $('input:first-child', filepicker);
+    var exportConfirmBtn = $('#export-confirm-btn');
+    var exportCancelBtn = $('#export-cancel-btn');
+    var importConfirmBtn = $('#import-confirm-btn');
+    var importCancelBtn = $('#import-cancel-btn');
+    var cancelSlideBtn = $('#cancel-slide-btn');
+    var prevSlideBtn = $('#prev-slide-btn');
+    var nextSlideBtn = $('#next-slide-btn');
+    var slideImportBtn = $('#import-slide-btn');
+    var exportList = $('#export-list');
+    var bakcupBtn = $('#backup-slide-btn');
+    var closeBtns = $$('.btn-ms-close');
+    var slideList = $('#slide-list');    
+
+    if(exportBtn && 
+        importBtn &&  
+        helpBtn && 
+        filepicker &&
+        filepickInput &&
+        importConfirmBtn &&
+        importCancelBtn &&
+        prevSlideBtn &&
+        nextSlideBtn &&
+        slideImportBtn &&
+        exportConfirmBtn &&
+        exportCancelBtn &&
+        exportList &&
+        bakcupBtn &&
+        closeBtns && slideList && cancelSlideBtn){
+
+        exportBtn.onclick = showExportModal.bind(this);
+		helpBtn.onclick = ClickHelp.bind(this);
+        filepicker.onclick = browseClickHandler.bind(this);
+        filepickInput.onchange = filePickedHandler.bind(this);
+        exportConfirmBtn.onclick = exportHandler.bind(this);
+        exportCancelBtn.onclick = hideExportModal.bind(this); 
+        importConfirmBtn.onclick = importHandler.bind(this);
+        importBtn.onclick = showImportModal.bind(this); 
+        importCancelBtn.onclick = hideImportModal.bind(this);
+        cancelSlideBtn.onclick = importWizard.hide.bind(importWizard);
+        prevSlideBtn.onclick = prevClickHandler.bind(this);
+        nextSlideBtn.onclick = nextClickHandler.bind(this);
+        slideImportBtn.onclick = saveClickHandler.bind(this);
+        exportList.onclick = exportItemCheckedHandler.bind(this);
+        bakcupBtn.onclick = backupClickHandler.bind(this);
+        
+        filepickInput.onclick = function(evt){
+            evt.stopPropagation();
+        };
+
+        slider.on('change', slideChangeHandler.bind(this));
+
+        for(var i = 0; i < closeBtns.length; i++){
+            (function(index){
+                closeBtns[index].onclick = function(){
+                    filepickerModal.hide();
+                    importWizard.hide();
+                    exportModal.hide();
+                };
+            })(i);
+        }
+
+        slideList.addEventListener('transitionend', function(evt){
+            prevSlideBtn.onclick = prevClickHandler.bind(scope);
+            nextSlideBtn.onclick = nextClickHandler.bind(scope);
+        });        
+    }
+    else{
+        console.log('addEventListeners failed');
+    }
+}
+
+//------------ promisify -----------------//
+function getSecuredEntities(datatype){
+	var selector = '$select=nxl_name,nxl_datatype,nxl_enabled,nxl_content&$filter=nxl_datatype/Value eq ' + datatype;
+	return SDK.REST.retrieveMultipleRecords(nxlStorageEntity, selector);
+}
+
+function readFileAsString(file){
+
+    var scope = this;
+
+    return new Promise(function(resolve, reject){
+        
+        if(file){
+
+            var reader = new FileReader();
+            reader.onload = resolve.bind(scope);
+            reader.readAsText(file);
+        }
+        else{
+            reject(alertMsgs.fileNotSelected);
+        }
+    });
+}
+
+function readSettings(evt){
+
+    return new Promise(function(resolve, reject){
+
+        var content = evt.target.result;
+
+        if(!content){
+            reject(alertMsgs.invalidFileSelected);
+        }
+
+        try{
+
+            var entityList = JSON.parse(content);
+
+            if(entityList && entityList.length > 0){
+
+                var settingCount = entityList.length;
+
+                for(var i = 0; i < settingCount; i++){
+                    settingsToImport.append(entityList[i]);
+                }
+
+                if(typeof resolve === 'function'){
+                    resolve();
+                }
+            }
+            else{
+                if(typeof reject === 'function'){
+                    reject(alertMsgs.invalidFileSelected);
+                }
+            }
+        }
+        catch(e){
+
+            var msg = 'fileReadHandler failed, error: ' + e.message;
+            if(typeof reject === 'function'){
+                console.log(msg);
+                reject(alertMsgs.invalidFileSelected);
+            }
+        }
+    });
+}
+
+//------------ callbacks -----------------//
+function successGetEntity(results){
+
+	var records = results.results;
+	var isCompleted = results.isCompleted;
+	var nextQueryOption = results.nextQueryOption;
+
+	if(records && records.length > 0){
+
+        var recordCount = records.length;
+
+        for (var i = 0; i < recordCount; i++) {
+
+            var curSecureEntity = records[i];
+            var entityLogicalName = curSecureEntity.nxl_name;
+            var entityEnabled = curSecureEntity.nxl_enabled;
+
+            if(entityEnabled){
+                settingsToExport.append(curSecureEntity);
+            }
+            else{
+                console.log('entity ' + entityLogicalName + ' disabled');
+            }
+        }		
+	}
+
+	if(!isCompleted && nextQueryOption){
+
+		return getSecuredEntities(checkedExportSettings.current()).then(successGetEntity, errorGetEntity);
+	}
+
+	if(isCompleted){
+
+        var nextDatatype = checkedExportSettings.next();
+
+        if(nextDatatype){
+            return getSecuredEntities(nextDatatype).then(successGetEntity, errorGetEntity);
+        }
+        else{
+            console.log(settingsToExport);
+            return new Promise(function(resolve, reject){
+                if(typeof resolve === 'function'){
+                    resolve();
+                }
+            });
+        }
+	}
+}
+
+function errorGetEntity(err){
+    modal.hide();
+    showErrorExportModal(err);
+}
+
+function successSaveSettings(results){
+
+    var nextSetting = checkedImportSettings.next();
+    var importedRecordId = getRecordGUIDFromCreateRecord(results);
+
+    console.log(importedRecordId);
+
+    if(nextSetting && importedRecordId){
+        console.log(JSON.stringify(nextSetting));
+        SDK.REST.createRecord(nextSetting, nxlStorageEntity).then(successSaveSettings, errorSaveSettings);
+    }
+    else{
+        var refresh = function(){
+            setTimeout(function(){
+                window.location.reload(true);
+            }, 100);            
+        };
+        modal.hide();
+        showSuccessImportModal(getSelectedFileName(), refresh);
+    }
+}
+
+function errorSaveSettings(error){
+
+    var errorCodeReg = /\[(\d+)\]/i;
+    var matches = errorCodeReg.exec(error);
+    var errorCode = 20000;
+
+    if(Array.isArray(matches)){
+        errorCode = matches[1];
+    }
+
+    if(Number(errorCode) === ENTITY_NOT_EXIST){
+
+        console.log('expected error: ' + error);
+
+        var curSetting = checkedImportSettings.current();
+        if(curSetting && curSetting.nxl_name){
+            settingToIgnore.push(curSetting.nxl_name);
+        }
+
+        var nextSetting = checkedImportSettings.next();
+
+        if(nextSetting){
+
+            if(settingToIgnore.indexOf(nextSetting.nxl_name) >= 0){
+                nextSetting = checkedImportSettings.next();
+            }
+
+            if(nextSetting){
+                SDK.REST.createRecord(nextSetting, nxlStorageEntity).then(successSaveSettings, errorSaveSettings);
+            }
+            else{
+                modal.hide();
+                showSuccessImportModal(getSelectedFileName());
+            }
+        }
+        else{
+            modal.hide();
+            showSuccessImportModal(getSelectedFileName());
+        }
+    }
+    else{
+        console.log(error);
+
+        var rollback = function(){
+            //rollback
+            var ioCommandDatatype = 280240007;
+            var ioCommand = new IOCommand(history.latest(), 'Remove');
+            var record = {
+                nxl_name: 'iocommand',
+                nxl_datatype: { Value: ioCommandDatatype },
+                nxl_content: ioCommand.serializeToString(),
+                nxl_enabled: true
+            };
+
+            console.log(JSON.stringify(record));
+            modal.show();
+            modal.setLoadingMsg(alertMsgs.rollingBack);
+
+            SDK.REST.createRecord(record, nxlStorageEntity).then(successRollbackSetting, errorRollbackSetting);            
+        }
+
+        showErrorImportModal(alertMsgs.beginRollback, rollback);
+    }
+}
+
+function successRollbackSetting(){
+    modal.hide();
+    showSuccessRollbackModal(alertMsgs.rollbackSuccess);
+}
+
+function errorRollbackSetting(error){
+    console.log(error);
+    modal.hide();
+    showErrorImportModal(alertMsgs.rollbackFailed);
+}
+
+function errorReadFile(error){
+    return new Promise(function(resolve, reject){
+        showErrorImportModal(error);
+
+        if(typeof reject === 'function'){
+            reject(error);
+        }
+    });
+}
+
+function errorReadSettings(error){
+    importWizard.hide(); 
+    showErrorImportModal(error);   
+}
+
+//----------------- event handlers --------------//
+function ClickHelp(){
+	var pageurl = window.location.href;
+	var intsplitedchar = pageurl.lastIndexOf("/");
+
+	if(intsplitedchar < 0){
+		console.log("can not find /");
+		dialogBox.Show("Open help page failed!");
+		return;
+	}
+
+	var headpart = pageurl.substring(0, intsplitedchar);
+	var helpurl = headpart + "/nxl_importexporthelp.html";
+
+	//window.open(helpurl,"_blank");
+	window.open("https://emdcrm-help.pep.cloudaz.com/exporting_settings.html");
+}
+
+function exportHandler(evt){
+
+    hideExportModal();
+
+    var checkedExportItems = $$('.export-list > .export-item > input[type=checkbox]:checked', exportModal.getEl());
+    
+    if(checkedExportItems && checkedExportItems.length > 0){
+
+        setupExportEnv();
+
+        var checkedSettings = [];
+
+        for(var i = 0; i < checkedExportItems.length; i++){
+
+            var datatype = Number(checkedExportItems[i].getAttribute('data-type'));
+
+            checkedSettings.push(datatype);
+
+            if(datatype === 280240000){
+                checkedSettings.push(280240002);
+                checkedSettings.push(280240003);
+            }
+        }
+
+        checkedExportSettings.settings = checkedSettings.slice();
+        checkedExportSettings.reset();
+
+        if(checkedExportSettings && checkedExportSettings.settings.length > 0){
+            getSecuredEntities(checkedExportSettings.current())
+            .then(successGetEntity, errorGetEntity)
+            .then(function(){
+                var fileName = exportSettings();
+                modal.hide();
+                showSuccessExportModal(fileName);
+            });
+        }
+    }
+}
+
+function importHandler(evt){
+
+    var filepickInput = $('#file-picker > input:first-child');
+
+    if(filepickInput){
+
+        var file = filepickInput.files[0];
+
+        readFileAsString(file)
+        .then(readSettings, errorReadFile)
+        .then(renderWizard, errorReadSettings);
+
+        filepickerModal.hide();
+    }
+    else{
+        console.log('importHandler failed, get file input failed');
+    }
+}
+
+function showExportModal(evt){
+    datatypes.reset();
+    settingsToExport = settingFactory();
+    checkedExportSettings = settingFactory([280240000, 280240001, 280240002, 280240003, 280240004, 280240005]);   
+    exportModal.show();
+}
+
+function showImportModal(evt){
+    datatypes.reset();
+    settingsToImport = settingFactory();
+    filepickerModal.show();
+}
+
+function hideExportModal(evt){
+    exportModal.hide();
+}
+
+function hideImportModal(evt){
+    filepickerModal.hide();
+}
+
+function browseClickHandler(evt){
+
+    if(!evt){
+        console.log('browseClickHandler');
+        return;
+    }
+
+    var filepickInput = $('input:first-child', evt.currentTarget);
+    var evt = createEvent('click');
+    filepickInput.dispatchEvent(evt);
+}
+
+function filePickedHandler(evt){
+
+    if(!evt){
+        console.log('filePickedHandler failed, evt: ' + evt);
+        return;
+    }
+
+    var filepicker = evt.target;
+    var importConfirmBtn = $('#import-confirm-btn');            
+    
+    if(filepicker && filepicker.files.length > 0){
+
+        var pickedFile = filepicker.files[0];
+        var fileName = pickedFile ? pickedFile.name : '';
+
+        if(importConfirmBtn){
+            importConfirmBtn.disabled = false;            
+        }
+
+        if(fileName){
+            var fileNameEl = $('#file-name');
+
+            if(fileNameEl && importConfirmBtn){
+                fileNameEl.textContent = fileName;
+            }
+            else{
+                console.log('filePickedHandler -> get filename element failed');
+            }
+        }
+        else{
+            console.log('filePickedHandler -> get filename failed');
+        }
+    }
+    else{
+        importConfirmBtn.disabled = true;            
+    }
+}
+
+function prevClickHandler(evt){
+    slider.slide(slider.types.indexOf(slider.curSlide) - 1);
+}
+
+function nextClickHandler(evt){
+    slider.slide(slider.types.indexOf(slider.curSlide) + 1);
+}
+
+function slideChangeHandler(sender){
+
+    var summaryDatatype = 999999999;
+    var slideImportBtn = $('#import-slide-btn');
+    var slideBackupBtn = $('#backup-slide-btn');
+    var backupWarningEl = $('#backup-warning');
+    var slidePrevBtn = $('#prev-slide-btn');
+
+    if(slideImportBtn && slideBackupBtn && backupWarningEl && slidePrevBtn){
+
+        if(sender.types.indexOf(sender.curSlide) === 0){
+            slidePrevBtn.disabled = true;
+            slideBackupBtn.classList.remove('hide');
+            backupWarningEl.classList.remove('hide');
+        }
+        else{
+            slidePrevBtn.disabled = false;
+            slideBackupBtn.classList.add('hide');
+            backupWarningEl.classList.add('hide');
+        }
+
+        if(sender.curSlide === summaryDatatype){
+            updateSummary();
+            slideImportBtn.classList.remove('hide');
+        }
+        else{
+            slideImportBtn.classList.add('hide');
+        }
+    }
+    else{
+        console.log('slideChangeHandler failed, can not get slide import btn');
+    }
+}
+
+function saveClickHandler(evt){
+    
+    var slideListEl = $('#slide-list');
+    var checkedInputList = $$('.slide-checkbox:checked', slideListEl);
+
+    if(slideListEl && checkedInputList){
+
+        var checkedInputCount = checkedInputList.length;
+        var checkedSettingNames = [];
+
+        for(var i = 0; i < checkedInputCount; i++){
+
+            var curSettingName = checkedInputList[i].getAttribute('data-name');
+            var curSettingDisplayName = checkedInputList[i].getAttribute('data-display-name');
+            var curSettingType = checkedInputList[i].getAttribute('data-type');
+
+            if(curSettingName){
+                checkedSettingNames.push(curSettingName);
+            }
+        }
+
+        history.clear();
+        history.pushState(Date.now().toString());
+        settingToIgnore.length = 0;
+
+        checkedImportSettings = settingFactory(settingsToImport.getSettings());
+        checkedImportSettings.settings = checkedImportSettings.getSettings().filter(function(val, index){
+            return checkedSettingNames.indexOf(val.nxl_name) > -1;
+        }).map(function(val, index){
+            val.nxl_resolved1 = history.latest();
+            return val;
+        });
+
+        importWizard.hide();
+        modal.show();
+        modal.setLoadingMsg('Importing settings. This will take a few minutes, please wait...');        
+
+        console.log(JSON.stringify(checkedImportSettings.current()));
+
+        checkedImportSettings.reset();
+        SDK.REST.createRecord(checkedImportSettings.current(), nxlStorageEntity)
+        .then(successSaveSettings, errorSaveSettings);
+    }
+    else{
+        console.log('import -> saveClickHandler failed');
+    }
+}
+
+function entityAllCheckedHandler(evt){
+
+    var checkboxEl = evt.target;
+    var titleWrapper = checkboxEl ? checkboxEl.parentElement : undefined;
+    var slideContentListEl = titleWrapper ? titleWrapper.nextElementSibling : undefined;
+
+    if(slideContentListEl){
+
+        var checkboxList = $$('.slide-checkbox', slideContentListEl);
+
+        if(checkboxList){
+
+            var checkboxCount = checkboxList.length;
+
+            for(var i = 0; i < checkboxCount; i++){
+                (function(index){
+                    checkboxList[index].checked = checkboxEl.checked;
+                })(i);
+            }
+        }
+        else{
+            console.log('entityAllCheckedHandler failed, can not get checkbox list');
+        }
+    }
+    else{
+        console.log('entityAllCheckedHandler failed, can not get content list element');
+    }
+}
+
+function exportItemCheckedHandler(evt){
+
+    var checkbox = evt.target;
+
+    if(checkbox && checkbox.nodeName.trim().toLowerCase() === 'input' && checkbox.type === 'checkbox'){
+
+        var clickedDatatype = Number(checkbox.getAttribute('data-type'));
+
+        if(!isNaN(clickedDatatype)){
+
+            updateCheckedSettingTypes(clickedDatatype, checkbox.checked);
+        }
+    }
+}
+
+function backupClickHandler(evt){
+    
+    var exportConfirmBtn = $('#export-confirm-btn');
+
+    if(exportConfirmBtn){
+        
+        exportModal.clear();//re-check all settings
+        
+        var evt = createEvent('click');
+        exportConfirmBtn.dispatchEvent(evt);
+    }
+    else{
+        console.log('backupClickHandler failed, get export confirm button failed');;
+    }
+}
+
+//----------------- ui rendering --------------//
+function renderWizard(){
+    
+    var summaryDatatype = 999999999;
+    var typeFilter = [280240002, 280240003];
+    var classifiedSettings = classifySettings(settingsToImport.getSettings());
+
+    importWizard.show();            
+
+    injectSummary(classifiedSettings);
+    //injectBrowseFile(classifiedSettings);
+
+    var settingTypes = Object.keys(classifiedSettings).map(function(type, index){
+        return Number(type);
+    }).filter(function(type, index){
+        return typeFilter.indexOf(type) < 0;
+    });
+
+    slider.types = settingTypes.slice().sort(function(a, b){
+        
+        var result = -1;
+
+        if(datatypeIndexMap[a] > datatypeIndexMap[b]){
+            result = 1;
+        }
+        
+        if(datatypeIndexMap[a] === datatypeIndexMap[b]){
+            result = 0;
+        }
+
+        return result;
+    });
+    
+    slider.curSlide = slider.types[0];
+
+    renderIndicatorList(slider.types.slice());
+    renderSlideList(classifiedSettings, slider.types.slice());
+
+    updateIndicatorList(slider.curSlide);
+    updateTitle(slider.curSlide);
+
+    var stageDesc = $('#stage-descriptor');
+    var toolbar = $('#import-wizard-toolbar');
+
+    if(stageDesc && toolbar){
+        //stageDesc.classList.remove('hide');
+        toolbar.classList.remove('hide');
+    }
+}
+
+function renderIndicatorList(settingDataTypeList){
+
+    var indicatorList = $('#indicator-list');
+    
+    if(!indicatorList || !Array.isArray(settingDataTypeList)){
+        console.log('renderIndicatorList failed');
+        return;
+    }
+
+    if(settingDataTypeList.length > 0){
+
+        var settingCount = settingDataTypeList.length;
+
+        for(var i = 0; i < settingCount; i++){
+
+            var indicator = renderIndicator(settingDataTypeList[i]);
+            
+            if(indicator){
+                indicatorList.appendChild(indicator);
+            }
+        }
+
+    }
+
+}
+
+function renderIndicator(datatype){
+
+    if(isNaN(parseInt(datatype))){
+        console.log('renderIndicator failed, datatype: ' + datatype);
+        return null;
+    }
+
+    var indicatorEl = document.createElement('li');
+    var indicatorArmLeft = document.createElement('div');
+    var indicatorArmRight = document.createElement('div');
+    var indicatorBody = document.createElement('div');
+    var indicatorTitle = document.createElement('p');
+
+    indicatorEl.setAttribute('data-type', datatype);
+    indicatorBody.setAttribute('data-name', datatypeTitleMap[datatype]);
+
+    indicatorEl.className = 'stage-indicator';
+    indicatorArmLeft.className = 'indicator-arm';
+    indicatorArmRight.className = 'indicator-arm';
+    indicatorBody.className = 'indicator-body';
+    indicatorTitle.className = 'indicator-title font-sm';
+
+    indicatorTitle.textContent = datatypeTitleMap[datatype];
+
+    indicatorEl.appendChild(indicatorArmLeft);
+    indicatorEl.appendChild(indicatorBody);
+    indicatorEl.appendChild(indicatorArmRight);
+    indicatorEl.appendChild(indicatorTitle);
+
+    return indicatorEl;
+}
+
+function renderSlideList(classifiedSettings, slideTypeList){
+
+    if(!classifiedSettings || !slideTypeList){
+        console.log('renderSlideList failed');
+        return;
+    }
+
+    var slideListEl = $('#slide-list');
+
+    if(slideListEl){
+
+        for(var i = 0; i < slideTypeList.length; i++){
+
+            var typeNum = parseInt(slideTypeList[i]);
+            var slide;
+
+            switch(typeNum){
+
+                case 280240000: {
+                    slide = renderSecureEnitySlide(classifiedSettings[typeNum]);
+                    break;
+                }
+                case 280240001: {
+                    slide = renderUserAttributesSlide(classifiedSettings[typeNum]);
+                    break;
+                }
+                case 999999999: {
+                    slide = renderSummarySlide();
+                    break;
+                }
+                default: {
+                    if(typeNum !== 280240002 && typeNum !== 280240003){
+                        slide = renderCommonSlide(classifiedSettings[typeNum][0]);           
+                    }            
+                }
+            }
+
+            if(slide){
+                slideListEl.appendChild(slide);
+            }
+        }
+
+        slideListEl.classList.remove('hide');
+    }
+    else{
+        console.log('renderSlideList failed, get slide-list element failed');
+    }
+
+}
+
+function renderSecureEnitySlide(settingList){
+
+    if(!settingList || !Array.isArray(settingList)){
+        console.log('renderSecureEnitySlide failed');
+        return null;
+    }
+
+    var slide = document.createElement('li');
+    var slideTitleWrapper = document.createElement('div');
+    var slideContentList = document.createElement('ul');
+    var checkboxEl = document.createElement('input');
+    var slideTitleEl = document.createElement('span');
+
+    slide.className = 'slide';
+    slideTitleWrapper.className = 'slide-title-wrapper';
+    slideContentList.className = 'slide-content-list';
+    checkboxEl.className = 'slide-checkbox checkbox-md hide';
+    slideTitleEl.className = 'slide-title font-bold font-lg';
+
+    var settingCount = settingList.length;
+
+    for(var i = 0; i < settingCount; i++){
+
+        var secureEntityItem = renderSecureEntityItem(settingList[i]);
+        
+        if(secureEntityItem){
+            slideContentList.appendChild(secureEntityItem);
+        }
+    }
+
+    checkboxEl.type = 'checkbox';
+    checkboxEl.checked = true;
+    checkboxEl.setAttribute('data-name', '');    
+    checkboxEl.setAttribute('data-display-name', datatypeTitleMap[280240000]);
+    checkboxEl.setAttribute('data-type', 280240000);
+    checkboxEl.onclick = entityAllCheckedHandler.bind(this);
+    
+    slideTitleEl.textContent = datatypeTitleMap[280240000];
+
+    slideTitleWrapper.appendChild(checkboxEl);
+    slideTitleWrapper.appendChild(slideTitleEl);
+    slide.appendChild(slideTitleWrapper);
+    slide.appendChild(slideContentList);
+
+    return slide;
+}
+
+function renderSecureEntityItem(entity){
+
+    var secureEntity = new Entity(entity.nxl_name);
+    var entityWrapper = document.createElement('li');
+    var checkboxEl = document.createElement('input');
+    var checkboxLabelEl = document.createElement('label');
+    var labelEl = document.createElement('label');
+
+    entityWrapper.className = 'slide-content-item';
+
+    secureEntity.parseFromString(entity.nxl_content);
+
+    checkboxEl.id = entity.nxl_name;
+    checkboxEl.className = 'slide-checkbox hide';
+    checkboxEl.type = 'checkbox';
+    checkboxEl.checked = true;
+    checkboxEl.setAttribute('data-name', entity.nxl_name);
+    checkboxEl.setAttribute('data-display-name', secureEntity.pluralName);
+    checkboxEl.setAttribute('data-type', entity.nxl_datatype.Value);
+
+    checkboxLabelEl.className = 'checkbox checkbox-md slide-entity-checkbox';
+    checkboxLabelEl.htmlFor = entity.nxl_name;
+    
+    labelEl.textContent = secureEntity.pluralName;
+
+    entityWrapper.appendChild(checkboxEl);
+    entityWrapper.appendChild(checkboxLabelEl);
+    entityWrapper.appendChild(labelEl);
+
+    return entityWrapper;
+}
+
+function renderUserAttributesSlide(settingList){
+
+    if(!settingList || !Array.isArray(settingList)){
+        console.log('renderSecureEnitySlide failed');
+        return null;
+    }
+
+    var slide = document.createElement('li');
+    var slideTitleWrapper = document.createElement('div');
+    var slideContentList = document.createElement('ul');
+    var checkboxEl = document.createElement('input');
+    var slideTitleEl = document.createElement('span');
+
+    slide.className = 'slide';
+    slideTitleWrapper.className = 'slide-title-wrapper';
+    slideContentList.className = 'slide-content-list';
+    checkboxEl.className = 'slide-checkbox checkbox-md hide';
+    slideTitleEl.className = 'slide-title font-bold font-lg';
+
+    var settingCount = settingList.length;
+
+    for(var i = 0; i < settingCount; i++){
+
+        var secureEntityItem = renderUserAttributeItem(settingList[i]);
+        
+        if(secureEntityItem){
+            //secureEntityItem.classList.add('hide');
+            slideContentList.appendChild(secureEntityItem);
+        }
+    }
+
+    checkboxEl.type = 'checkbox';
+    checkboxEl.checked = true;
+    checkboxEl.setAttribute('data-name', '');    
+    checkboxEl.setAttribute('data-display-name', datatypeTitleMap[280240001]);
+    checkboxEl.setAttribute('data-type', 280240001);
+    checkboxEl.onclick = entityAllCheckedHandler.bind(this);    
+    
+    slideTitleEl.textContent = datatypeTitleMap[280240001];
+
+    slideTitleWrapper.appendChild(checkboxEl);
+    slideTitleWrapper.appendChild(slideTitleEl);
+    slide.appendChild(slideTitleWrapper);
+    slide.appendChild(slideContentList);
+
+    return slide;    
+}
+
+function renderUserAttributeItem(entity){
+
+    var secureEntity = new Entity(entity.nxl_name);
+    var entityWrapper = document.createElement('li');
+    var checkboxEl = document.createElement('input');
+    var checkboxLabelEl = document.createElement('label');    
+    var labelEl = document.createElement('label');
+
+    entityWrapper.className = 'slide-content-item';
+
+    secureEntity.parseFromString(entity.nxl_content);
+
+    checkboxEl.id = entity.nxl_name;
+    checkboxEl.className = 'slide-checkbox hide';
+    checkboxEl.type = 'checkbox';
+    checkboxEl.checked = true;
+    checkboxEl.setAttribute('data-name', entity.nxl_name);
+    checkboxEl.setAttribute('data-display-name', secureEntity.pluralName);
+    checkboxEl.setAttribute('data-type', entity.nxl_datatype.Value);
+    
+    checkboxLabelEl.className = 'checkbox checkbox-md slide-entity-checkbox';
+    checkboxLabelEl.htmlFor = entity.nxl_name;
+    
+    labelEl.textContent = secureEntity.pluralName;
+
+    entityWrapper.appendChild(checkboxEl);
+    entityWrapper.appendChild(checkboxLabelEl);    
+    entityWrapper.appendChild(labelEl);
+
+    return entityWrapper;
+}
+
+function renderSummarySlide(){
+
+    var summaryDatatype = 999999999;
+    var slide = document.createElement('li');
+    var slideTitleWrapper = document.createElement('div');
+    var slideTitle = document.createElement('span');
+    var slideContentList = document.createElement('ul');    
+
+    slide.className = 'slide';
+    slideTitleWrapper.className = 'slide-title-wrapper';
+    slideTitle.className = 'slide-title font-bold font-lg';
+    slideContentList.className = 'slide-content-list';
+
+    slideTitle.textContent = datatypeTitleMap[summaryDatatype];
+    
+    slide.appendChild(slideTitleWrapper);
+    slide.appendChild(slideContentList);
+    slideTitleWrapper.appendChild(slideTitle);
+
+    return slide;
+}
+
+function renderCommonSlide(entity){
+
+    if(!entity){
+        console.log('renderCommonSlide failed');
+        return null;
+    }
+
+    var slide = document.createElement('li');
+    var slideTitleWrapper = document.createElement('div');
+    var slideCheckbox = document.createElement('input');
+    var slideTitle = document.createElement('span');
+    var slideContentList = document.createElement('ul');    
+
+    var setting;
+
+    if(entity.nxl_datatype.Value === 280240004){
+        setting = new GeneralSetting();
+    }
+    else if(entity.nxl_datatype.Value === 280240005){
+        setting = new LogSettings();
+    }
+
+    setting.parseFromString(entity.nxl_content);
+
+
+    slide.className = 'slide';
+    slideTitleWrapper.className = 'slide-title-wrapper';
+    slideCheckbox.className = 'slide-checkbox checkbox-md';
+    slideTitle.className = 'slide-title font-bold font-lg';
+    slideContentList.className = 'slide-common-content-list';
+
+    slideCheckbox.checked = true;
+    slideCheckbox.type = 'checkbox';
+    slideCheckbox.setAttribute('data-name', entity.nxl_name);
+    slideCheckbox.setAttribute('data-display-name', datatypeTitleMap[entity.nxl_datatype.Value]);        
+    slideCheckbox.setAttribute('data-type', entity.nxl_datatype.Value);
+    slideTitle.textContent = datatypeTitleMap[entity.nxl_datatype.Value];
+
+    var toolbarItem = renderCommonToolbar(
+        entity.nxl_name, 
+        datatypeTitleMap[entity.nxl_datatype.Value], 
+        entity.nxl_datatype.Value, 
+        datatypeToolbarDescMap[entity.nxl_datatype.Value]);
+
+    slide.appendChild(slideTitleWrapper);
+    slide.appendChild(slideContentList);
+    slideTitleWrapper.appendChild(slideTitle);
+    slideTitleWrapper.appendChild(toolbarItem);
+
+    if(entity.nxl_datatype.Value === 280240004){
+        
+        var keys = Object.keys(setting);
+        
+        for(var i = 0; i < keys.length; i++){
+            var name = keys[i];
+            var value = setting[name];
+    
+            if(name && value){
+    
+                var pwdReg = /pwd|password/gi;
+                var needMask = pwdReg.test(name);
+                var commonItemEl = renderCommonItem(name, value, needMask);
+                
+                if(commonItemEl){
+                    slideContentList.appendChild(commonItemEl);
+                }
+            }
+        }        
+    }
+
+    return slide;
+}
+
+function renderCommonToolbar(logicalName, displayName, datatype, desc){
+
+    var toolbarWrapper = document.createElement('div');
+    var labelEl = document.createElement('label');
+    var inputEl = document.createElement('input');
+    var descEl = document.createElement('span');
+
+    inputEl.setAttribute('data-name', logicalName);
+    inputEl.setAttribute('data-display-name', displayName);
+    inputEl.setAttribute('data-type', datatype);
+
+    inputEl.id = logicalName;
+    inputEl.type = 'checkbox';
+    inputEl.checked = true;
+    labelEl.htmlFor = logicalName;
+    descEl.textContent = desc;
+
+    inputEl.className = 'slide-checkbox hide';
+    labelEl.className = 'checkbox checkbox-md slide-title-checkbox';
+    descEl.className = 'slide-title-checkbox-desc';
+
+    toolbarWrapper.appendChild(inputEl);
+    toolbarWrapper.appendChild(labelEl);
+    toolbarWrapper.appendChild(descEl);
+
+    return toolbarWrapper;
+}
+
+function renderCommonItem(key, value, needMask){
+
+    var entityWrapper = document.createElement('li');
+    var titleWrapper = document.createElement('div');
+    var labelTitle = document.createElement('p');
+    var labelDesc = document.createElement('p');
+    var inputEl = document.createElement('input');
+
+    entityWrapper.className = 'slide-common-content-item';
+    titleWrapper.className = 'slide-item-title-wrapper';
+    inputEl.className = 'font-default font-md slide-item-input';
+
+    labelTitle.className = 'font-bold font-md';
+    labelTitle.textContent = generalSettingPropNameMap[key] || 'unknown';
+
+    if(generalSettingPropNameDescMap[key]){
+        labelDesc.className = 'slide-item-title-wrapper-desc';
+        labelDesc.textContent = generalSettingPropNameDescMap[key];
+    }
+    else{
+        labelDesc.className = 'hide';
+    }
+
+    inputEl.type = needMask ? 'password' : 'text';
+    inputEl.value = value;
+    inputEl.disabled = true;
+
+    entityWrapper.appendChild(titleWrapper);
+    entityWrapper.appendChild(inputEl);
+    titleWrapper.appendChild(labelTitle);
+    titleWrapper.appendChild(labelDesc);
+
+    return entityWrapper;
+}
+
+function updateSummary(){
+
+    var slideListEl = $('#slide-list');
+    var summarySlideContentListEl = $('.slide:last-child > .slide-content-list', slideListEl);
+    var checkedInputList = $$('.slide-checkbox', slideListEl);
+    var checkedSettingLogicalNameList = [];
+    var settingDisplayNameMap = {};
+    var typeFilter = [280240002, 280240003];
+
+    if(summarySlideContentListEl && checkedInputList){
+
+        summarySlideContentListEl.textContent = '';
+
+        var checkedInputCount = checkedInputList.length;
+
+        for(var i = 0; i < checkedInputCount; i++){
+
+            var curSettingName = checkedInputList[i].getAttribute('data-name');
+            var curSettingDisplayName = checkedInputList[i].getAttribute('data-display-name');
+
+            settingDisplayNameMap[curSettingName] = curSettingDisplayName;
+
+            if(checkedInputList[i].checked && curSettingName){
+                checkedSettingLogicalNameList.push(curSettingName);
+            }
+        }
+    }
+
+    var classifiedSettings = classifySettings(settingsToImport.getSettings());
+    var types = Object.keys(classifiedSettings).map(function(type){
+        return Number(type);
+    }).filter(function(type){
+        return typeFilter.indexOf(type) < 0;
+    });
+
+    types = types.sort(function(a, b){
+        var result = -1;
+
+        if(datatypeIndexMap[a] > datatypeIndexMap[b]){
+            result = 1;
+        }
+        
+        if(datatypeIndexMap[a] === datatypeIndexMap[b]){
+            result = 0;
+        }
+
+        return result;        
+    });
+
+    var renderTreeNode = renderSummaryTreeViewNode(settingDisplayNameMap, checkedSettingLogicalNameList);
+
+    for(var j = 0; j < types.length; j++){
+
+        var settings = classifiedSettings[types[j]];
+        var treeNode = renderTreeNode(types[j], settings);
+
+        if(treeNode){
+            summarySlideContentListEl.appendChild(treeNode);
+        }
+    }
+}
+
+function renderSummaryTreeViewNode(settingDisplayNameMap, checkedSettingLogicalNameList){
+    
+    return function(datatype, curTypeSettings){
+
+        var nodeWrapper = document.createElement('div');
+        var nodeContentWrapper = document.createElement('div');
+        var toggleBtn = document.createElement('span');
+        var nodeContent = document.createElement('span');
+        var nodesContainer = document.createElement('ul');
+
+        nodeWrapper.className = 'tree-node-wrapper';
+        nodeContentWrapper.className = 'font-lg';
+
+        toggleBtn.className = 'btn tree-toggle-btn';
+        toggleBtn.textContent = '+';
+        toggleBtn.onclick = function(evt){
+
+            var btn = evt.target;
+            var contentWrapperEl = btn.parentElement;
+            var nodesContainerEl = contentWrapperEl.nextElementSibling;
+        
+            if(btn.textContent.trim() === '+'){
+
+                if(nodesContainerEl){
+                    nodesContainerEl.classList.remove('hide');
+                    btn.textContent = '-';
+                }
+            }
+            else{
+                if(nodesContainerEl){
+                    nodesContainerEl.classList.add('hide');
+                    btn.textContent = '+';
+                }                
+            }
+        }
+
+        nodeContent.className = 'tree-node-title';
+        nodeContent.textContent = datatypeTitleMap[datatype];
+        
+        nodesContainer.className = 'hide';
+    
+        if(curTypeSettings.length > 0){
+            
+            for(var k = 0; k < curTypeSettings.length; k++){
+                
+                var curSetting = curTypeSettings[k];
+                var curSettingDisplayName = settingDisplayNameMap[curSetting.nxl_name];
+                var isChecked = checkedSettingLogicalNameList.indexOf(curSetting.nxl_name) > -1;
+                var summaryContentItem = renderSummaryItem(curSettingDisplayName, isChecked);
+    
+                if(summaryContentItem){
+                    nodesContainer.appendChild(summaryContentItem);
+                }
+            }
+        }
+
+        nodeWrapper.appendChild(nodeContentWrapper);
+        nodeWrapper.appendChild(nodesContainer);
+
+        nodeContentWrapper.appendChild(toggleBtn);
+        nodeContentWrapper.appendChild(nodeContent);
+
+        return nodeWrapper;
+    }
+}
+
+function renderSummaryItem(displayName, isChecked){
+
+    var summaryContentItem = document.createElement('li');
+    var checkboxEl = document.createElement('input');
+    var labelEl = document.createElement('label');
+
+    summaryContentItem.className = 'slide-content-item';
+    checkboxEl.className = 'slide-summary-checkbox checkbox-md';
+
+    checkboxEl.type = 'checkbox';
+    checkboxEl.checked = isChecked;
+    checkboxEl.disabled = true;    
+    labelEl.textContent = displayName;
+
+    summaryContentItem.appendChild(checkboxEl);
+    summaryContentItem.appendChild(labelEl);
+
+    return summaryContentItem;    
+
+}
+
+function updateIndicatorList(datatype){
+
+    datatype = parseInt(datatype);
+
+    if(isNaN(datatype)){
+        console.log('updateIndicatorList failed, datatype: ' + datatype);
+        return;
+    }
+
+    var indicatorList = $('#indicator-list');
+
+    if(indicatorList){
+
+        var indicators = $$('.stage-indicator', indicatorList);
+        var indicatorCount = indicators ? indicators.length : 0;
+
+        for(var i = 0; i < indicatorCount; i++){
+
+            var indicator = indicators[i];
+            var curDatatype = indicator ? parseInt(indicator.getAttribute('data-type')) : undefined;
+
+            if(!isNaN(curDatatype)){
+
+                if(datatypeIndexMap[curDatatype] === datatypeIndexMap[datatype]){
+                    indicator.classList.remove('processed');
+                    indicator.classList.add('processing');
+                }
+                else if(datatypeIndexMap[curDatatype] < datatypeIndexMap[datatype]){
+                    indicator.classList.remove('processing');
+                    indicator.classList.add('processed');
+                }
+                else{
+                    indicator.classList.remove('processed');
+                    indicator.classList.remove('processing');
+                }
+            }
+        }
+    }
+    else{
+        console.log('updateIndicatorList failed, get indicator list element failed');
+    }
+
+}
+
+function updateTitle(datatype){
+
+    var stageTitleEl = $('#stage-title');
+    var stageDescEl = $('#stage-description');
+
+    if(stageTitleEl && stageDescEl){
+        stageTitleEl.textContent = datatypeTitleMap[datatype] || '';
+        stageDescEl.textContent = datatypeDescMap[datatype] || '';
+    }
+    else{
+        console.log('updateTitle failed, can not get element, datatype: ' + datatype);
+    }
+}
+
+function showSuccessImportModal(msg, handler){
+    alertModal.show();
+    alertModal.setType(AlertModal.type.success);
+    alertModal.setTitle('Import Result');
+    alertModal.setContent(msg, alertMsgs.importSuccess);
+    
+    if(typeof handler === 'function'){
+        alertModal.registerCloseAction(handler);
+    }
+}
+
+function showErrorImportModal(msg, handler){
+    alertModal.show();
+    alertModal.setType(AlertModal.type.error);
+    alertModal.setTitle('Import Result');
+    alertModal.setContent(alertMsgs.importFailed, msg);
+
+    if(typeof handler === 'function'){
+        alertModal.registerCloseAction(handler);
+    }    
+}
+
+function showSuccessExportModal(msg, handler){
+    alertModal.show();
+    alertModal.setType(AlertModal.type.success);
+    alertModal.setTitle('Export Result');
+    alertModal.setContent(msg, alertMsgs.exportSuccess);
+
+    if(typeof handler === 'function'){
+        alertModal.registerCloseAction(handler);
+    }                
+}
+
+function showErrorExportModal(msg, handler){
+    alertModal.show();
+    alertModal.setType(AlertModal.type.error);
+    alertModal.setTitle('Export Result');
+    alertModal.setContent(alertMsgs.exportFailed, msg);
+
+    if(typeof handler === 'function'){
+        alertModal.registerCloseAction(handler);
+    }               
+}
+
+function showSuccessRollbackModal(msg, handler){
+    alertModal.show();
+    alertModal.setType(AlertModal.type.success);
+    alertModal.setTitle('Export Result');
+    alertModal.setContent('', msg);
+
+    if(typeof handler === 'function'){
+        alertModal.registerCloseAction(handler);
+    }                
+}
+
+//----------------- components --------------//
+function Modal(id){
+
+    EventDispatcher.call(this);//inherit from EventDispatcher
+
+    this.id = id;
+
+    this.getEl = function(){
+        return $('#' + this.id);
+    };
+
+    this.getOverlay = function(){
+        return $('#' + 'overlay');
+    };
+
+    this.show = function(){
+        var el = this.getEl();
+        var overlay = this.getOverlay();
+        if(el && overlay){
+            this.clear();
+            el.classList.remove('hide');
+            overlay.classList.remove('hide');
+        }
+        else{
+            console.log('modal.show failed, can not get modal element or overlay');
+        }
+    };
+
+    this.hide = function(){
+        var el = this.getEl();
+        var overlay = this.getOverlay();
+        if(el){
+            el.classList.add('hide');
+            overlay.classList.add('hide');
+            //this.clear();
+        }
+        else{
+            console.log('modal.hide failed, can not get modal element');
+        }        
+    };
+
+    this.clear = function(){
+        console.log('abstract modal clear');
+    }    
+}
+
+function EventDispatcher(){
+
+    this.events = [];
+    this.handlers = {};
+    this.isHanlderInit = false;
+
+    this.initHandlers = function(){
+
+        for(var i = 0; i < this.events.length; i++){
+            this.handlers[this.events[i]] = [];
+        }
+        this.isHanlderInit = true;
+    }
+
+    this.on = function(event, handler){
+
+        if(!this.isHanlderInit){
+            this.initHandlers();
+        }
+
+        if(event && this.events.length > 0){
+            if(this.events.indexOf(event) > -1){
+                this.handlers[event].push(handler);
+            }
+            else{
+                throw new Error('EventDispatcher -> register event failed, unsopported event: ' + event);
+            }
+        }
+        else{
+            throw new Error('EventDispatcher -> register event failed, event name invalid');
+        }
+    };
+
+    this.off = function(event){
+
+        if(event){
+            this.handlers[event] = [];
+        }
+        else{
+            throw new Error('EventDispatcher -> unregister event failed, event name invalid');
+        }
+    };
+
+    this.dispatchEvent = function(event){
+
+        var sender = this;
+
+        if(Array.isArray(this.handlers[event])){
+
+            var handlerCount = this.handlers[event].length;
+
+            for(var i = 0; i < handlerCount; i++){
+                var evtHandler = this.handlers[event][i];
+                if(typeof evtHandler === 'function'){
+                    evtHandler(sender);
+                }
+            }
+        }
+    }
+}
+
+function LoadingModal(id){
+
+    Modal.call(this, id);
+
+    this.setLoadingMsg = function(msg){
+
+        if(this.id){
+
+            var el = this.getEl();
+            var msgEl = el ? $('.modal-msg:first-child', el) : undefined;
+
+            if(msgEl){
+                msgEl.textContent = msg;
+            }
+            else{
+                console.log('setLoadingMsg failed, get modal-msg element failed');
+            }
+        }
+        else{
+            console.log('setLoadingMsg failed, modal id: ' + this.id);
+        }
+    };
+
+    this.clear = function(){
+
+        this.setLoadingMsg('');
+    }
+}
+
+function FilePickerModal(id){
+
+    Modal.call(this, id);
+
+    this.clear = function(){
+
+        var filepickInput = $('#file-picker > input[type=file]:first-child');
+        var fileNameEl = $('#file-name');
+        var importConfirmBtn = $('#import-confirm-btn');
+
+        if(filepickInput && fileNameEl && importConfirmBtn){
+            filepickInput.value = '';
+            fileNameEl.textContent = '';
+            importConfirmBtn.disabled = true;
+        }
+        else{
+            console.log('filepickerModal -> clear failed, get input or filename element failed');
+        }
+    };
+}
+
+function ExportModal(id){
+
+    Modal.call(this, id);
+
+    this.clear = function(){
+        
+        var exportModalEl = this.getEl();
+        
+        if(exportModalEl){
+            
+            var items = exportModalEl.querySelectorAll('.export-item > input[type=checkbox]');
+
+            if(items){
+                for(var i = 0; i < items.length; i++){
+                    items[i].checked = true;
+                }
+            }
+            else{
+                console.log('clear Export Modal failed, get items failed');
+            }
+        }
+        else{
+            console.log('clear Export Modal failed, get modal element failed');
+        }
+    }
+}
+
+function AlertModal(id){
+
+    Modal.call(this, id);
+
+    this.clear = function(){
+
+        var titleEl = $('#alert-title');
+        var iconEl = $('#alert-icon');
+        var hightlightTextEl = $('#alert-highlight-text');
+        var plainTextEl = $('#alert-plain-text');
+        var xBtnEl = $('#alert-x-btn');
+        var closeBtnEl = $('#alert-close-btn');
+        
+        if(titleEl && 
+            iconEl && 
+            hightlightTextEl &&
+            plainTextEl &&
+            xBtnEl &&
+            closeBtnEl){
+
+            titleEl.textContent = '';
+            iconEl.className = 'alert-icon';
+            hightlightTextEl.textContent = '';
+            hightlightTextEl.className = 'font-bold';
+            plainTextEl.textContent = '';
+            xBtnEl.onclick = null;
+            closeBtnEl.onclick = null;
+
+            this.registerCloseAction(function(){
+                this.hide();
+            })
+        }
+        else{
+            console.log('AlertModal -> clear failed, can not needed elements.');
+        }
+    }
+
+    this.setType = function(modalType){
+
+        if(modalType !== AlertModal.type.success && modalType !== AlertModal.type.error){
+            console.log('AlertModal -> setType failed, type param: ' + modalType + ' invalid.');
+            return;
+        }
+
+        var icon = $('#alert-icon');
+        var hightlightTextEl = $('#alert-highlight-text');        
+
+        if(icon && hightlightTextEl){
+            if(modalType === AlertModal.type.success){
+                icon.classList.add(AlertModal.type.success);
+                hightlightTextEl.classList.remove('font-red');
+            }
+            else{
+                icon.classList.add(AlertModal.type.error);
+                hightlightTextEl.classList.add('font-red');                
+            }            
+        }
+        else{
+            console.log('AlertModal -> setType failed, can not get icon element.');
+        }
+
+    }
+
+    this.setTitle = function(title){
+        
+        if(typeof title !== 'string'){
+            console.log('setTitle failed, title must be string type.');
+            return;
+        }
+
+        var titleEl = $('#alert-title');
+
+        if(titleEl){
+            titleEl.textContent = title;
+        }
+        else{
+            console.log('AlertModal -> setTitle failed, can not get title element.');
+        }
+    }
+
+    this.setContent = function(contentHighlight, contentPlain){
+
+        if(typeof contentHighlight !== 'string' && typeof contentPlain !== 'string'){
+            console.log('AlertModal -> setContent failed, params must be string type');
+            return;
+        }
+
+        var hightlightTextEl = $('#alert-highlight-text');
+        var plainTextEl = $('#alert-plain-text');
+
+        if(hightlightTextEl && plainTextEl){
+            hightlightTextEl.textContent = contentHighlight;
+            plainTextEl.textContent = contentPlain;
+        }
+        else{
+            console.log('AlertModal -> setContent failed, can not get highlight text or plain text elements');
+        }
+    }
+
+    this.registerCloseAction = function(handler){
+        
+        if(typeof handler !== 'function'){
+            console.log('AlertModal -> registerCloseAction failed, param must be function type.');
+            return;
+        }
+
+        var scope = this;        
+        var xBtn = $('#alert-x-btn');
+        var closeBtn = $('#alert-close-btn');
+
+        if(xBtn && closeBtn){
+            
+            var defaultAction = closeBtn.onclick;
+            var customAction = function(evt){
+
+                if(typeof defaultAction === 'function'){
+                    defaultAction.call(scope);
+                }
+
+                handler.call(scope);
+            }
+
+            xBtn.onclick = customAction;
+            closeBtn.onclick = customAction;
+        }
+        else{
+            console.log('AlertModal -> registerCloseAction failed, can not get x or close btn elements.');
+        }
+    }
+
+    this.registerCloseAction(function(){
+        this.hide();
+    });
+}
+
+AlertModal.type = {
+    success: 'alert-icon-success',
+    error: 'alert-icon-error'
+}
+
+function ImportWizard(id){
+
+    Modal.call(this, id);
+
+    this.clear = function(){
+
+        var indicatorList = $('#indicator-list');
+        var slideList = $('#slide-list');
+        var slideImportBtn = $('#import-slide-btn');
+        var stageDesc = $('#stage-descriptor');
+        var backupWarningEl = $('#backup-warning');
+        var slideBackupBtn = $('#backup-slide-btn');
+        var toolbar = $('#import-wizard-toolbar');
+        var slidePrevBtn = $('#prev-slide-btn');
+
+        if(indicatorList && slideList && slideImportBtn && stageDesc && backupWarningEl && slideBackupBtn && toolbar && slidePrevBtn){
+            indicatorList.textContent = '';
+            slideList.textContent = '';
+            slideList.style.marginLeft = '0';
+            slideImportBtn.classList.add('hide');
+            stageDesc.classList.add('hide');
+            toolbar.classList.add('hide');
+            backupWarningEl.classList.remove('hide');
+            slideBackupBtn.classList.remove('hide');
+            slidePrevBtn.disabled = true;
+        }
+        else{
+            console.log('importWizard -> clear failed');
+        }
+    };
+}
+
+function Slider(){
+
+    EventDispatcher.call(this);//inherit from EventDispatcher    
+
+    var sliderEvents = ['change'];
+
+    this.events = this.events.concat(sliderEvents);
+
+    this.curSlide = -1;
+    this.types = [];
+
+    var prevSlideBtn = $('#prev-slide-btn');
+    var nextSlideBtn = $('#next-slide-btn');
+
+    this.slide = function(nextSlidePos){
+
+        var limit = this.getSlideLimit();
+        var curSlidePos = this.types.indexOf(this.curSlide);        
+
+        if((nextSlidePos > curSlidePos && !limit.canNextSlide) || (nextSlidePos < curSlidePos && !limit.canPrevSlide)){
+            return;
+        }
+
+        var slideMaskEl = $('#slide-mask');
+        var slideListEl = $('#slide-list');
+        
+        if(slideMaskEl && slideListEl){
+
+            var slideWidth = slideMaskEl.offsetWidth;
+            var slideListOffset = slideListEl.offsetLeft;
+
+            prevSlideBtn.onclick = null;
+            nextSlideBtn.onclick = null;
+
+            slideListEl.style.marginLeft = (slideListOffset + (curSlidePos - nextSlidePos) * slideWidth) + 'px';
+            updateIndicatorList(this.types[nextSlidePos]);
+            updateTitle(this.types[nextSlidePos]);
+            this.curSlide = this.types[nextSlidePos];
+            this.dispatchEvent('change');         
+        }
+        else{
+            console.log('slider -> slide failed');
+        }
+    };
+
+    this.getSlideLimit = function(){
+
+        var canUserSlide = { canPrevSlide:true, canNextSlide: true };
+
+        if(this.curSlide < 0 || this.types.length === 0){
+            canUserSlide.canPrevSlide = false;
+            canUserSlide.canNextSlide = false;
+        }
+
+        var curSlidePos = this.types.indexOf(this.curSlide);
+
+        if(curSlidePos < 1){
+            canUserSlide.canPrevSlide = false;
+        }
+
+        if(curSlidePos >= this.types.length - 1){
+            canUserSlide.canNextSlide = false;
+        }
+        
+        return canUserSlide;
+    }
+}
+
+//----------------- inner tools --------------//
+function $(selector, scope){
+
+    if(!scope){
+        scope = document;
+    }
+
+    return scope.querySelector(selector);
+};
+
+function $$(selector, scope){
+
+    if(!scope){
+        scope = document;
+    }
+
+    return scope.querySelectorAll(selector);
+};
+
+function exportSettings(){
+
+    var fileName = '';
+
+    try{
+        var settings = settingsToExport.getSettings();
+        var settingString = JSON.stringify(settings);
+
+        fileName = 'NextLabs_DynamicsEM_Settings_' + (Date.now()) + '.bin';
+
+        download(settingString, fileName);
+    }
+    catch(e){
+        console.log('exportSettings failed, error: ' + e.message);
+    }
+
+    return fileName;
+}
+
+function setupExportEnv(){
+    modal.show();
+    modal.setLoadingMsg('Export settings. This will take a few minutes, please wait...');    
+};
+
+function classifySettings(settingList){
+
+    var classifiedSettings;
+
+    if(!settingList || !Array.isArray(settingList)){
+        console.log('classifySettings failed');
+    }
+
+    classifiedSettings = settingList.reduce(function(prev, val, index){
+
+        if(!Array.isArray(prev[val.nxl_datatype.Value])){
+            prev[val.nxl_datatype.Value] = [];
+        }
+
+        prev[val.nxl_datatype.Value].push(val);
+
+        return prev;
+    }, {});
+
+    return classifiedSettings;
+}
+
+function settingFactory(defaultSettings){
+
+    var defaultValue = [];
+
+    if(Array.isArray(defaultSettings)){
+        defaultValue = defaultSettings.slice();
+    }
+
+    return {
+
+        settings: defaultValue,
+        cursor: 0,
+        append: function(setting){
+
+            var isExist = false;
+
+            if(setting){
+
+                for(var i = 0; i < this.settings.length; i++){
+
+                    var curSetting = this.settings[i];
+
+                    if(curSetting && 
+                        curSetting.nxl_name === setting.nxl_name && 
+                        curSetting.nxl_datatype.Value === setting.nxl_datatype.Value){
+
+                        isExist = true;
+                        break;
+                    }
+                }
+
+                if(!isExist){
+                    this.settings.push(setting);
+                }
+            }
+            else{
+                console.log('append setting failed');
+            }
+        },
+        remove: function(setting){
+
+            if(setting){
+
+                for(var i = 0; i < this.entities.length; i++){
+
+                    var curSetting = this.settings[i];
+
+                    if(curSetting && 
+                        curSetting.nxl_name === setting.nxl_name &&
+                        curSetting.nxl_datatype.Value === setting.nxl_datatype.Value){
+
+                        this.settings.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            else{
+                console.log('remove setting failed');
+            }
+        },
+        current: function(){
+            return this.settings[this.cursor];
+        },
+        next: function(){
+            this.cursor++;
+            return this.settings[this.cursor];
+        },
+        reset: function(){
+            this.cursor = 0;
+        },
+        getSettings: function(){
+            return this.settings.slice();
+        }
+    };
+}
+
+function updateCheckedSettingTypes(datatype, isChecked){
+
+    var datatypePos = checkedExportSettings.settings.indexOf(datatype);
+
+    if(datatypePos < 0 && isChecked){
+        checkedExportSettings.settings.push(datatype);
+        if(datatype === 280240000){
+
+            var m2oDatatypePos = checkedExportSettings.settings.indexOf(280240002);
+            var m2mDatatypePos = checkedExportSettings.settings.indexOf(280240003);
+
+            if(m2oDatatypePos < 0){
+                checkedExportSettings.settings.push(280240002);
+            }
+
+            if(m2mDatatypePos < 0){
+                checkedExportSettings.settings.push(280240003);
+            }
+        }
+    }
+    else if(datatypePos > 0 && !isChecked){
+        checkedExportSettings.settings.splice(datatypePos, 1);
+
+        if(datatype === 280240000){
+            
+            var m2oDatatypePos = checkedExportSettings.settings.indexOf(280240002);
+            var m2mDatatypePos = checkedExportSettings.settings.indexOf(280240003);
+
+            if(m2oDatatypePos > 0){
+                checkedExportSettings.settings.splice(m2oDatatypePos, 1);
+            }
+
+            if(m2mDatatypePos > 0){
+                checkedExportSettings.settings.splice(m2mDatatypePos, 1);
+            }
+        }
+
+    }
+}
+
+function getRecordGUIDFromCreateRecord(result){
+
+    if(!result){
+        console.log('getRecordGUID failed, record is null');
+        return null;
+    }
+
+    return result.nxl_settingId;
+}
+
+function injectSummary(classifiedSettings){
+
+    var inject = injectSlideIntoSettings(classifiedSettings);
+    var summarySetting = { nxl_datatype: { Value: 999999999 } };
+
+    inject(summarySetting);
+}
+
+function injectBrowseFile(classifiedSettings){
+
+    var inject = injectSlideIntoSettings(classifiedSettings);
+    var browseFileSetting = { nxl_datatype: { Value: 100000000 } };
+
+    inject(browseFileSetting);
+}
+
+function injectSlideIntoSettings(classifiedSettings){
+    
+    if(!classifiedSettings){
+        console.log('InjectSlideIntoSettings failed, classifiedSettings invalid');
+        return;
+    }
+
+    return function(slide){
+
+        if(!slide || !slide.nxl_datatype || isNaN(Number(slide.nxl_datatype.Value))){
+            console.log('InjectSlideIntoSettings failed, slide invalid');
+            return;
+        }
+
+        var datatype = slide.nxl_datatype.Value;
+        
+        if(!classifiedSettings[datatype]){
+            classifiedSettings[datatype] = slide;
+        }
+        else{
+            console.log('InjectSlideIntoSettings failed, datatype: ' + datatype + ' already exists!');
+        }        
+    }
+}
+
+function getSelectedFileName(){
+
+    var fileName = '';
+
+    var fileNameEl = $('#file-name');
+
+    if(fileNameEl){
+        fileName = fileNameEl.textContent;
+    }
+    else{
+        console.log('getSelectedFileName failed.');
+    }
+
+    return fileName;
+}
+
+//----------------- entry point --------------//
+init();
+
+})();

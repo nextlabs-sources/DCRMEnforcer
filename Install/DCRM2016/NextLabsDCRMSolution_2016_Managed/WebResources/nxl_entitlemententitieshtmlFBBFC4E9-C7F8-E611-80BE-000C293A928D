@@ -1,0 +1,199 @@
+<html>
+	<head>
+	    <title>Secure Entities</title>
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+	    <meta name="apple-mobile-web-app-capable" content="yes">
+	    <link href="nxl_common.css" type="text/css" rel="stylesheet">
+	    <link href="nxl_entitlemententitiesstyles.css" type="text/css" rel="stylesheet">
+        <script src="ClientGlobalContext.js.aspx" type="text/javascript"></script>
+	    <script src="nxl_es6promise.js" type="text/javascript"></script>            
+	    <script src="nxl_sdk.js"></script>
+	    <script src="nxl_models.js"></script>
+	    <script src="nxl_common.js" type="text/javascript"></script>
+	    <script src="nxl_EntitiesClassifyConfig.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <!-- top toolbar -->
+        <div class="toolbar-top font-default font-lg bg-white">
+            <div id="toolbar-top-home-btn" class="toolbar-top-title-container">
+                <span class="toolbar-top-title-img"></span>
+                <span class="toolbar-top-title-text"><b>Entitlement Manager</b></span>
+            </div>
+            <div id="toolbar-top-save-btn" class="toolbar-top-save-container">
+                <span class="toolbar-top-save-img"></span>
+                <span class="toolbar-top-save-text">Secure Selected Entities</span>
+            </div>
+            <div id="toolbar-top-export-btn" class="toolbar-top-export-container hide">
+                <span class="toolbar-top-export-img"></span>
+                <span class="toolbar-top-save-text">Export &amp; Secure Selected Entities</span>
+            </div>
+			<div id="toolbar-top-help-btn" class="toolbar-top-help-container">
+                <span class="toolbar-top-help-img"></span>
+                <span class="toolbar-top-help-text">Help</span>
+            </div>
+        </div>
+
+        <!-- main body -->
+        <div id="container" class="container font-default">
+            <!--main section-->
+            <div class="main-container">
+                <div class="main-header">
+                    <div id="u327" class="main-header-img"></div>
+                    <div class="main-header-title-wrapper">
+                        <h2 class="font-lg">Secure Entities</h2>
+                        <h4 class="font-default font-md">Configure Entities secured by NextLabs Entitlement Manager and the attributes available for policy authoring and evaluation</h4>
+                        <div class="main-header-desc-wrapper">
+                            <span>Users can only access selected entities and records that they are authorized to use, based on the policies defined in NextLabs CloudAz.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-toolbar">
+                    <div class="main-toolbar-area-wrapper">
+                        <span class="font-bold font-md">Areas</span>
+                        <select id="area-selector" class="select-md">
+                            <option selected="true" value="Any">All Areas</option>
+                        </select>
+                    </div>
+                    <div class="main-toolbar-show-wrapper">
+                        <span class="font-bold font-md">Show</span>
+                        <select id="secure-entity-selector" class="select-md">
+                            <option value="All Entities" selected>All Entities</option>
+                            <option value="Secure Entities">Secure Entities</option>
+                            <option value="Not Secure Entities">Not Secure Entities</option>
+                        </select>
+                    </div>
+                    <div class="main-toolbar-search-wrapper">
+                        <input type="text" id="search-textbox" class="input-lg">
+                        <span id="search-delete-icon">X</span>
+                        <button id="search-btn" class="btn btn-primary btn-md">Search</button>
+                    </div>
+                </div>
+                <div class="main-body">
+                    <div id="entity-list" class="main-entities-container">
+                        <div class="main-entity-select-all-row">
+                            <div class="main-entity-title-wrapper">
+                                <span id="select-all-checkbox" class="checkbox checkbox-md" data-checked="false"></span>
+                                <span class="main-entity-title font-bold font-lg">SELECT ALL</span>
+                            </div>
+                        </div>
+                        <!-- <div class="main-entity-row">
+                            <div class="main-entity-title-wrapper">
+                                <span class="checkbox checkbox-md"></span>
+                                <span class="main-entity-title font-bold">Activities<span class="main-entity-title font-default">(Sales | Service | Marketing )</span></span>
+                            </div>
+                            <div class="main-entity-detail-wrapper">
+                                <p class="main-entity-desc font-default">
+                                    Task performed, or to be performed, by a user. An activity is any action
+                                    for which an entry can be made on a calendar.
+                                </p>
+                                <div class="main-entity-field-toggle-wrapper">
+                                    <span class="main-entity-field-toggle font-default text-link text-link-md">Show Fields ...</label>
+                                </div>
+                                <div id="showFiled_msdyn_postconfig" class="main-entity-field-table-wrapper">
+                                    <p class="main-entity-field-table-desc">Fields available for policy authoring and evaluation</p>
+                                    <table class="main-entity-field-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="td-sm"><span class="checkbox checkbox-md"></span></th>
+                                                <th class="td-lg"><span>Display Name</span></th>
+                                                <th class="td-lg"><span>Name</span></th>
+                                                <th class="td-lg"><span>Data Type</span></th>
+                                                <th class="td-lg"><span>Required / Optional</span></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="td-sm"><span class="checkbox checkbox-md"></span></td>
+                                                <td class="td-lg bg-gray-light"><span>Account</span><span class="entity-display-name-info" title="Unique identifier of the account."></span></td>
+                                                <td class="td-lg"><span>accountid</span></td>
+                                                <td class="td-lg bg-gray-light"><span>Primary Key</span></td>
+                                                <td class="td-lg"><span>Required</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div> -->
+                        <div class="main-entity-row hide">
+                            <div class="main-entity-title-wrapper">
+                                <span class="main-entity-title font-bold font-lg">No matching results found</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--summary-->
+            <div class="summary-container bg-white">
+                <div class="summary-header bg-gray">
+                    <span>Secure Entities </span>
+                    <span id="summary-entity-count">0</span>
+                </div>
+                                
+                <div class="summary-toolbar">
+                    <div id="toolbar-summary-save-btn" class="summary-save-img" title="Secure Selected Entities">
+                        
+                    </div>
+                    <div id="toolbar-summary-export-btn" class="hide summary-export-img" title="Export &amp; Secure Selected Entities">
+                        
+                    </div>
+                    <div class="summary-button-overlay"></div>
+                </div>
+
+                <div class="summary-new-item-label-wrapper hide">
+                    <span class="font-md">* New items</span>
+                </div>
+                <div id="summary-entity-list" class="summary-selected-entities-wrapper">
+                    <!-- <div class="summary-selected-entity-wrapper" data-logical-name="acitivities">
+                        <div class="summary-entity-name-wrapper">
+                            <div class="summary-entity-expand">+</div>
+                            <div class="summary-entity-text-wrapper">
+                                <span>Activity Parties *</span>
+                                <span class="summary-field-count"><span>1</span><span> fields</span></span>
+                                <a class="text-link text-link-sm">Remove</a>
+                            </div>
+                        </div>
+                        <div class="summary-fields-wrapper">
+                            <div class="summary-field-wrapper">
+                                <span class="summary-field-name" data-logical-name="acitivities-activitiesparties">Activity Party *</span>
+                                <span class="summary-field-delete-img"></span>
+                            </div>
+                            <div class="summary-field-wrapper">
+                                <span class="summary-field-name">Activity Party *</span>
+                                <span class="summary-field-delete-img"></span>
+                            </div>
+                        </div>
+                    </div> -->
+                    <div id="no-entity" class="summary-no-entity-wrapper hide">
+                        <span>No selected entities</span>
+                    </div>
+                </div>
+                <div id="remove-all-btn" class="summary-remove-all-wrapper"><span class="text-link font-lg">Remove All</span></div>
+            </div>
+        </div>
+
+        <!-- bottom toolbar -->
+        <div class="toolbar-bottom font-default">
+            <div class="toobar-bottom-btnbar">
+                <button id="toolbar-bottom-save-btn" class="btn btn-lg-ex btn-default" type="button">Secure Selected Entities</button>
+                <button id="toolbar-bottom-export-btn" class="btn btn-lg-ex btn-default hide" type="button">Export &amp; Secure Selected Entities</button>
+            </div>
+        </div>
+
+        <div id="submit-overlay" class="submit-overlay hide"></div>
+        <div id="submit-confirm-modal" class="submit-confirm-modal hide">
+            <h4>Confirm</h4>
+            <ul id="submit-entity-list" class="submit-entity-list">
+                <!-- <li class="submit-entity-item">
+                    <input type="checkbox" data-logical-name="account">
+                    <label>Accounts</label>
+                </li> -->
+            </ul>
+            <div class="submit-toolbar">
+                <button id="submit-cancel-btn" class="btn btn-default btn-md">Cancel</button>
+                <button id="submit-confirm-btn" class="btn btn-primary btn-md">Confirm</button>
+            </div>
+        </div>
+        <script src="nxl_entitlemententities.js" type="text/javascript"></script>    
+    </body>
+</html>
